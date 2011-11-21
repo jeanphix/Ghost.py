@@ -2,6 +2,16 @@ import os
 import thread
 import time
 from PyQt4 import QtCore
+from PyQt4.QtNetwork import QNetworkRequest
+
+class HttpRessource(object):
+    """Represents an HTTP response.
+    """
+    def __init__(self, reply):
+        self.url = unicode(reply.request().url().toString())
+        self.http_status = reply.attribute(
+            QNetworkRequest.HttpStatusCodeAttribute).toInt()[0]
+        self._reply = reply
 
 
 class Casper(object):
@@ -12,6 +22,8 @@ class Casper(object):
     retval = None
 
     def __init__(self):
+        self.loaded_ressources = []
+
         if not Casper.lock:
             Casper.lock = thread.allocate_lock()
 
@@ -43,7 +55,8 @@ class Casper(object):
             self.page.mainFrame().load(QNetworkRequest(QtCore.QUrl(address)),
                 method, body)
             return self.page
-        self._run(open_ressource, False, *(self, address, method))
+
+        return self._run(open_ressource, False, *(self, address, method))
 
     @property
     def content(self):
@@ -105,17 +118,24 @@ class Casper(object):
         self.page = QtWebKit.QWebPage(app)
         self.page.setViewportSize(QtCore.QSize(400, 300))
 
-        self.page.loadFinished.connect(Casper._load_finish)
+        self.page.loadFinished.connect(self._page_loaded)
+        self.page.networkAccessManager().finished.connect(self._request_ended)
 
         app.exec_()
 
-    @staticmethod
-    def _load_finish(self):
+    def _page_loaded(self):
         """Call back main thread when page loaded.
         """
+        Casper.retval = self.loaded_ressources
         Casper._release()
+        self.loaded_ressources = []
 
     @staticmethod
     def _release():
         Casper.lock.release()
         Casper.pipefromveusz_w.write('r')
+
+    def _request_ended(self, res):
+        """Set Casper.last_response after each network requests.
+        """
+        self.loaded_ressources.append(HttpRessource(res))
