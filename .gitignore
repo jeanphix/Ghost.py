@@ -1,0 +1,4 @@
+*.pyc
+env
+build
+__pycache__
