@@ -22,7 +22,7 @@ class Casper(object):
     retval = None
 
     def __init__(self):
-        self.loaded_ressources = []
+        self.http_responses = []
 
         if not Casper.lock:
             Casper.lock = thread.allocate_lock()
@@ -126,7 +126,7 @@ class Casper(object):
     def _page_loaded(self):
         """Call back main thread when page loaded.
         """
-        Casper.retval = self.loaded_ressources
+        Casper.retval = self.http_responses
         Casper._release()
         self.loaded_ressources = []
 
@@ -136,6 +136,6 @@ class Casper(object):
         Casper.pipefromveusz_w.write('r')
 
     def _request_ended(self, res):
-        """Set Casper.last_response after each network requests.
+        """Adds an HttpResponse object to http_responses.
         """
-        self.loaded_ressources.append(HttpRessource(res))
+        self.http_responses.append(HttpRessource(res))
