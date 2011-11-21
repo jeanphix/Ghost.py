@@ -93,8 +93,7 @@ class Casper(object):
                     Casper.retval = e
 
                 if releasable:
-                    Casper.lock.release()
-                    Casper.pipefromveusz_w.write('r')
+                    Casper._release()
 
         app = CasperApp(['casper'])
         notifier = QtCore.QSocketNotifier(Casper.pipetoveusz_r,
@@ -114,5 +113,9 @@ class Casper(object):
     def _load_finish(self):
         """Call back main thread when page loaded.
         """
+        Casper._release()
+
+    @staticmethod
+    def _release():
         Casper.lock.release()
         Casper.pipefromveusz_w.write('r')
