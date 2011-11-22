@@ -4,6 +4,7 @@ import time
 from PyQt4 import QtCore
 from PyQt4.QtNetwork import QNetworkRequest
 
+
 class HttpRessource(object):
     """Represents an HTTP response.
     """
@@ -22,7 +23,7 @@ class Casper(object):
     retval = None
 
     def __init__(self):
-        self.http_responses = []
+        self.http_ressources = []
 
         if not Casper.lock:
             Casper.lock = thread.allocate_lock()
@@ -42,7 +43,27 @@ class Casper(object):
             # TODO: fix this
             time.sleep(0.5)
 
+    @property
+    def content(self):
+        """Gets current frame HTML as a string."""
+        return unicode(self.main_frame.toHtml())
+
+    def evaluate(self, script):
+        """Evaluates script in page frame.
+
+        :param script: The script to evaluate.
+        """
+        return self._run(
+                lambda self, script: self.main_frame\
+                    .evaluateJavaScript("%s" % script),
+                True, *(self, script)
+            )
+
     def open(self, address, callback=None, method='get'):
+        """Opens a web ressource.
+
+        :return: All loaded ressources.
+        """
         def open_ressource(self, address, method):
             from PyQt4 import QtCore
             from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -52,18 +73,18 @@ class Casper(object):
                     "%sOperation" % method.capitalize())
             except AttributeError:
                 raise Exception("Invalid http method %s" % method)
-            self.page.mainFrame().load(QNetworkRequest(QtCore.QUrl(address)),
+            self.main_frame.load(QNetworkRequest(QtCore.QUrl(address)),
                 method, body)
             return self.page
 
         return self._run(open_ressource, False, *(self, address, method))
 
-    @property
-    def content(self):
-        return unicode(self.page.mainFrame().toHtml())
-
     def _run(self, cmd, releasable, *args, **kwargs):
-        """Execute the given command in the Qt thread."""
+        """Execute the given command in the Qt thread.
+
+        :param cmd: The command to execute.
+        :param releasable: Specifies if callback waiting is needed.
+        """
         assert Casper.command == None and Casper.retval == None
         # Sends the command to Qt thread
         Casper.lock.acquire()
@@ -85,7 +106,7 @@ class Casper(object):
     def _start(self):
         """Starts a QtApplication on the dedicated thread.
 
-        Imports have to be done inside thread.
+        :note: Imports have to be done inside thread.
         """
         from PyQt4 import QtCore
         from PyQt4 import QtGui
@@ -121,21 +142,26 @@ class Casper(object):
         self.page.loadFinished.connect(self._page_loaded)
         self.page.networkAccessManager().finished.connect(self._request_ended)
 
+        self.main_frame = self.page.mainFrame()
+
         app.exec_()
 
     def _page_loaded(self):
         """Call back main thread when page loaded.
         """
-        Casper.retval = self.http_responses
+        Casper.retval = self.http_ressources
         Casper._release()
         self.loaded_ressources = []
 
     @staticmethod
     def _release():
+        """Releases the back pipe."""
         Casper.lock.release()
         Casper.pipefromveusz_w.write('r')
 
     def _request_ended(self, res):
-        """Adds an HttpResponse object to http_responses.
+        """Adds an HttpRessource object to http_ressources.
+
+        :param res: The request result.
         """
-        self.http_responses.append(HttpRessource(res))
+        self.http_ressources.append(HttpRessource(res))
