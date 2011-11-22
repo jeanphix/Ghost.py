@@ -15,5 +15,10 @@ def redirect_me():
     return redirect(url_for('home'))
 
 
+@app.route('/mootools')
+def mootools():
+    return render_template('mootools.html')
+
+
 if __name__ == '__main__':
     app.run()
