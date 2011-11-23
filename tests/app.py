@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, jsonify
 
 
 app = Flask(__name__)
+app.debug = True
 
 
 @app.route('/')
@@ -18,6 +19,11 @@ def redirect_me():
 @app.route('/mootools')
 def mootools():
     return render_template('mootools.html')
+
+
+@app.route('/items.json')
+def items():
+    return jsonify(items=['second item', 'third item'])
 
 
 if __name__ == '__main__':

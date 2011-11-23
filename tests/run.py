@@ -13,7 +13,7 @@ class CapserTest(unittest.TestCase):
 
     casper = Casper()
 
-    def test_open_home(self):
+    def test_open(self):
         ressources = self.casper.open(base_url)
         self.assertEqual(ressources[0].url, base_url)
         self.assertTrue("Test page" in self.casper.content)
@@ -28,14 +28,13 @@ class CapserTest(unittest.TestCase):
         self.casper.open(base_url)
         self.assertEqual(self.casper.evaluate("x='casper'; x;"), 'casper')
 
-    def test_mootools_api(self):
+    def test_external_api(self):
         ressources = self.casper.open("%smootools" % base_url)
         self.assertEqual(len(ressources), 2)
         self.assertEqual(self.casper.evaluate("document.id('my-list')").type(),
             8)
         self.assertEqual(self.casper.evaluate("document.id('my-list')"),
             self.casper.evaluate("document.getElementById('my-list')"))
-
 
 if __name__ == '__main__':
     unittest.main()
