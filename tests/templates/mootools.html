@@ -10,9 +10,9 @@
         <script type="text/javascript">
             var list = document.id('list');
             var button = document.id('button');
-            button.addEvent('click', function(e){
-                var r = new Request.JSON({url: button.get('href'), onSuccess: function(datas){
-                    datas.items.each(function(item){
+            button.addEvent('click', function(e) {
+                var r = new Request.JSON({url: button.get('href'), onSuccess: function(datas) {
+                    datas.items.each(function(item) {
                         list.adopt(new Element('li', {
                             text: item
                         }));
