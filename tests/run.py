@@ -4,9 +4,10 @@ import unittest
 from casper import Casper
 from app import app
 
+PORT = 5000
 
-thread.start_new_thread(app.run, ())
-base_url = 'http://localhost:5000/'
+thread.start_new_thread(app.run, (), {'port': PORT})
+base_url = 'http://localhost:%s/' % PORT
 
 
 class CapserTest(unittest.TestCase):
