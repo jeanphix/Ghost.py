@@ -8,7 +8,7 @@ from utils import ClientUtils
 
 
 class HttpRessource(object):
-    """Represents an HTTP response.
+    """Represents an HTTP ressource.
     """
     def __init__(self, reply):
         self.url = unicode(reply.request().url().toString())
