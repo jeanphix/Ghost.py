@@ -17,4 +17,4 @@ class ClientUtils():
 
     @staticmethod
     def find_one(selector):
-        return """document.querySelector("%s");"""
+        return """document.querySelector("%s");""" % selector
