@@ -31,10 +31,17 @@ class CapserTest(unittest.TestCase):
     def test_external_api(self):
         ressources = self.casper.open("%smootools" % base_url)
         self.assertEqual(len(ressources), 2)
-        self.assertEqual(self.casper.evaluate("document.id('my-list')").type(),
-            10)
-        self.assertEqual(self.casper.evaluate("document.id('my-list')"),
-            self.casper.evaluate("document.getElementById('my-list')"))
+        self.assertEqual(self.casper.evaluate("document.id('list')").type(),
+            8)
+        self.assertEqual(self.casper.evaluate("document.id('list')"),
+            self.casper.evaluate("document.getElementById('list')"))
+
+    def test_wait_for_selector(self):
+        ressources = self.casper.open("%smootools" % base_url)
+        self.casper.click("#button")
+        # This is loaded via XHR :)
+        ressources = self.casper.wait_for_selector("#list li:nth-child(2)")
+        self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_wait_for_text(self):
         ressources = self.casper.open("%smootools" % base_url)

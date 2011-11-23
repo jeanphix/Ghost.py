@@ -91,7 +91,7 @@ class Casper(object):
 
         :param selector: The selector to wait for.
         """
-        while self.evaluate(ClientUtils.find_one(selector)).type() == 1:
+        while self.evaluate(ClientUtils.find_one(selector)).type() == 10:
             time.sleep(0.1)
         return self._release_last_ressources()
 
@@ -172,6 +172,10 @@ class Casper(object):
         app.exec_()
 
     def _release_last_ressources(self):
+        """Releases last loaded ressources.
+
+        :return: The released ressources.
+        """
         last_ressources = self.http_ressources
         self.http_ressources = []
         return last_ressources
