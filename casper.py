@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import thread
 import time
@@ -59,9 +60,11 @@ class Casper(object):
                 True, *(self, script)
             )
 
-    def open(self, address, callback=None, method='get'):
+    def open(self, address, method='get'):
         """Opens a web ressource.
 
+        :param address: The ressource URL.
+        :param method: The Http method.
         :return: All loaded ressources.
         """
         def open_ressource(self, address, method):
@@ -150,8 +153,8 @@ class Casper(object):
         """Call back main thread when page loaded.
         """
         Casper.retval = self.http_ressources
+        self.http_ressources = []
         Casper._release()
-        self.loaded_ressources = []
 
     @staticmethod
     def _release():
