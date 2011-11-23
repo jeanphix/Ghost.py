@@ -4,6 +4,7 @@ import thread
 import time
 from PyQt4 import QtCore
 from PyQt4.QtNetwork import QNetworkRequest
+from utils import ClientUtils
 
 
 class HttpRessource(object):
@@ -44,6 +45,9 @@ class Casper(object):
             # TODO: fix this
             time.sleep(0.5)
 
+    def click(self, selector):
+        return self.evaluate(ClientUtils.click(selector))
+
     @property
     def content(self):
         """Gets current frame HTML as a string."""
@@ -81,6 +85,24 @@ class Casper(object):
             return self.page
 
         return self._run(open_ressource, False, *(self, address, method))
+
+    def wait_for_selector(self, selector):
+        """Waits until selector match an element on the frame.
+
+        :param selector: The selector to wait for.
+        """
+        while self.evaluate(ClientUtils.find_one(selector)).type() == 1:
+            time.sleep(0.1)
+        return self._release_last_ressources()
+
+    def wait_for_text(self, text):
+        """Waits until given text appear on main frame.
+
+        :param text: The text to wait for.
+        """
+        while text not in self.content:
+            time.sleep(0.1)
+        return self._release_last_ressources()
 
     def _run(self, cmd, releasable, *args, **kwargs):
         """Execute the given command in the Qt thread.
@@ -149,11 +171,15 @@ class Casper(object):
 
         app.exec_()
 
+    def _release_last_ressources(self):
+        last_ressources = self.http_ressources
+        self.http_ressources = []
+        return last_ressources
+
     def _page_loaded(self):
         """Call back main thread when page loaded.
         """
-        Casper.retval = self.http_ressources
-        self.http_ressources = []
+        Casper.retval = self._release_last_ressources()
         Casper._release()
 
     @staticmethod

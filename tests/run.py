@@ -32,9 +32,17 @@ class CapserTest(unittest.TestCase):
         ressources = self.casper.open("%smootools" % base_url)
         self.assertEqual(len(ressources), 2)
         self.assertEqual(self.casper.evaluate("document.id('my-list')").type(),
-            8)
+            10)
         self.assertEqual(self.casper.evaluate("document.id('my-list')"),
             self.casper.evaluate("document.getElementById('my-list')"))
+
+    def test_wait_for_text(self):
+        ressources = self.casper.open("%smootools" % base_url)
+        self.casper.click("#button")
+        # This is load via XHR :)
+        ressources = self.casper.wait_for_text("second item")
+        self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
+
 
 if __name__ == '__main__':
     unittest.main()
