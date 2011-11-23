@@ -2,9 +2,20 @@
 import os
 import thread
 import time
+import codecs
 from PyQt4 import QtCore
 from PyQt4.QtNetwork import QNetworkRequest
 from utils import ClientUtils
+
+
+def requires_client_utils(func):
+    """Checks avabality of capser client utils, injects insted.
+    """
+    def wrapper(self, *args):
+        if self.evaluate('CasperUtils;').type() == 0:
+            self.evaluate(codecs.open('utils.js').read())
+        return func(self, *args)
+    return wrapper
 
 
 class HttpRessource(object):
@@ -24,8 +35,10 @@ class Casper(object):
     command = None
     retval = None
 
-    def __init__(self):
+    def __init__(self, wait_timeout=5):
         self.http_ressources = []
+
+        self.wait_timeout = wait_timeout
 
         if not Casper.lock:
             Casper.lock = thread.allocate_lock()
@@ -45,8 +58,13 @@ class Casper(object):
             # TODO: fix this
             time.sleep(0.5)
 
+    @requires_client_utils
     def click(self, selector):
-        return self.evaluate(ClientUtils.click(selector))
+        """Click the targeted element.
+
+        :param selector: A CSS3 selector to targeted element.
+        """
+        return self.evaluate('CasperUtils.click("%s");' % selector)
 
     @property
     def content(self):
@@ -63,6 +81,16 @@ class Casper(object):
                     .evaluateJavaScript("%s" % script),
                 True, *(self, script)
             )
+
+    @requires_client_utils
+    def fill(self, selector, values, submit=True):
+        """Fills a form with provided values.
+
+        :param selector: A CSS selector to the target form to fill.
+        :param values: A dict containing the values.
+        :param submit: A boolean that force form submition.
+        """
+        pass
 
     def open(self, address, method='get'):
         """Opens a web ressource.
@@ -91,7 +119,8 @@ class Casper(object):
 
         :param selector: The selector to wait for.
         """
-        while self.evaluate(ClientUtils.find_one(selector)).type() == 10:
+        while self.evaluate('document.querySelector("%s");' % selector)\
+            .type() == 10:
             time.sleep(0.1)
         return self._release_last_ressources()
 
