@@ -5,11 +5,11 @@ import time
 import codecs
 from PyQt4 import QtCore
 from PyQt4.QtNetwork import QNetworkRequest
-from utils import ClientUtils
 
 
 def requires_client_utils(func):
-    """Checks avabality of capser client utils, injects insted.
+    """Decorator that checks avabality of Capser client side utils,
+    injects require javascript file instead.
     """
     def wrapper(self, *args):
         if self.evaluate('CasperUtils;').type() == 0:
