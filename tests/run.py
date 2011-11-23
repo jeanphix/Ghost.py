@@ -39,7 +39,7 @@ class CapserTest(unittest.TestCase):
     def test_wait_for_text(self):
         ressources = self.casper.open("%smootools" % base_url)
         self.casper.click("#button")
-        # This is load via XHR :)
+        # This is loaded via XHR :)
         ressources = self.casper.wait_for_text("second item")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
