@@ -103,7 +103,6 @@ class Casper(object):
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
-        # self.evaluate('CasperUtils.fill("toto", "titi");')
         return self.evaluate('CasperUtils.fill("%s", %s);' % (
             selector, unicode(json.dumps(values))))
 
