@@ -14,7 +14,7 @@ class CasperWebPage(QtWebKit.QWebPage):
         """Prints client console message in current outup stream."""
         super(CasperWebPage, self).javaScriptConsoleMessage(message, *args,
             **kwargs)
-        print "Javascript console: %s" % message
+        print "\033[92mJavascript console: %s\033[0m" % message
 
 
 def client_utils_required(func):
