@@ -18,7 +18,12 @@ class Logger(object):
 
     @staticmethod
     def log(message, type="info"):
-        print "%s%s%s" % (getattr(Logger, type.upper()), message, Logger.END)
+        """Sendsgiven message to std ouput."""
+        try:
+            print "%s%s%s" % (getattr(Logger, type.upper()), message,
+                Logger.END)
+        except AttributeError:
+            raise Exception("Invalid log type")
 
 
 class CasperWebPage(QtWebKit.QWebPage):
@@ -34,10 +39,15 @@ class CasperWebPage(QtWebKit.QWebPage):
         Logger.log("[Client javascript console]: %s" % message, type=log_type)
 
     def javaScriptAlert(self, frame, msg):
-        super(CasperWebPage, self).javaScriptAlert(frame, msg)
+        # super(CasperWebPage, self).javaScriptAlert(frame, msg)
+        Logger.log("[Client page]: Javascript alert('%s')" % msg)
 
     def javaScriptConfirm(self, frame, msg):
-        super(CasperWebPage, self).javaScriptConfirm(frame, msg)
+        # super(CasperWebPage, self).javaScriptConfirm(frame, msg)
+        Logger.log("[Client page]: Javascript confirm('%s')" % msg)
+        Logger.log("[Client page]: You must specified a value for confirm"
+            % msg, type="error")
+        return True
 
 
 def client_utils_required(func):
@@ -45,7 +55,7 @@ def client_utils_required(func):
     injects require javascript file instead.
     """
     def wrapper(self, *args):
-        if self.evaluate('CasperUtils;').type() == 0:
+        if self.evaluate('CasperUtils;')[0].type() == 0:
             self.evaluate(codecs.open('utils.js').read())
         return func(self, *args)
     return wrapper
@@ -116,7 +126,17 @@ class Casper(object):
                 lambda self, script: self.main_frame\
                     .evaluateJavaScript("%s" % script),
                 releasable, *(self, script)
-            )
+            ), self._release_last_ressources()
+
+    def exists(self, selector):
+        """Checks if element exists for given selector.
+
+        :param string: The element selector.
+        """
+        return not self._run(
+                lambda self, selector: self.main_frame\
+                    .findFirstElement(selector), True, *(self, selector)
+            ).isNull()
 
     @client_utils_required
     def fill(self, selector, values, submit=True):
@@ -156,10 +176,9 @@ class Casper(object):
 
         :param selector: The selector to wait for.
         """
-        while self.evaluate('document.querySelector("%s");' % selector)\
-            .type() == 10:
+        while not self.exists(selector):
             time.sleep(0.1)
-        return self._release_last_ressources()
+        return True, self._release_last_ressources()
 
     def wait_for_text(self, text):
         """Waits until given text appear on main frame.
@@ -168,7 +187,7 @@ class Casper(object):
         """
         while text not in self.content:
             time.sleep(0.1)
-        return self._release_last_ressources()
+        return True, self._release_last_ressources()
 
     def _run(self, cmd, releasable, *args, **kwargs):
         """Execute the given command in the Qt thread.

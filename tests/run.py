@@ -27,28 +27,29 @@ class CapserTest(unittest.TestCase):
 
     def test_evaluate(self):
         self.casper.open(base_url)
-        self.assertEqual(self.casper.evaluate("x='casper'; x;"), 'casper')
+        self.assertEqual(self.casper.evaluate("x='casper'; x;")[0], 'casper')
 
     def test_external_api(self):
         ressources = self.casper.open("%smootools" % base_url)
         self.assertEqual(len(ressources), 2)
-        self.assertEqual(self.casper.evaluate("document.id('list')").type(),
+        self.assertEqual(self.casper.evaluate("document.id('list')")[0].type(),
             8)
-        self.assertEqual(self.casper.evaluate("document.id('list')"),
-            self.casper.evaluate("document.getElementById('list')"))
+        self.assertEqual(self.casper.evaluate("document.id('list')")[0],
+            self.casper.evaluate("document.getElementById('list')")[0])
 
     def test_wait_for_selector(self):
         ressources = self.casper.open("%smootools" % base_url)
-        self.casper.click("#button")
+        success, ressources = self.casper.click("#button")
         # This is loaded via XHR :)
-        ressources = self.casper.wait_for_selector("#list li:nth-child(2)")
+        success, ressources = self.casper\
+            .wait_for_selector("#list li:nth-child(2)")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_wait_for_text(self):
         ressources = self.casper.open("%smootools" % base_url)
         self.casper.click("#button")
         # This is loaded via XHR :)
-        ressources = self.casper.wait_for_text("second item")
+        success, ressources = self.casper.wait_for_text("second item")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_fill(self):
