@@ -7,7 +7,7 @@ from PyQt4 import QtCore
 from PyQt4.QtNetwork import QNetworkRequest
 
 
-def requires_client_utils(func):
+def client_utils_required(func):
     """Decorator that checks avabality of Capser client side utils,
     injects require javascript file instead.
     """
@@ -58,7 +58,7 @@ class Casper(object):
             # TODO: fix this
             time.sleep(0.5)
 
-    @requires_client_utils
+    @client_utils_required
     def click(self, selector):
         """Click the targeted element.
 
@@ -82,7 +82,7 @@ class Casper(object):
                 True, *(self, script)
             )
 
-    @requires_client_utils
+    @client_utils_required
     def fill(self, selector, values, submit=True):
         """Fills a form with provided values.
 
