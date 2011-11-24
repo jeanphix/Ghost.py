@@ -11,10 +11,10 @@ from PyQt4.QtNetwork import QNetworkRequest
 class CasperWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage."""
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
-        """Prints client console message in current outup stream."""
+        """Prints client console message in current output stream."""
         super(CasperWebPage, self).javaScriptConsoleMessage(message, *args,
             **kwargs)
-        print "\033[92mJavascript console: %s\033[0m" % message
+        print "\033[92mJavascript console: \033[0m%s" % message
 
 
 def client_utils_required(func):
@@ -40,6 +40,8 @@ class HttpRessource(object):
 
 class Casper(object):
     """Casper manage a QtApplication executed on its own thread.
+
+    :param wait_timeout: Maximum step duration.
     """
     lock = None
     command = None
