@@ -3,8 +3,18 @@ import os
 import thread
 import time
 import codecs
-from PyQt4 import QtCore
+import json
+from PyQt4 import QtCore, QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest
+
+
+class CasperWebPage(QtWebKit.QWebPage):
+    """Overrides QtWebKit.QWebPage."""
+    def javaScriptConsoleMessage(self, message, *args, **kwargs):
+        """Prints client console message in current outup stream."""
+        super(CasperWebPage, self).javaScriptConsoleMessage(message, *args,
+            **kwargs)
+        print "Javascript console: %s" % message
 
 
 def client_utils_required(func):
@@ -71,15 +81,16 @@ class Casper(object):
         """Gets current frame HTML as a string."""
         return unicode(self.main_frame.toHtml())
 
-    def evaluate(self, script):
+    def evaluate(self, script, releasable=True):
         """Evaluates script in page frame.
 
         :param script: The script to evaluate.
+        :param releasable: Specifies if callback waiting is needed.
         """
         return self._run(
                 lambda self, script: self.main_frame\
                     .evaluateJavaScript("%s" % script),
-                True, *(self, script)
+                releasable, *(self, script)
             )
 
     @client_utils_required
@@ -90,7 +101,9 @@ class Casper(object):
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
-        pass
+        # self.evaluate('CasperUtils.fill("toto", "titi");')
+        return self.evaluate('CasperUtils.fill("%s", %s);' % (
+            selector, unicode(json.dumps(values))))
 
     def open(self, address, method='get'):
         """Opens a web ressource.
@@ -190,7 +203,7 @@ class Casper(object):
             app.notification)
         notifier.setEnabled(True)
 
-        self.page = QtWebKit.QWebPage(app)
+        self.page = CasperWebPage(app)
         self.page.setViewportSize(QtCore.QSize(400, 300))
 
         self.page.loadFinished.connect(self._page_loaded)

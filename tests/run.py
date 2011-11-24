@@ -51,6 +51,15 @@ class CapserTest(unittest.TestCase):
         ressources = self.casper.wait_for_text("second item")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
+    def test_fill(self):
+        self.casper.open("%scontact" % base_url)
+        values = {
+            'subject': 'Here is the subject',
+            'email': 'my@awesome.email',
+            'message': 'Here is my message.'
+        }
+        self.casper.fill('#contact-form', values)
+
 
 if __name__ == '__main__':
     unittest.main()

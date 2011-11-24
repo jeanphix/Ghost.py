@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, url_for, redirect, jsonify
+from flask import request
+# from flaskext.wtf import Form, TextField
 
 
 app = Flask(__name__)
+app.config['CSRF_ENABLED'] = False
 
 
 @app.route('/')
 def home():
     return render_template('home.html')
+
+
+@app.route('/contact', methods=['get', 'post'])
+def contact():
+    return render_template('contact.html')
 
 
 @app.route('/redirect-me')
