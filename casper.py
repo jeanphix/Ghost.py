@@ -4,17 +4,40 @@ import thread
 import time
 import codecs
 import json
-from PyQt4 import QtCore, QtWebKit
+from PyQt4 import QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest
 
 
+class Logger(object):
+    """Output colorized logs."""
+    INFO = '\033[94m'  # Blue
+    SUCCESS = '\033[92m'  # Green
+    WARNING = '\033[93m'  # Yellow
+    ERROR = '\033[91m'  # Red
+    END = '\033[0m'
+
+    @staticmethod
+    def log(message, type="info"):
+        print "%s%s%s" % (getattr(Logger, type.upper()), message, Logger.END)
+
+
 class CasperWebPage(QtWebKit.QWebPage):
-    """Overrides QtWebKit.QWebPage."""
+    """Overrides QtWebKit.QWebPage in order to intercept some graphical
+    behaviours like alert(), confirm().
+    Also intercepts client side console.log().
+    """
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
         """Prints client console message in current output stream."""
         super(CasperWebPage, self).javaScriptConsoleMessage(message, *args,
-            **kwargs)
-        print "\033[92mJavascript console: \033[0m%s" % message
+        **kwargs)
+        log_type = "error" if "Error" in message else "success"
+        Logger.log("[Client javascript console]: %s" % message, type=log_type)
+
+    def javaScriptAlert(self, frame, msg):
+        super(CasperWebPage, self).javaScriptAlert(frame, msg)
+
+    def javaScriptConfirm(self, frame, msg):
+        super(CasperWebPage, self).javaScriptConfirm(frame, msg)
 
 
 def client_utils_required(func):
