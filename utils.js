@@ -32,19 +32,55 @@ var CasperUtils = {
             return false;
         }
         for (var name in values) {
-            this.setFieldValue(
-                document.querySelector('[name="' + name + '"]'),
-                values[name]
-            );
+            this.setFieldValue(name, values[name]);
         }
     },
     /**
     * Sets form field value.
     *
-    * @param  HTMLElement  field  The field.
-    * @param  Mixed        value  The value to fill in.
+    * @param  String  field  The field name.
+    * @param  Mixed   value  The value to fill in.
     */
-    setFieldValue: function(field, value) {
-        console.log(value);
+    setFieldValue: function(fieldName, value) {
+        var field = document.querySelector('[name="' + fieldName + '"]');
+        if (!field || !field instanceof HTMLElement) {
+            throw 'Error: Invalid field ' + fieldName;
+        }
+        var nodeName = field.nodeName.toLowerCase();
+        switch (nodeName) {
+            case 'input':
+                var type = field.type || "text";
+                    switch (type) {
+                        case "color":
+                        case "date":
+                        case "datetime":
+                        case "datetime-local":
+                        case "email":
+                        case "hidden":
+                        case "month":
+                        case "number":
+                        case "password":
+                        case "range":
+                        case "search":
+                        case "tel":
+                        case "text":
+                        case "time":
+                        case "url":
+                        case "week":
+                            field.value = value;
+                            break;
+                        case "checkbox":
+                            field.setAttribute('checked', value ? "checked" : "");
+                            break;
+                    }
+                break;
+
+            case 'textarea':
+                field.value = value;
+                break;
+
+            default:
+                throw 'unsupported field type: ' + nodeName;
+        }
     }
 };
