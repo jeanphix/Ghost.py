@@ -53,12 +53,13 @@ class CapserTest(unittest.TestCase):
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_fill(self):
-        self.ghost.open("%scontact" % base_url)
+        self.ghost.open("%sform" % base_url)
         values = {
             'text': 'Here is a sample text.',
             'email': 'my@awesome.email',
             'textarea': 'Here is a sample text.\nWith several lines.',
-            'checkbox': True
+            'checkbox': True,
+            "radio": "first choice"
         }
         self.ghost.fill('#contact-form', values)
         for field in ['text', 'email', 'textarea']:
@@ -68,6 +69,13 @@ class CapserTest(unittest.TestCase):
         value, ressources = self.ghost.evaluate(
             'document.getElementById("checkbox").checked')
         self.assertEqual(value, True)
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("radio-first").checked')
+        self.assertEqual(value, True)
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("radio-second").checked')
+        self.assertEqual(value, False)
+
 
 if __name__ == '__main__':
     unittest.main()

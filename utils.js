@@ -69,6 +69,12 @@ var GhostUtils = {
                         case "week":
                             field.value = value;
                             break;
+                        case "radio":
+                            var radios = document.querySelectorAll('[name=' + fieldName + ']');
+                            Array.prototype.forEach.call(radios, function(e) {
+                                e.checked = (e.value === value);
+                            });
+                            break;
                         case "checkbox":
                             field.setAttribute('checked', value ? "checked" : "");
                             break;
