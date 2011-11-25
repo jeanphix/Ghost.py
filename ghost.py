@@ -26,24 +26,24 @@ class Logger(object):
             raise Exception("Invalid log type")
 
 
-class CasperWebPage(QtWebKit.QWebPage):
+class GhostWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
         """Prints client console message in current output stream."""
-        super(CasperWebPage, self).javaScriptConsoleMessage(message, *args,
+        super(GhostWebPage, self).javaScriptConsoleMessage(message, *args,
         **kwargs)
         log_type = "error" if "Error" in message else "success"
         Logger.log("[Client javascript console]: %s" % message, type=log_type)
 
     def javaScriptAlert(self, frame, msg):
-        # super(CasperWebPage, self).javaScriptAlert(frame, msg)
+        # super(GhostWebPage, self).javaScriptAlert(frame, msg)
         Logger.log("[Client page]: Javascript alert('%s')" % msg)
 
     def javaScriptConfirm(self, frame, msg):
-        # super(CasperWebPage, self).javaScriptConfirm(frame, msg)
+        # super(GhostWebPage, self).javaScriptConfirm(frame, msg)
         Logger.log("[Client page]: Javascript confirm('%s')" % msg)
         Logger.log("[Client page]: You must specified a value for confirm"
             % msg, type="error")
@@ -51,11 +51,11 @@ class CasperWebPage(QtWebKit.QWebPage):
 
 
 def client_utils_required(func):
-    """Decorator that checks avabality of Capser client side utils,
+    """Decorator that checks avabality of Ghost client side utils,
     injects require javascript file instead.
     """
     def wrapper(self, *args):
-        if self.evaluate('CasperUtils;')[0].type() == 0:
+        if self.evaluate('GhostUtils;')[0].type() == 0:
             self.evaluate(codecs.open('utils.js').read())
         return func(self, *args)
     return wrapper
@@ -71,8 +71,8 @@ class HttpRessource(object):
         self._reply = reply
 
 
-class Casper(object):
-    """Casper manage a QtApplication executed on its own thread.
+class Ghost(object):
+    """Ghost manage a QtApplication executed on its own thread.
 
     :param wait_timeout: Maximum step duration.
     """
@@ -85,19 +85,19 @@ class Casper(object):
 
         self.wait_timeout = wait_timeout
 
-        if not Casper.lock:
-            Casper.lock = thread.allocate_lock()
+        if not Ghost.lock:
+            Ghost.lock = thread.allocate_lock()
 
             # To Qt thread pipe
-            Casper.pipetoveusz_r, w = os.pipe()
-            Casper.pipetoveusz_w = os.fdopen(w, 'w', 0)
+            Ghost.pipetoveusz_r, w = os.pipe()
+            Ghost.pipetoveusz_w = os.fdopen(w, 'w', 0)
 
             # Return pipe
             r, w = os.pipe()
-            Casper.pipefromveusz_r = os.fdopen(r, 'r', 0)
-            Casper.pipefromveusz_w = os.fdopen(w, 'w', 0)
+            Ghost.pipefromveusz_r = os.fdopen(r, 'r', 0)
+            Ghost.pipefromveusz_w = os.fdopen(w, 'w', 0)
 
-            thread.start_new_thread(Casper._start, (self,))
+            thread.start_new_thread(Ghost._start, (self,))
             # As there's no callback on application started,
             # lets leep for a while...
             # TODO: fix this
@@ -109,7 +109,7 @@ class Casper(object):
 
         :param selector: A CSS3 selector to targeted element.
         """
-        return self.evaluate('CasperUtils.click("%s");' % selector)
+        return self.evaluate('GhostUtils.click("%s");' % selector)
 
     @property
     def content(self):
@@ -146,7 +146,7 @@ class Casper(object):
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
-        return self.evaluate('CasperUtils.fill("%s", %s);' % (
+        return self.evaluate('GhostUtils.fill("%s", %s);' % (
             selector, unicode(json.dumps(values))))
 
     def open(self, address, method='get'):
@@ -195,19 +195,19 @@ class Casper(object):
         :param cmd: The command to execute.
         :param releasable: Specifies if callback waiting is needed.
         """
-        assert Casper.command == None and Casper.retval == None
+        assert Ghost.command == None and Ghost.retval == None
         # Sends the command to Qt thread
-        Casper.lock.acquire()
-        Casper.command = (cmd, releasable, args, kwargs)
-        Casper.lock.release()
-        Casper.pipetoveusz_w.write('N')
+        Ghost.lock.acquire()
+        Ghost.command = (cmd, releasable, args, kwargs)
+        Ghost.lock.release()
+        Ghost.pipetoveusz_w.write('N')
         # Waits for command to be executed
-        Casper.pipefromveusz_r.read(1)
-        Casper.lock.acquire()
-        retval = Casper.retval
-        Casper.command = None
-        Casper.retval = None
-        Casper.lock.release()
+        Ghost.pipefromveusz_r.read(1)
+        Ghost.lock.acquire()
+        retval = Ghost.retval
+        Ghost.command = None
+        Ghost.retval = None
+        Ghost.lock.release()
         if isinstance(retval, Exception):
             raise retval
         else:
@@ -222,31 +222,31 @@ class Casper(object):
         from PyQt4 import QtGui
         from PyQt4 import QtWebKit
 
-        class CasperApp(QtGui.QApplication):
+        class GhostApp(QtGui.QApplication):
             def notification(self, i):
                 """Notifies application from main thread calls.
                 """
-                Casper.lock.acquire()
-                os.read(Casper.pipetoveusz_r, 1)
+                Ghost.lock.acquire()
+                os.read(Ghost.pipetoveusz_r, 1)
 
-                assert Casper.command is not None
-                cmd, releasable, args, kwargs = Casper.command
+                assert Ghost.command is not None
+                cmd, releasable, args, kwargs = Ghost.command
                 try:
-                    Casper.retval = cmd(*args, **kwargs)
+                    Ghost.retval = cmd(*args, **kwargs)
                 except Exception, e:
-                    Casper.retval = e
+                    Ghost.retval = e
 
                 if releasable:
-                    Casper._release()
+                    Ghost._release()
 
-        app = CasperApp(['casper'])
-        notifier = QtCore.QSocketNotifier(Casper.pipetoveusz_r,
+        app = GhostApp(['ghost'])
+        notifier = QtCore.QSocketNotifier(Ghost.pipetoveusz_r,
                                        QtCore.QSocketNotifier.Read)
         app.connect(notifier, QtCore.SIGNAL('activated(int)'),
             app.notification)
         notifier.setEnabled(True)
 
-        self.page = CasperWebPage(app)
+        self.page = GhostWebPage(app)
         self.page.setViewportSize(QtCore.QSize(400, 300))
 
         self.page.loadFinished.connect(self._page_loaded)
@@ -268,14 +268,14 @@ class Casper(object):
     def _page_loaded(self):
         """Call back main thread when page loaded.
         """
-        Casper.retval = self._release_last_ressources()
-        Casper._release()
+        Ghost.retval = self._release_last_ressources()
+        Ghost._release()
 
     @staticmethod
     def _release():
         """Releases the back pipe."""
-        Casper.lock.release()
-        Casper.pipefromveusz_w.write('r')
+        Ghost.lock.release()
+        Ghost.pipefromveusz_w.write('r')
 
     def _request_ended(self, res):
         """Adds an HttpRessource object to http_ressources.

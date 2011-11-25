@@ -1,7 +1,7 @@
 /**
 * This file includes client side javascript utilities.
 */
-var CasperUtils = {
+var GhostUtils = {
     /**
     * Clicks element for given selector.
     *

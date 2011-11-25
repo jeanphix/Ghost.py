@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, url_for, redirect, jsonify
 from flask import request
-# from flaskext.wtf import Form, TextField
 
 
 app = Flask(__name__)
