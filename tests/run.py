@@ -60,6 +60,10 @@ class CapserTest(unittest.TestCase):
             'message': 'Here is my message.'
         }
         self.casper.fill('#contact-form', values)
+        for field in values:
+            value, resssources = self.casper\
+                .evaluate('document.getElementById("%s").value' % field)
+            self.assertEqual(value.toString(), values[field])
 
 
 if __name__ == '__main__':
