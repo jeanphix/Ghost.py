@@ -12,9 +12,9 @@ def home():
     return render_template('home.html')
 
 
-@app.route('/contact', methods=['get', 'post'])
-def contact():
-    return render_template('contact.html')
+@app.route('/form', methods=['get', 'post'])
+def form():
+    return render_template('form.html')
 
 
 @app.route('/redirect-me')

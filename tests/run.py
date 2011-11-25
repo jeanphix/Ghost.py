@@ -55,18 +55,18 @@ class CapserTest(unittest.TestCase):
     def test_fill(self):
         self.ghost.open("%scontact" % base_url)
         values = {
-            'subject': 'Here is the subject',
+            'text': 'Here is a sample text.',
             'email': 'my@awesome.email',
-            'message': 'Here is my message.',
-            'important': True
+            'textarea': 'Here is a sample text.\nWith several lines.',
+            'checkbox': True
         }
         self.ghost.fill('#contact-form', values)
-        for field in ['subject', 'email', 'message']:
+        for field in ['text', 'email', 'textarea']:
             value, resssources = self.ghost\
                 .evaluate('document.getElementById("%s").value' % field)
             self.assertEqual(value.toString(), values[field])
         value, ressources = self.ghost.evaluate(
-            'document.getElementById("important").checked')
+            'document.getElementById("checkbox").checked')
         self.assertEqual(value, True)
 
 if __name__ == '__main__':
