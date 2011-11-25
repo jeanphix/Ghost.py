@@ -57,14 +57,17 @@ class CapserTest(unittest.TestCase):
         values = {
             'subject': 'Here is the subject',
             'email': 'my@awesome.email',
-            'message': 'Here is my message.'
+            'message': 'Here is my message.',
+            'important': True
         }
         self.casper.fill('#contact-form', values)
-        for field in values:
+        for field in ['subject', 'email', 'message']:
             value, resssources = self.casper\
                 .evaluate('document.getElementById("%s").value' % field)
             self.assertEqual(value.toString(), values[field])
-
+        value, ressources = self.casper.evaluate(
+            'document.getElementById("important").checked')
+        self.assertEqual(value, True)
 
 if __name__ == '__main__':
     unittest.main()
