@@ -11,7 +11,7 @@ thread.start_new_thread(app.run, (), {'port': PORT})
 base_url = 'http://localhost:%s/' % PORT
 
 
-class CapserTest(unittest.TestCase):
+class GhostTest(unittest.TestCase):
 
     ghost = Ghost()
 
@@ -95,6 +95,9 @@ class CapserTest(unittest.TestCase):
         self.assertRaises(Exception,
             self.ghost.open, "http://this.is.a.wrong.uri")
 
+    def test_global_exists(self):
+        self.ghost.open("%s" % base_url)
+        self.assertTrue(self.ghost.global_exists('myGlobal'))
 
 if __name__ == '__main__':
     unittest.main()

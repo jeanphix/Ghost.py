@@ -18,7 +18,7 @@ class Logger(object):
 
     @staticmethod
     def log(message, type="info"):
-        """Sendsgiven message to std ouput."""
+        """Sends given message to std ouput."""
         try:
             print "%s%s%s" % (getattr(Logger, type.upper()), message,
                 Logger.END)
@@ -55,7 +55,7 @@ def client_utils_required(func):
     injects require javascript file instead.
     """
     def wrapper(self, *args, **kwargs):
-        if self.evaluate('GhostUtils;')[0].type() == 0:
+        if not self.global_exists('GhostUtils'):
             self.evaluate(codecs.open('utils.js').read())
         return func(self, *args, **kwargs)
     return wrapper
@@ -163,6 +163,10 @@ class Ghost(object):
             self.loaded = False
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
+
+    def global_exists(self, global_name):
+        return self.evaluate('!(typeof %s === "undefined");' %
+            global_name)[0].toBool()
 
     def open(self, address, method='get'):
         """Opens a web ressource.
@@ -316,7 +320,7 @@ class Ghost(object):
     def _wait_for(self, condition, timeout_message):
         """Waits until condition is True.
 
-        :param condition: A function that returns the condition.
+        :param condition: A callable that returns the condition.
         :param timeout_message: The exception message on timeout.
         """
         started_at = time.time()
