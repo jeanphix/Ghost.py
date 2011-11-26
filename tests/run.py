@@ -92,6 +92,12 @@ class CapserTest(unittest.TestCase):
         }
         self.ghost.fill('#contact-form', values)
         self.ghost.fire_on('#contact-form', 'submit')
+        success, ressources = self.ghost.wait_for_page_loaded()
+
+    def test_open_timeout(self):
+        self.assertRaises(Exception,
+            self.ghost.open, "http://this.is.a.wrong.uri")
+
 
 if __name__ == '__main__':
     unittest.main()
