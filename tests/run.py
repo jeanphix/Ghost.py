@@ -52,6 +52,11 @@ class CapserTest(unittest.TestCase):
         success, ressources = self.ghost.wait_for_text("second item")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
+    def test_wait_for_timeout(self):
+        ressources = self.ghost.open("%s" % base_url)
+        success, ressources = self.ghost.wait_for_text("undefined")
+        self.assertEqual(success, False)
+
     def test_fill(self):
         self.ghost.open("%sform" % base_url)
         values = {
@@ -75,7 +80,6 @@ class CapserTest(unittest.TestCase):
         value, ressources = self.ghost.evaluate(
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
-
 
 if __name__ == '__main__':
     unittest.main()

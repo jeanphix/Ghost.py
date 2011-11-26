@@ -176,7 +176,10 @@ class Ghost(object):
 
         :param selector: The selector to wait for.
         """
+        started_at = time.time()
         while not self.exists(selector):
+            if time.time() > (started_at + self.wait_timeout):
+                return False, self._release_last_ressources()
             time.sleep(0.1)
         return True, self._release_last_ressources()
 
@@ -185,7 +188,10 @@ class Ghost(object):
 
         :param text: The text to wait for.
         """
+        started_at = time.time()
         while text not in self.content:
+            if time.time() > (started_at + self.wait_timeout):
+                return False, self._release_last_ressources()
             time.sleep(0.1)
         return True, self._release_last_ressources()
 
