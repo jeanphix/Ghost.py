@@ -169,11 +169,11 @@ class Ghost(object):
             global_name)[0].toBool()
 
     def open(self, address, method='get'):
-        """Opens a web ressource.
+        """Opens a web page.
 
         :param address: The ressource URL.
         :param method: The Http method.
-        :return: All loaded ressources.
+        :return: Page ressource, All loaded ressources.
         """
         def open_page(self, address, method):
             from PyQt4 import QtCore
