@@ -98,5 +98,9 @@ class GhostTest(unittest.TestCase):
         self.ghost.open("%s" % base_url)
         self.assertTrue(self.ghost.global_exists('myGlobal'))
 
+    # def test_google(self):
+        # self.ghost.open("http://www.google.fr")
+        # print self.ghost.content
+
 if __name__ == '__main__':
     unittest.main()

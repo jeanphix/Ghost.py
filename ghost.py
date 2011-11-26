@@ -74,7 +74,7 @@ class HttpRessource(object):
 class Ghost(object):
     """Ghost manage a QtApplication executed on its own thread.
 
-    :param wait_timeout: Maximum step duration.
+    :param wait_timeout: Maximum step duration in second.
     """
     lock = None
     command = None
@@ -101,7 +101,7 @@ class Ghost(object):
 
             thread.start_new_thread(Ghost._start, (self,))
             # As there's no callback on application started,
-            # lets leep for a while...
+            # lets sleep for a while...
             # TODO: fix this
             time.sleep(0.5)
 

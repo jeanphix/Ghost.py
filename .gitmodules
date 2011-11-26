@@ -1,0 +1,3 @@
+[submodule "docs/build/html"]
+	path = docs/build/html
+	url = git@github.com:jean-philippe/Ghost.py.git
