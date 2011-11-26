@@ -146,8 +146,9 @@ class Ghost(object):
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
-        return self.evaluate('GhostUtils.fill("%s", %s);' % (
-            selector, unicode(json.dumps(values))))
+        return self.evaluate('GhostUtils.fill("%s", %s, %s);' % (
+            selector, unicode(json.dumps(values)),
+            unicode(json.dumps(submit))))
 
     def open(self, address, method='get'):
         """Opens a web ressource.
@@ -179,7 +180,7 @@ class Ghost(object):
         started_at = time.time()
         while not self.exists(selector):
             if time.time() > (started_at + self.wait_timeout):
-                return False, self._release_last_ressources()
+                raise Exception('Can\'t find element matching "%s"' % selector)
             time.sleep(0.1)
         return True, self._release_last_ressources()
 
@@ -191,7 +192,7 @@ class Ghost(object):
         started_at = time.time()
         while text not in self.content:
             if time.time() > (started_at + self.wait_timeout):
-                return False, self._release_last_ressources()
+                raise Exception('Can\'t find "%s" in current frame' % text)
             time.sleep(0.1)
         return True, self._release_last_ressources()
 

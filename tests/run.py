@@ -53,9 +53,8 @@ class CapserTest(unittest.TestCase):
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_wait_for_timeout(self):
-        ressources = self.ghost.open("%s" % base_url)
-        success, ressources = self.ghost.wait_for_text("undefined")
-        self.assertEqual(success, False)
+        self.ghost.open("%s" % base_url)
+        self.assertRaises(Exception, self.ghost.wait_for_text, "undefined")
 
     def test_fill(self):
         self.ghost.open("%sform" % base_url)
