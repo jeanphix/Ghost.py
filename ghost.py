@@ -54,10 +54,10 @@ def client_utils_required(func):
     """Decorator that checks avabality of Ghost client side utils,
     injects require javascript file instead.
     """
-    def wrapper(self, *args):
+    def wrapper(self, *args, **kwargs):
         if self.evaluate('GhostUtils;')[0].type() == 0:
             self.evaluate(codecs.open('utils.js').read())
-        return func(self, *args)
+        return func(self, *args, **kwargs)
     return wrapper
 
 
@@ -152,12 +152,14 @@ class Ghost(object):
             selector, unicode(json.dumps(values))))
 
     @client_utils_required
-    def fire_on(self, selector, method):
+    def fire_on(self, selector, method, except_loading=False):
         """Call method on element matching given selector.
 
         :param selector: A CSS selector to the target element.
         :param method: The name of the method to fire.
         """
+        if except_loading:
+            self.loaded = False
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
 
@@ -188,6 +190,7 @@ class Ghost(object):
     def wait_for_page_loaded(self):
         """Waits until page is loaded, assumed that a page as been requested.
         """
+        # Wait a little bit, just in case of page loading didn't start
         started_at = time.time()
         while self.loaded is False:
             if time.time() > (started_at + self.wait_timeout):
@@ -279,6 +282,7 @@ class Ghost(object):
         self.page.setViewportSize(QtCore.QSize(400, 300))
 
         self.page.loadFinished.connect(self._page_loaded)
+        self.page.loadStarted.connect(self._page_load_started)
         self.page.networkAccessManager().finished.connect(self._request_ended)
 
         self.main_frame = self.page.mainFrame()
@@ -295,9 +299,14 @@ class Ghost(object):
         return last_ressources
 
     def _page_loaded(self):
-        """Call back main thread when page loaded.
+        """Called back when page is loaded.
         """
         self.loaded = True
+
+    def _page_load_started(self):
+        """Called back when page load started.
+        """
+        self.loaded = False
 
     @staticmethod
     def _release():

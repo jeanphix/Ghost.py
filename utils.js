@@ -43,6 +43,9 @@ var GhostUtils = {
     */
     fireOn: function(selector, method) {
         var element = document.querySelector(selector);
+        if (!element) {
+            throw "Can't find element.";
+        }
         return element[method]();
     },
     /**
