@@ -85,13 +85,9 @@ class CapserTest(unittest.TestCase):
         self.ghost.open("%sform" % base_url)
         values = {
             'text': 'Here is a sample text.',
-            'email': 'my@awesome.email',
-            'textarea': 'Here is a sample text.\nWith several lines.',
-            'checkbox': True,
-            "radio": "first choice"
         }
         self.ghost.fill('#contact-form', values)
-        self.ghost.fire_on('#contact-form', 'submit', except_page_loading=True)
+        self.ghost.fire_on('#contact-form', 'submit', expect_page_loading=True)
         success, ressources = self.ghost.wait_for_page_loaded()
         self.assertEqual(ressources[0].http_status, 302)
 

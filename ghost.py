@@ -152,14 +152,14 @@ class Ghost(object):
             selector, unicode(json.dumps(values))))
 
     @client_utils_required
-    def fire_on(self, selector, method, except_page_loading=False):
+    def fire_on(self, selector, method, expect_page_loading=False):
         """Call method on element matching given selector.
 
         :param selector: A CSS selector to the target element.
         :param method: The name of the method to fire.
-        :param except_page_loading: Specifies if a page loading is expected.
+        :param expect_page_loading: Specifies if a page loading is expected.
         """
-        if except_page_loading:
+        if expect_page_loading:
             self.loaded = False
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
@@ -314,6 +314,11 @@ class Ghost(object):
         self.http_ressources.append(HttpRessource(res))
 
     def _wait_for(self, condition, timeout_message):
+        """Waits until condition is True.
+
+        :param condition: A function that returns the condition.
+        :param timeout_message: The exception message on timeout.
+        """
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + self.wait_timeout):
