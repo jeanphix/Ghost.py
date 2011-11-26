@@ -16,30 +16,30 @@ class GhostTest(unittest.TestCase):
     ghost = Ghost()
 
     def test_open(self):
-        success, ressources = self.ghost.open(base_url)
-        self.assertEqual(ressources[0].url, base_url)
+        page, ressources = self.ghost.open(base_url)
+        self.assertEqual(page.url, base_url)
         self.assertTrue("Test page" in self.ghost.content)
 
     def test_http_status(self):
-        success, ressources = self.ghost.open("%sredirect-me" % base_url)
-        self.assertEqual(ressources[0].http_status, 302)
-        success, ressources = self.ghost.open("%s404" % base_url)
-        self.assertEqual(ressources[0].http_status, 404)
+        page, ressources = self.ghost.open("%sredirect-me" % base_url)
+        self.assertEqual(page.http_status, 302)
+        page, ressources = self.ghost.open("%s404" % base_url)
+        self.assertEqual(page.http_status, 404)
 
     def test_evaluate(self):
         self.ghost.open(base_url)
         self.assertEqual(self.ghost.evaluate("x='ghost'; x;")[0], 'ghost')
 
     def test_external_api(self):
-        success, ressources = self.ghost.open("%smootools" % base_url)
-        self.assertEqual(len(ressources), 2)
+        page, ressources = self.ghost.open("%smootools" % base_url)
+        self.assertEqual(len(ressources), 1)
         self.assertEqual(self.ghost.evaluate("document.id('list')")[0].type(),
             8)
         self.assertEqual(self.ghost.evaluate("document.id('list')")[0],
             self.ghost.evaluate("document.getElementById('list')")[0])
 
     def test_wait_for_selector(self):
-        success, ressources = self.ghost.open("%smootools" % base_url)
+        page, ressources = self.ghost.open("%smootools" % base_url)
         success, ressources = self.ghost.click("#button")
         # This is loaded via XHR :)
         success, ressources = self.ghost\
@@ -47,9 +47,8 @@ class GhostTest(unittest.TestCase):
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_wait_for_text(self):
-        success, ressources = self.ghost.open("%smootools" % base_url)
+        page, ressources = self.ghost.open("%smootools" % base_url)
         self.ghost.click("#button")
-        # This is loaded via XHR :)
         success, ressources = self.ghost.wait_for_text("second item")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
@@ -88,8 +87,8 @@ class GhostTest(unittest.TestCase):
         }
         self.ghost.fill('#contact-form', values)
         self.ghost.fire_on('#contact-form', 'submit', expect_page_loading=True)
-        success, ressources = self.ghost.wait_for_page_loaded()
-        self.assertEqual(ressources[0].http_status, 302)
+        page, ressources = self.ghost.wait_for_page_loaded()
+        self.assertEqual(page.http_status, 302)
 
     def test_open_timeout(self):
         self.assertRaises(Exception,

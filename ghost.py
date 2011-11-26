@@ -197,7 +197,8 @@ class Ghost(object):
         """
         self._wait_for(lambda: self.loaded,
             'Unable to load requested page')
-        return True, self._release_last_ressources()
+        ressources = self._release_last_ressources()
+        return ressources[0], ressources[1:]
 
     def wait_for_selector(self, selector):
         """Waits until selector match an element on the frame.
@@ -327,4 +328,4 @@ class Ghost(object):
         while not condition():
             if time.time() > (started_at + self.wait_timeout):
                 raise Exception(timeout_message)
-            time.sleep(0.1)
+            time.sleep(0.01)
