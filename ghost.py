@@ -85,6 +85,8 @@ class Ghost(object):
 
         self.wait_timeout = wait_timeout
 
+        self.loaded = False
+
         if not Ghost.lock:
             Ghost.lock = thread.allocate_lock()
 
@@ -166,7 +168,7 @@ class Ghost(object):
         :param method: The Http method.
         :return: All loaded ressources.
         """
-        def open_ressource(self, address, method):
+        def open_page(self, address, method):
             from PyQt4 import QtCore
             from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
             body = QtCore.QByteArray()
@@ -179,7 +181,18 @@ class Ghost(object):
                 method, body)
             return self.page
 
-        return self._run(open_ressource, False, *(self, address, method))
+        self.loaded = False
+        self._run(open_page, True, *(self, address, method))
+        return self.wait_for_page_loaded()
+
+    def wait_for_page_loaded(self):
+        """Waits until page is loaded, assumed that a page as been requested.
+        """
+        started_at = time.time()
+        while self.loaded is False:
+            if time.time() > (started_at + self.wait_timeout):
+                raise Exception('Unable to load requested page')
+        return True, self._release_last_ressources()
 
     def wait_for_selector(self, selector):
         """Waits until selector match an element on the frame.
@@ -284,8 +297,7 @@ class Ghost(object):
     def _page_loaded(self):
         """Call back main thread when page loaded.
         """
-        Ghost.retval = self._release_last_ressources()
-        Ghost._release()
+        self.loaded = True
 
     @staticmethod
     def _release():

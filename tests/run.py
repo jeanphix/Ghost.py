@@ -16,14 +16,14 @@ class CapserTest(unittest.TestCase):
     ghost = Ghost()
 
     def test_open(self):
-        ressources = self.ghost.open(base_url)
+        success, ressources = self.ghost.open(base_url)
         self.assertEqual(ressources[0].url, base_url)
         self.assertTrue("Test page" in self.ghost.content)
 
     def test_http_status(self):
-        ressources = self.ghost.open("%sredirect-me" % base_url)
+        success, ressources = self.ghost.open("%sredirect-me" % base_url)
         self.assertEqual(ressources[0].http_status, 302)
-        ressources = self.ghost.open("%s404" % base_url)
+        success, ressources = self.ghost.open("%s404" % base_url)
         self.assertEqual(ressources[0].http_status, 404)
 
     def test_evaluate(self):
@@ -31,7 +31,7 @@ class CapserTest(unittest.TestCase):
         self.assertEqual(self.ghost.evaluate("x='ghost'; x;")[0], 'ghost')
 
     def test_external_api(self):
-        ressources = self.ghost.open("%smootools" % base_url)
+        success, ressources = self.ghost.open("%smootools" % base_url)
         self.assertEqual(len(ressources), 2)
         self.assertEqual(self.ghost.evaluate("document.id('list')")[0].type(),
             8)
@@ -39,7 +39,7 @@ class CapserTest(unittest.TestCase):
             self.ghost.evaluate("document.getElementById('list')")[0])
 
     def test_wait_for_selector(self):
-        ressources = self.ghost.open("%smootools" % base_url)
+        success, ressources = self.ghost.open("%smootools" % base_url)
         success, ressources = self.ghost.click("#button")
         # This is loaded via XHR :)
         success, ressources = self.ghost\
@@ -47,7 +47,7 @@ class CapserTest(unittest.TestCase):
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
 
     def test_wait_for_text(self):
-        ressources = self.ghost.open("%smootools" % base_url)
+        success, ressources = self.ghost.open("%smootools" % base_url)
         self.ghost.click("#button")
         # This is loaded via XHR :)
         success, ressources = self.ghost.wait_for_text("second item")
