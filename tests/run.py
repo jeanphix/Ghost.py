@@ -91,7 +91,7 @@ class CapserTest(unittest.TestCase):
             "radio": "first choice"
         }
         self.ghost.fill('#contact-form', values)
-        self.ghost.fire_on('#contact-form', 'submit', except_loading=True)
+        self.ghost.fire_on('#contact-form', 'submit', except_page_loading=True)
         success, ressources = self.ghost.wait_for_page_loaded()
         self.assertEqual(ressources[0].http_status, 302)
 

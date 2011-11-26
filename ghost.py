@@ -152,13 +152,14 @@ class Ghost(object):
             selector, unicode(json.dumps(values))))
 
     @client_utils_required
-    def fire_on(self, selector, method, except_loading=False):
+    def fire_on(self, selector, method, except_page_loading=False):
         """Call method on element matching given selector.
 
         :param selector: A CSS selector to the target element.
         :param method: The name of the method to fire.
+        :param except_page_loading: Specifies if a page loading is expected.
         """
-        if except_loading:
+        if except_page_loading:
             self.loaded = False
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
@@ -190,11 +191,8 @@ class Ghost(object):
     def wait_for_page_loaded(self):
         """Waits until page is loaded, assumed that a page as been requested.
         """
-        # Wait a little bit, just in case of page loading didn't start
-        started_at = time.time()
-        while self.loaded is False:
-            if time.time() > (started_at + self.wait_timeout):
-                raise Exception('Unable to load requested page')
+        self._wait_for(lambda: self.loaded,
+            'Unable to load requested page')
         return True, self._release_last_ressources()
 
     def wait_for_selector(self, selector):
@@ -202,11 +200,8 @@ class Ghost(object):
 
         :param selector: The selector to wait for.
         """
-        started_at = time.time()
-        while not self.exists(selector):
-            if time.time() > (started_at + self.wait_timeout):
-                raise Exception('Can\'t find element matching "%s"' % selector)
-            time.sleep(0.1)
+        self._wait_for(lambda: self.exists(selector),
+            'Can\'t find element matching "%s"' % selector)
         return True, self._release_last_ressources()
 
     def wait_for_text(self, text):
@@ -214,11 +209,8 @@ class Ghost(object):
 
         :param text: The text to wait for.
         """
-        started_at = time.time()
-        while text not in self.content:
-            if time.time() > (started_at + self.wait_timeout):
-                raise Exception('Can\'t find "%s" in current frame' % text)
-            time.sleep(0.1)
+        self._wait_for(lambda: text in self.content,
+            'Can\'t find "%s" in current frame' % text)
         return True, self._release_last_ressources()
 
     def _run(self, cmd, releasable, *args, **kwargs):
@@ -320,3 +312,10 @@ class Ghost(object):
         :param res: The request result.
         """
         self.http_ressources.append(HttpRessource(res))
+
+    def _wait_for(self, condition, timeout_message):
+        started_at = time.time()
+        while not condition():
+            if time.time() > (started_at + self.wait_timeout):
+                raise Exception(timeout_message)
+            time.sleep(0.1)
