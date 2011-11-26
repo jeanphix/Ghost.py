@@ -35,6 +35,10 @@ var GhostUtils = {
             this.setFieldValue(name, values[name]);
         }
     },
+    fireOn: function(selector, method) {
+        var element = document.querySelector(selector);
+        return element[method]();
+    },
     /**
     * Sets form field value.
     *

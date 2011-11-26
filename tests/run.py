@@ -4,6 +4,7 @@ import unittest
 from ghost import Ghost
 from app import app
 
+
 PORT = 5000
 
 thread.start_new_thread(app.run, (), {'port': PORT})
@@ -79,6 +80,18 @@ class CapserTest(unittest.TestCase):
         value, ressources = self.ghost.evaluate(
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
+
+    def test_form_submission(self):
+        self.ghost.open("%sform" % base_url)
+        values = {
+            'text': 'Here is a sample text.',
+            'email': 'my@awesome.email',
+            'textarea': 'Here is a sample text.\nWith several lines.',
+            'checkbox': True,
+            "radio": "first choice"
+        }
+        self.ghost.fill('#contact-form', values)
+        self.ghost.fire_on('#contact-form', 'submit')
 
 if __name__ == '__main__':
     unittest.main()

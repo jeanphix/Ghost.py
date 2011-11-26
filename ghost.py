@@ -139,16 +139,20 @@ class Ghost(object):
             ).isNull()
 
     @client_utils_required
-    def fill(self, selector, values, submit=True):
+    def fill(self, selector, values):
         """Fills a form with provided values.
 
         :param selector: A CSS selector to the target form to fill.
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
-        return self.evaluate('GhostUtils.fill("%s", %s, %s);' % (
-            selector, unicode(json.dumps(values)),
-            unicode(json.dumps(submit))))
+        return self.evaluate('GhostUtils.fill("%s", %s);' % (
+            selector, unicode(json.dumps(values))))
+
+    @client_utils_required
+    def fire_on(self, selector, method):
+        return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
+            selector, method))
 
     def open(self, address, method='get'):
         """Opens a web ressource.
