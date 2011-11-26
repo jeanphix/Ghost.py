@@ -35,6 +35,12 @@ var GhostUtils = {
             this.setFieldValue(name, values[name]);
         }
     },
+    /**
+    * Fire method on element matching given selector.
+    *
+    * @param  String  selector  A CSS3 selector that targets the form to fill.
+    * @param  String  method    The name of the method to fire.
+    */
     fireOn: function(selector, method) {
         var element = document.querySelector(selector);
         return element[method]();

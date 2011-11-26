@@ -151,6 +151,11 @@ class Ghost(object):
 
     @client_utils_required
     def fire_on(self, selector, method):
+        """Call method on element matching given selector.
+
+        :param selector: A CSS selector to the target element.
+        :param method: The name of the method to fire.
+        """
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
 
