@@ -198,7 +198,12 @@ class Ghost(object):
         self._wait_for(lambda: self.loaded,
             'Unable to load requested page')
         ressources = self._release_last_ressources()
-        return ressources[0], ressources[1:]
+        page = None
+        for ressource in ressources:
+            if not int(ressource.http_status / 100) == 3:
+                # Assumed that current ressource is the first non redirect
+                page = ressource
+        return page, ressources
 
     def wait_for_selector(self, selector):
         """Waits until selector match an element on the frame.

@@ -22,7 +22,7 @@ class GhostTest(unittest.TestCase):
 
     def test_http_status(self):
         page, ressources = self.ghost.open("%sredirect-me" % base_url)
-        self.assertEqual(page.http_status, 302)
+        self.assertEqual(ressources[0].http_status, 302)
         page, ressources = self.ghost.open("%s404" % base_url)
         self.assertEqual(page.http_status, 404)
 
@@ -32,7 +32,7 @@ class GhostTest(unittest.TestCase):
 
     def test_external_api(self):
         page, ressources = self.ghost.open("%smootools" % base_url)
-        self.assertEqual(len(ressources), 1)
+        self.assertEqual(len(ressources), 2)
         self.assertEqual(self.ghost.evaluate("document.id('list')")[0].type(),
             8)
         self.assertEqual(self.ghost.evaluate("document.id('list')")[0],
@@ -88,7 +88,7 @@ class GhostTest(unittest.TestCase):
         self.ghost.fill('#contact-form', values)
         self.ghost.fire_on('#contact-form', 'submit', expect_page_loading=True)
         page, ressources = self.ghost.wait_for_page_loaded()
-        self.assertEqual(page.http_status, 302)
+        self.assertEqual(ressources[0].http_status, 302)
 
     def test_open_timeout(self):
         self.assertRaises(Exception,
