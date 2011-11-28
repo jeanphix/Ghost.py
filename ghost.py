@@ -112,7 +112,7 @@ class Ghost(object):
     command = None
     retval = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=5):
+    def __init__(self, user_agent=default_user_agent, wait_timeout=7):
         self.http_ressources = []
 
         self.user_agent = user_agent
@@ -145,6 +145,8 @@ class Ghost(object):
 
         :param selector: A CSS3 selector to targeted element.
         """
+        if not self.exists(selector):
+            raise Exception("Can't find element to click")
         return self.evaluate('GhostUtils.click("%s");' % selector)
 
     @property
@@ -183,6 +185,8 @@ class Ghost(object):
         :param values: A dict containing the values.
         :param submit: A boolean that force form submition.
         """
+        if not self.exists(selector):
+            raise Exception("Can't find form")
         return self.evaluate('GhostUtils.fill("%s", %s);' % (
             selector, unicode(json.dumps(values))))
 
