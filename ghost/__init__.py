@@ -136,10 +136,6 @@ class Ghost(object):
             # TODO: fix this
             time.sleep(0.5)
 
-    def delete_cookies(self):
-        """Deletes all cookies."""
-        self.cookie_jar.setAllCookies([])
-
     @client_utils_required
     @can_load_page
     def click(self, selector):
@@ -160,6 +156,10 @@ class Ghost(object):
     def cookies(self):
         """Returns all cookies."""
         return self.cookie_jar.allCookies()
+
+    def delete_cookies(self):
+        """Deletes all cookies."""
+        self.cookie_jar.setAllCookies([])
 
     @can_load_page
     def evaluate(self, script, releasable=True):

@@ -63,3 +63,15 @@ Api
 
 .. autoclass:: ghost.Ghost
    :members:
+
+Running test suite
+------------------
+
+Package tests require Flask available via::
+
+    pip install Flask
+
+Then::
+
+    cd tests
+    python run.py

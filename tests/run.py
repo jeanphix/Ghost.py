@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import thread
-import time
 import unittest
 from ghost import Ghost
 from app import app
