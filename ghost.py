@@ -165,6 +165,10 @@ class Ghost(object):
             selector, method))
 
     def global_exists(self, global_name):
+        """Checks if javascript global exists.
+
+        :param global_name: The name of the global.
+        """
         return self.evaluate('!(typeof %s === "undefined");' %
             global_name)[0].toBool()
 
