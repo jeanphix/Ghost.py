@@ -9,6 +9,10 @@ from PyQt4 import QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest
 
 
+default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
+    "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+
+
 class Logger(object):
     """Output colorized logs."""
     INFO = '\033[94m'  # Blue
@@ -101,15 +105,17 @@ class HttpRessource(object):
 class Ghost(object):
     """Ghost manage a QtApplication executed on its own thread.
 
+    :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
     """
     lock = None
     command = None
     retval = None
 
-    def __init__(self, wait_timeout=5):
+    def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
 
+        self.user_agent = user_agent
         self.wait_timeout = wait_timeout
 
         self.loaded = False
@@ -216,8 +222,9 @@ class Ghost(object):
                     "%sOperation" % method.capitalize())
             except AttributeError:
                 raise Exception("Invalid http method %s" % method)
-            self.main_frame.load(QNetworkRequest(QtCore.QUrl(address)),
-                method, body)
+            request = QNetworkRequest(QtCore.QUrl(address))
+            request.setRawHeader("User-Agent", self.user_agent)
+            self.main_frame.load(request, method, body)
             return self.page
 
         self.loaded = False
