@@ -48,6 +48,7 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
     lat, ressources = ghost.evaluate("map.center.lat")
     assert float(lat.toString()) == 5860090.806537
 
+
 ---
 Api
 ---
