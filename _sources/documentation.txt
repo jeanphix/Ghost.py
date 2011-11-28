@@ -12,7 +12,7 @@ First you need to install PyQt_ that is available for many plateforms.
 
 Then you may install ghost.by using pip::
 
-    pip install ghost.py
+    pip install git+git://github.com/jean-philippe/Ghost.py.git#egg=ghost
 
 
 -----------
