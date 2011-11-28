@@ -86,8 +86,8 @@ class GhostTest(unittest.TestCase):
             'text': 'Here is a sample text.',
         }
         self.ghost.fill('#contact-form', values)
-        self.ghost.fire_on('#contact-form', 'submit', expect_page_loading=True)
-        page, ressources = self.ghost.wait_for_page_loaded()
+        page, ressources = self.ghost.fire_on('#contact-form', 'submit',
+            expect_loading=True)
         self.assertEqual(ressources[0].http_status, 302)
 
     def test_open_timeout(self):

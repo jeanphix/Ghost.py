@@ -4,6 +4,7 @@ import thread
 import time
 import codecs
 import json
+from functools import wraps
 from PyQt4 import QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest
 
@@ -54,9 +55,30 @@ def client_utils_required(func):
     """Decorator that checks avabality of Ghost client side utils,
     injects require javascript file instead.
     """
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         if not self.global_exists('GhostUtils'):
             self.evaluate(codecs.open('utils.js').read())
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
+def can_load_page(func):
+    """Decorator that specifies if user can expect page loading from
+    this action. If expect_loading is set to True, ghost will wait
+    for page_loaded event.
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if 'expect_loading' in kwargs:
+            expect_loading = True
+            del kwargs['expect_loading']
+        else:
+            expect_loading = False
+        if expect_loading:
+            self.loaded = False
+            func(self, *args, **kwargs)
+            return self.wait_for_page_loaded()
         return func(self, *args, **kwargs)
     return wrapper
 
@@ -152,15 +174,14 @@ class Ghost(object):
             selector, unicode(json.dumps(values))))
 
     @client_utils_required
-    def fire_on(self, selector, method, expect_page_loading=False):
+    @can_load_page
+    def fire_on(self, selector, method):
         """Call method on element matching given selector.
 
         :param selector: A CSS selector to the target element.
         :param method: The name of the method to fire.
-        :param expect_page_loading: Specifies if a page loading is expected.
+        :param expect_loading: Specifies if a page loading is expected.
         """
-        if expect_page_loading:
-            self.loaded = False
         return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
             selector, method))
 
