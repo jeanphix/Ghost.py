@@ -28,7 +28,7 @@ ghost.py provides a simple webkit based web client named Ghost::
 Sample use case
 ===============
 
-In the following, we'll query http://www.openstreetmap.org/ for center map to France::
+In the following test, we will query http://www.openstreetmap.org/ for center map to France::
 
     # Opens the web page
     ghost.open('http://www.openstreetmap.org/')
@@ -39,15 +39,16 @@ In the following, we'll query http://www.openstreetmap.org/ for center map to Fr
     # Submits the form
     ghost.fire_on("#search_form", "submit")
     # Waits for results (an XHR has been called here)
-    r, ressources = self.ghost.wait_for_selector(
+    r, ressources = ghost.wait_for_selector(
         '#search_osm_nominatim .search_results_entry a')
     # Clicks first result link
-    self.ghost.click(
+    ghost.click(
         '#search_osm_nominatim .search_results_entry:first-child a')
     # Checks if map has moved to right latitude
-    lat, ressources = self.ghost.evaluate("map.center.lat")
+    lat, ressources = ghost.evaluate("map.center.lat")
     assert float(lat.toString()) == 5860090.806537
 
+---
 Api
 ---
 

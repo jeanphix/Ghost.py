@@ -44,11 +44,11 @@ class GhostWebPage(QtWebKit.QWebPage):
         Logger.log("[Client javascript console]: %s" % message, type=log_type)
 
     def javaScriptAlert(self, frame, msg):
-        # super(GhostWebPage, self).javaScriptAlert(frame, msg)
+        # TODO
         Logger.log("[Client page]: Javascript alert('%s')" % msg)
 
     def javaScriptConfirm(self, frame, msg):
-        # super(GhostWebPage, self).javaScriptConfirm(frame, msg)
+        # TODO
         Logger.log("[Client page]: Javascript confirm('%s')" % msg)
         Logger.log("[Client page]: You must specified a value for confirm"
             % msg, type="error")
