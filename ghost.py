@@ -89,7 +89,7 @@ class HttpRessource(object):
     """Represents an HTTP ressource.
     """
     def __init__(self, reply):
-        self.url = unicode(reply.request().url().toString())
+        self.url = unicode(reply.url().toString())
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute).toInt()[0]
         self.headers = {}
@@ -146,6 +146,7 @@ class Ghost(object):
         """Gets current frame HTML as a string."""
         return unicode(self.main_frame.toHtml())
 
+    @can_load_page
     def evaluate(self, script, releasable=True):
         """Evaluates script in page frame.
 
