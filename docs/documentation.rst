@@ -32,7 +32,7 @@ In the following test, we will query http://www.openstreetmap.org/ for center ma
 
     # Opens the web page
     ghost.open('http://www.openstreetmap.org/')
-    # Waits form serach field
+    # Waits form search field
     ghost.wait_for_selector('input[name=query]')
     # Fills the form
     ghost.fill("#search_form", {'query': 'France'})
