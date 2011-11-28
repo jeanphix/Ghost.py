@@ -69,7 +69,7 @@
 <span class="c"># Clicks first result link</span>
 <span class="n">ghost</span><span class="o">.</span><span class="n">click</span><span class="p">(</span>
     <span class="s">&#39;#search_osm_nominatim .search_results_entry:first-child a&#39;</span><span class="p">)</span>
-<span class="c"># Checks if map has moved to right latitude</span>
+<span class="c"># Checks if map has moved to expected latitude</span>
 <span class="n">lat</span><span class="p">,</span> <span class="n">ressources</span> <span class="o">=</span> <span class="n">ghost</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&quot;map.center.lat&quot;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">toString</span><span class="p">())</span> <span class="o">==</span> <span class="mf">5860090.806537</span>
 </pre></div>
