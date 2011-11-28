@@ -1,0 +1,291 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ghost.py &mdash; Ghost.py 0.1a documentation</title>
+    
+    <link rel="stylesheet" href="_static/ghost.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ghost.py 0.1a documentation" href="#" /> 
+  </head>
+  <body>
+  
+  
+  <div class=indexwrapper>
+  
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ghost-py">
+<h1>ghost.py<a class="headerlink" href="#ghost-py" title="Permalink to this headline">¶</a></h1>
+<p>ghost.py is a webkit web client written in python:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ghost</span> <span class="kn">import</span> <span class="n">Ghost</span>
+<span class="n">ghost</span> <span class="o">=</span> <span class="n">Ghost</span><span class="p">()</span>
+<span class="n">page</span><span class="p">,</span> <span class="n">extra_ressources</span> <span class="o">=</span> <span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;http://jeanphi.fr&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">page</span><span class="o">.</span><span class="n">http_status</span><span class="o">==</span><span class="mi">200</span> <span class="ow">and</span> <span class="s">&#39;jeanphix&#39;</span> <span class="ow">in</span> <span class="n">ghost</span><span class="o">.</span><span class="n">content</span>
+</pre></div>
+</div>
+<p>As ghost.py has been designed to be a python web application test client, please consider using another library like <a class="reference external" href="http://n1k0.github.com/casperjs/">Casper.js</a> for any other stuff (sniffing...).</p>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>First you need to install <a class="reference external" href="http://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt</a> that is available for many plateforms.</p>
+<p>Then you may install ghost.by using pip:</p>
+<div class="highlight-python"><pre>pip install ghost.py</pre>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h3>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h3>
+<p>ghost.py provides a simple webkit based web client named Ghost:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ghost</span> <span class="kn">import</span> <span class="n">Ghost</span>
+<span class="n">ghost</span> <span class="o">=</span> <span class="n">Ghost</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="sample-use-case">
+<h1>Sample use case<a class="headerlink" href="#sample-use-case" title="Permalink to this headline">¶</a></h1>
+<p>The following test tries to center <a class="reference external" href="http://www.openstreetmap.org/">http://www.openstreetmap.org/</a> map to France:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Opens the web page</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&#39;http://www.openstreetmap.org/&#39;</span><span class="p">)</span>
+<span class="c"># Waits for form search field</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">wait_for_selector</span><span class="p">(</span><span class="s">&#39;input[name=query]&#39;</span><span class="p">)</span>
+<span class="c"># Fills the form</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&quot;#search_form&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;query&#39;</span><span class="p">:</span> <span class="s">&#39;France&#39;</span><span class="p">})</span>
+<span class="c"># Submits the form</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">fire_on</span><span class="p">(</span><span class="s">&quot;#search_form&quot;</span><span class="p">,</span> <span class="s">&quot;submit&quot;</span><span class="p">)</span>
+<span class="c"># Waits for results (an XHR has been called here)</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">wait_for_selector</span><span class="p">(</span>
+    <span class="s">&#39;#search_osm_nominatim .search_results_entry a&#39;</span><span class="p">)</span>
+<span class="c"># Clicks first result link</span>
+<span class="n">ghost</span><span class="o">.</span><span class="n">click</span><span class="p">(</span>
+    <span class="s">&#39;#search_osm_nominatim .search_results_entry:first-child a&#39;</span><span class="p">)</span>
+<span class="c"># Checks if map has moved to right latitude</span>
+<span class="n">lat</span><span class="p">,</span> <span class="n">ressources</span> <span class="o">=</span> <span class="n">ghost</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s">&quot;map.center.lat&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">toString</span><span class="p">())</span> <span class="o">==</span> <span class="mf">5860090.806537</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="ghost.Ghost">
+<em class="property">class </em><tt class="descclassname">ghost.</tt><tt class="descname">Ghost</tt><big>(</big><em>user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 (KHTML</em>, <em>like Gecko) Chrome/15.0.874.121 Safari/535.2'</em>, <em>wait_timeout=7</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ghost manage a QtApplication executed on its own thread.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>user_agent</strong> &#8211; The default User-Agent header.</li>
+<li><strong>wait_timeout</strong> &#8211; Maximum step duration in second.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="ghost.Ghost.click">
+<tt class="descname">click</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Click the targeted element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>selector</strong> &#8211; A CSS3 selector to targeted element.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ghost.Ghost.content">
+<tt class="descname">content</tt><a class="reference internal" href="_modules/ghost.html#Ghost.content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets current frame HTML as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates script in page frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>script</strong> &#8211; The script to evaluate.</li>
+<li><strong>releasable</strong> &#8211; Specifies if callback waiting is needed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.exists">
+<tt class="descname">exists</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if element exists for given selector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>string</strong> &#8211; The element selector.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.fill">
+<tt class="descname">fill</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills a form with provided values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>selector</strong> &#8211; A CSS selector to the target form to fill.</li>
+<li><strong>values</strong> &#8211; A dict containing the values.</li>
+<li><strong>submit</strong> &#8211; A boolean that force form submition.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.fire_on">
+<tt class="descname">fire_on</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.fire_on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.fire_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method on element matching given selector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>selector</strong> &#8211; A CSS selector to the target element.</li>
+<li><strong>method</strong> &#8211; The name of the method to fire.</li>
+<li><strong>expect_loading</strong> &#8211; Specifies if a page loading is expected.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.global_exists">
+<tt class="descname">global_exists</tt><big>(</big><em>global_name</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.global_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.global_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if javascript global exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>global_name</strong> &#8211; The name of the global.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.open">
+<tt class="descname">open</tt><big>(</big><em>address</em>, <em>method='get'</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a web page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>address</strong> &#8211; The ressource URL.</li>
+<li><strong>method</strong> &#8211; The Http method.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Page ressource, All loaded ressources.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.wait_for_page_loaded">
+<tt class="descname">wait_for_page_loaded</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_page_loaded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_page_loaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits until page is loaded, assumed that a page as been requested.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.wait_for_selector">
+<tt class="descname">wait_for_selector</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_selector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_selector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits until selector match an element on the frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>selector</strong> &#8211; The selector to wait for.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.Ghost.wait_for_text">
+<tt class="descname">wait_for_text</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits until given text appear on main frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>text</strong> &#8211; The text to wait for.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <a href="http://github.com/jean-philippe/Ghost.py"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  
+
+  
+  </div>
+  
+
+  </body>
+</html>
