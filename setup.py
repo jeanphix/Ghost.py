@@ -17,7 +17,7 @@ setup(
     author_email='serafinjp@gmail.com',
     description='Webkit based webclient.',
     long_description=__doc__,
-    data_files=[('', ['README.rst', 'ghost/utils.js'])],
+    data_files=[('ghost', ['README.rst', 'ghost/utils.js'])],
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
