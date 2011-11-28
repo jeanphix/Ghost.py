@@ -23,7 +23,6 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'pyqt'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
