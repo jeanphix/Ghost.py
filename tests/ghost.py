@@ -1,1 +1,1 @@
-../ghost.py
+../ghost/__init__.py
