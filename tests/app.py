@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, url_for, redirect, jsonify
 from flask import request
+from flask import make_response
 
 
 app = Flask(__name__)
@@ -10,6 +11,13 @@ app.config['CSRF_ENABLED'] = False
 @app.route('/')
 def home():
     return render_template('home.html')
+
+
+@app.route('/cookie')
+def cookie():
+    resp = make_response('Response text')
+    resp.set_cookie('mycookies', 'mycookie value')
+    return resp
 
 
 @app.route('/form', methods=['get', 'post'])

@@ -110,7 +110,7 @@ class Ghost(object):
     command = None
     retval = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=7):
+    def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
 
         self.user_agent = user_agent
@@ -136,6 +136,10 @@ class Ghost(object):
             # TODO: fix this
             time.sleep(0.5)
 
+    def delete_cookies(self):
+        """Deletes all cookies."""
+        self.cookie_jar.setAllCookies([])
+
     @client_utils_required
     @can_load_page
     def click(self, selector):
@@ -149,8 +153,13 @@ class Ghost(object):
 
     @property
     def content(self):
-        """Gets current frame HTML as a string."""
+        """Returns current frame HTML as a string."""
         return unicode(self.main_frame.toHtml())
+
+    @property
+    def cookies(self):
+        """Returns all cookies."""
+        return self.cookie_jar.allCookies()
 
     @can_load_page
     def evaluate(self, script, releasable=True):
@@ -294,7 +303,7 @@ class Ghost(object):
         """
         from PyQt4 import QtCore
         from PyQt4 import QtGui
-        from PyQt4 import QtWebKit
+        from PyQt4 import QtNetwork
 
         class GhostApp(QtGui.QApplication):
             def notification(self, i):
@@ -325,7 +334,11 @@ class Ghost(object):
 
         self.page.loadFinished.connect(self._page_loaded)
         self.page.loadStarted.connect(self._page_load_started)
+
         self.page.networkAccessManager().finished.connect(self._request_ended)
+
+        self.cookie_jar = QtNetwork.QNetworkCookieJar()
+        self.page.networkAccessManager().setCookieJar(self.cookie_jar)
 
         self.main_frame = self.page.mainFrame()
 
