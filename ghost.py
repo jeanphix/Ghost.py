@@ -181,7 +181,6 @@ class Ghost(object):
 
         :param selector: A CSS selector to the target form to fill.
         :param values: A dict containing the values.
-        :param submit: A boolean that force form submition.
         """
         if not self.exists(selector):
             raise Exception("Can't find form")
