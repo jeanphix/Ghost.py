@@ -44,7 +44,7 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
     # Clicks first result link
     ghost.click(
         '#search_osm_nominatim .search_results_entry:first-child a')
-    # Checks if map has moved to right latitude
+    # Checks if map has moved to expected latitude
     lat, ressources = ghost.evaluate("map.center.lat")
     assert float(lat.toString()) == 5860090.806537
 
