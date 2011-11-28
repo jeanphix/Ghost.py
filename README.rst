@@ -1,4 +1,4 @@
-ghost.py is a webkit python web client::
+ghost.py is a webkit web client written in python::
 
     from ghost import Ghost
     ghost = Ghost()

@@ -7,12 +7,9 @@ ghost.py
 ========
 
 .. include:: ../README.rst
+.. include:: documentation.rst
+
 
 .. toctree::
    :maxdepth: 3
-
-   documentation
-
-* :ref:`genindex`
-* :ref:`search`
 

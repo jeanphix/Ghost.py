@@ -74,8 +74,6 @@ def can_load_page(func):
     """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        func.__doc__ +=\
-        ":param expect_loading: Specifies if a page loading is expected."
         if 'expect_loading' in kwargs:
             expect_loading = True
             del kwargs['expect_loading']

@@ -28,18 +28,18 @@ ghost.py provides a simple webkit based web client named Ghost::
 Sample use case
 ===============
 
-In the following test, we will query http://www.openstreetmap.org/ for center map to France::
+The following test tries to center http://www.openstreetmap.org/ map to France::
 
     # Opens the web page
     ghost.open('http://www.openstreetmap.org/')
-    # Waits form search field
+    # Waits for form search field
     ghost.wait_for_selector('input[name=query]')
     # Fills the form
     ghost.fill("#search_form", {'query': 'France'})
     # Submits the form
     ghost.fire_on("#search_form", "submit")
     # Waits for results (an XHR has been called here)
-    r, ressources = ghost.wait_for_selector(
+    ghost.wait_for_selector(
         '#search_osm_nominatim .search_results_entry a')
     # Clicks first result link
     ghost.click(
