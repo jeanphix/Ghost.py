@@ -92,6 +92,9 @@ class HttpRessource(object):
         self.url = unicode(reply.request().url().toString())
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute).toInt()[0]
+        self.headers = {}
+        for header in reply.rawHeaderList():
+            self.headers[unicode(header)] = unicode(reply.rawHeader(header))
         self._reply = reply
 
 
