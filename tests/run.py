@@ -102,6 +102,11 @@ class GhostTest(unittest.TestCase):
         page, ressources = self.ghost.open("%sitems.json" % base_url)
         self.assertEqual(page.headers['Content-Type'], 'application/json')
 
+    def test_click_link(self):
+        page, ressources = self.ghost.open("%s" % base_url)
+        page, ressources = self.ghost.click('a', expect_loading=True)
+        self.assertEqual(page.url, "%sform" % base_url)
+
 
 if __name__ == '__main__':
     unittest.main()
