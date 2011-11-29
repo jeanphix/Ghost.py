@@ -65,7 +65,11 @@ Requirements::
 
     pip install tornado
 
-ghost.py provides a simple GhostTestCase that deals with WSGI applcations::
+ghost.py provides a simple GhostTestCase that deals with WSGI applications::
+
+    from flask import Flask
+    from ghost import GhostTestCase
+
 
     app = Flask(__name__)
 
@@ -81,8 +85,9 @@ ghost.py provides a simple GhostTestCase that deals with WSGI applcations::
             return app
 
         def test_open_home(self):
-            page, ressources = self.ghost.open("http://localhost:%s/" % self.port)
-            self.assertEqual(page.content, 'hello world')
+            self.ghost.open("http://localhost:%s/" % self.port)
+            self.assertEqual(self.ghost.content, 'hello world')
+
 
     if __name__ == '__main__':
         unittest.main()
