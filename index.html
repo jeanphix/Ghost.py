@@ -88,6 +88,34 @@
 </div>
 </div>
 </div>
+<div class="section" id="testing-your-wsgi-apps">
+<h3>Testing your WSGI apps<a class="headerlink" href="#testing-your-wsgi-apps" title="Permalink to this headline">¶</a></h3>
+<p>Requirements:</p>
+<div class="highlight-python"><pre>pip install tornado</pre>
+</div>
+<p>ghost.py provides a simple GhostTestCase that deals with WSGI applcations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">home</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;hello world&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">GhostTestCase</span><span class="p">):</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="mi">5000</span>
+
+    <span class="k">def</span> <span class="nf">create_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">app</span>
+
+    <span class="k">def</span> <span class="nf">test_open_home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">page</span><span class="p">,</span> <span class="n">ressources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;http://localhost:</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s">&#39;hello world&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="api">
 <h3>Api<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -310,36 +338,8 @@ an HTTPServer running a WSGI application.</p>
 
 </dd></dl>
 
-<div class="section" id="testing-your-wsgi-apps">
-<h4>Testing your WSGI apps<a class="headerlink" href="#testing-your-wsgi-apps" title="Permalink to this headline">¶</a></h4>
-<p>Requirements:</p>
-<div class="highlight-python"><pre>pip install tornado</pre>
-</div>
-<p>ghost.py provides a simple GhostTestCase that deals with WSGI applcations:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">home</span><span class="p">():</span>
-    <span class="k">return</span> <span class="s">&#39;hello world&#39;</span>
-
-
-<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">GhostTestCase</span><span class="p">):</span>
-    <span class="n">port</span> <span class="o">=</span> <span class="mi">5000</span>
-
-    <span class="k">def</span> <span class="nf">create_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">app</span>
-
-    <span class="k">def</span> <span class="nf">test_open_home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">page</span><span class="p">,</span> <span class="n">ressources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;http://localhost:</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s">&#39;hello world&#39;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="running-test-suite">
-<h4>Running test suite<a class="headerlink" href="#running-test-suite" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="running-api-test-suite">
+<h4>Running API test suite<a class="headerlink" href="#running-api-test-suite" title="Permalink to this headline">¶</a></h4>
 <p>Package tests require Flask an tornado available via:</p>
 <div class="highlight-python"><pre>pip install Flask tornado</pre>
 </div>

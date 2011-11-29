@@ -58,19 +58,8 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
     assert float(lat.toString()) == 5860090.806537
 
 
-Api
-===
-
-.. autoclass:: ghost.ghost.Ghost
-   :members:
-
-
-.. autoclass:: ghost.test.GhostTestCase
-   :members:
-
-
 Testing your WSGI apps
-----------------------
+======================
 
 Requirements::
 
@@ -99,8 +88,19 @@ ghost.py provides a simple GhostTestCase that deals with WSGI applcations::
         unittest.main()
 
 
-Running test suite
-------------------
+Api
+===
+
+.. autoclass:: ghost.ghost.Ghost
+   :members:
+
+
+.. autoclass:: ghost.test.GhostTestCase
+   :members:
+
+
+Running API test suite
+----------------------
 
 Package tests require Flask an tornado available via::
 
