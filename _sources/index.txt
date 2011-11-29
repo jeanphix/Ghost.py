@@ -64,8 +64,40 @@ Api
 .. autoclass:: ghost.ghost.Ghost
    :members:
 
+
 .. autoclass:: ghost.test.GhostTestCase
    :members:
+
+
+Testing your WSGI apps
+----------------------
+
+Requirements::
+
+    pip install tornado
+
+ghost.py provides a simple GhostTestCase that deals with WSGI applcations::
+
+    app = Flask(__name__)
+
+    @app.route('/')
+    def home():
+        return 'hello world'
+
+
+    class MyTest(GhostTestCase):
+        port = 5000
+
+        def create_app(self):
+            return app
+
+        def test_open_home(self):
+            page, ressources = self.ghost.open("http://localhost:%s/" % self.port)
+            self.assertEqual(page.content, 'hello world')
+
+    if __name__ == '__main__':
+        unittest.main()
+
 
 Running test suite
 ------------------
