@@ -88,6 +88,7 @@ ghost.py provides a simple GhostTestCase that deals with WSGI applications::
             self.ghost.open("http://localhost:%s/" % self.port)
             self.assertEqual(self.ghost.content, 'hello world')
 
+
     if __name__ == '__main__':
         unittest.main()
 
