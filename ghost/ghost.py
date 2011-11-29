@@ -62,7 +62,8 @@ def client_utils_required(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         if not self.global_exists('GhostUtils'):
-            self.evaluate(codecs.open('utils.js').read())
+            self.evaluate_js_file(
+                os.path.join(os.path.dirname(__file__), 'utils.js'))
         return func(self, *args, **kwargs)
     return wrapper
 
@@ -173,6 +174,15 @@ class Ghost(object):
                     .evaluateJavaScript("%s" % script),
                 releasable, *(self, script)
             ), self._release_last_ressources()
+
+    def evaluate_js_file(self, path, encoding='utf-8'):
+        """Evaluates javascript file at given path in current frame.
+        Raises native IOException in case of invalid file.
+
+        :param path: The path of the file.
+        :param encoding: The file's encoding.
+        """
+        self.evaluate(codecs.open(path, encoding=encoding).read())
 
     def exists(self, selector):
         """Checks if element exists for given selector.
