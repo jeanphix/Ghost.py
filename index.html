@@ -91,8 +91,8 @@
 <div class="section" id="api">
 <h3>Api<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
-<dt id="ghost.Ghost">
-<em class="property">class </em><tt class="descclassname">ghost.</tt><tt class="descname">Ghost</tt><big>(</big><em>user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 (KHTML</em>, <em>like Gecko) Chrome/15.0.874.121 Safari/535.2'</em>, <em>wait_timeout=5</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost">
+<em class="property">class </em><tt class="descclassname">ghost.ghost.</tt><tt class="descname">Ghost</tt><big>(</big><em>user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 (KHTML</em>, <em>like Gecko) Chrome/15.0.874.121 Safari/535.2'</em>, <em>wait_timeout=5</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ghost manage a QtApplication executed on its own thread.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -107,8 +107,8 @@
 </tbody>
 </table>
 <dl class="method">
-<dt id="ghost.Ghost.click">
-<tt class="descname">click</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.click" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.click">
+<tt class="descname">click</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.click" title="Permalink to this definition">¶</a></dt>
 <dd><p>Click the targeted element.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -121,26 +121,26 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ghost.Ghost.content">
-<tt class="descname">content</tt><a class="reference internal" href="_modules/ghost.html#Ghost.content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.content" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.content">
+<tt class="descname">content</tt><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.content" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns current frame HTML as a string.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ghost.Ghost.cookies">
-<tt class="descname">cookies</tt><a class="headerlink" href="#ghost.Ghost.cookies" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.cookies">
+<tt class="descname">cookies</tt><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.cookies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns all cookies.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.delete_cookies">
-<tt class="descname">delete_cookies</tt><big>(</big><big>)</big><a class="headerlink" href="#ghost.Ghost.delete_cookies" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.delete_cookies">
+<tt class="descname">delete_cookies</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.delete_cookies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.delete_cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deletes all cookies.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.evaluate">
-<tt class="descname">evaluate</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.evaluate" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluates script in page frame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -157,8 +157,27 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.exists">
-<tt class="descname">exists</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.exists" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.evaluate_js_file">
+<tt class="descname">evaluate_js_file</tt><big>(</big><em>path</em>, <em>encoding='utf-8'</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.evaluate_js_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.evaluate_js_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates javascript file at given path in current frame.
+Raises native IOException in case of invalid file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The path of the file.</li>
+<li><strong>encoding</strong> &#8211; The file&#8217;s encoding.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.ghost.Ghost.exists">
+<tt class="descname">exists</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if element exists for given selector.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -171,8 +190,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.fill">
-<tt class="descname">fill</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.fill" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.fill">
+<tt class="descname">fill</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.fill" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fills a form with provided values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -189,8 +208,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.fire_on">
-<tt class="descname">fire_on</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.fire_on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.fire_on" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.fire_on">
+<tt class="descname">fire_on</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.fire_on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.fire_on" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call method on element matching given selector.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -208,8 +227,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.global_exists">
-<tt class="descname">global_exists</tt><big>(</big><em>global_name</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.global_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.global_exists" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.global_exists">
+<tt class="descname">global_exists</tt><big>(</big><em>global_name</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.global_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.global_exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if javascript global exists.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -222,8 +241,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.open">
-<tt class="descname">open</tt><big>(</big><em>address</em>, <em>method='get'</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.open" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.open">
+<tt class="descname">open</tt><big>(</big><em>address</em>, <em>method='get'</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens a web page.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -243,14 +262,14 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.wait_for_page_loaded">
-<tt class="descname">wait_for_page_loaded</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_page_loaded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_page_loaded" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.wait_for_page_loaded">
+<tt class="descname">wait_for_page_loaded</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.wait_for_page_loaded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.wait_for_page_loaded" title="Permalink to this definition">¶</a></dt>
 <dd><p>Waits until page is loaded, assumed that a page as been requested.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.wait_for_selector">
-<tt class="descname">wait_for_selector</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_selector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_selector" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.wait_for_selector">
+<tt class="descname">wait_for_selector</tt><big>(</big><em>selector</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.wait_for_selector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.wait_for_selector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Waits until selector match an element on the frame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -263,8 +282,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghost.Ghost.wait_for_text">
-<tt class="descname">wait_for_text</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/ghost.html#Ghost.wait_for_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.Ghost.wait_for_text" title="Permalink to this definition">¶</a></dt>
+<dt id="ghost.ghost.Ghost.wait_for_text">
+<tt class="descname">wait_for_text</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.wait_for_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.wait_for_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Waits until given text appear on main frame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -278,6 +297,29 @@
 
 </dd></dl>
 
+<dl class="class">
+<dt id="ghost.test.GhostTestCase">
+<em class="property">class </em><tt class="descclassname">ghost.test.</tt><tt class="descname">GhostTestCase</tt><big>(</big><em>methodName='runTest'</em><big>)</big><a class="reference internal" href="_modules/ghost/test.html#GhostTestCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.test.GhostTestCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>TestCase that provides a ghost instance and manage
+an HTTPServer running a WSGI application.</p>
+<dl class="method">
+<dt id="ghost.test.GhostTestCase.create_app">
+<tt class="descname">create_app</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ghost/test.html#GhostTestCase.create_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.test.GhostTestCase.create_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns your WSGI application for testing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="running-test-suite">
+<h4>Running test suite<a class="headerlink" href="#running-test-suite" title="Permalink to this headline">¶</a></h4>
+<p>Package tests require Flask an tornado available via:</p>
+<div class="highlight-python"><pre>pip install Flask tornado</pre>
+</div>
+<p>Then:</p>
+<div class="highlight-python"><pre>cd tests
+python run.py</pre>
+</div>
+</div>
 </div>
 </div>
 </div>

@@ -61,5 +61,20 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
 Api
 ===
 
-.. autoclass:: ghost.Ghost
+.. autoclass:: ghost.ghost.Ghost
    :members:
+
+.. autoclass:: ghost.test.GhostTestCase
+   :members:
+
+Running test suite
+------------------
+
+Package tests require Flask an tornado available via::
+
+    pip install Flask tornado
+
+Then::
+
+    cd tests
+    python run.py
