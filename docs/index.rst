@@ -67,6 +67,7 @@ Requirements::
 
 ghost.py provides a simple GhostTestCase that deals with WSGI applications::
 
+    import unittest
     from flask import Flask
     from ghost import GhostTestCase
 
