@@ -321,7 +321,6 @@ class Ghost(object):
                 """
                 Ghost.lock.acquire()
                 os.read(Ghost.pipetoveusz_r, 1)
-
                 assert Ghost.command is not None
                 cmd, releasable, args, kwargs = Ghost.command
                 try:

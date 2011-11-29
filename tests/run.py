@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-import thread
 import unittest
-from ghost import Ghost
+from ghost import GhostTestCase
 from app import app
 
 
 PORT = 5000
 
-thread.start_new_thread(app.run, (), {'port': PORT})
 base_url = 'http://localhost:%s/' % PORT
 
 
-class GhostTest(unittest.TestCase):
+class GhostTest(GhostTestCase):
+    port = PORT
 
-    ghost = Ghost()
+    def create_app(self):
+        return app
 
     def test_open(self):
         page, ressources = self.ghost.open(base_url)

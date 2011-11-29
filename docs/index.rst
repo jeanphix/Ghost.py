@@ -61,7 +61,7 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
 Api
 ===
 
-.. autoclass:: ghost.Ghost
+.. autoclass:: ghost.ghost.Ghost
    :members:
 
 Running test suite
