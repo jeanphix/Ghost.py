@@ -64,12 +64,15 @@ Api
 .. autoclass:: ghost.ghost.Ghost
    :members:
 
+.. autoclass:: ghost.test.GhostTestCase
+   :members:
+
 Running test suite
 ------------------
 
-Package tests require Flask available via::
+Package tests require Flask an tornado available via::
 
-    pip install Flask
+    pip install Flask tornado
 
 Then::
 
