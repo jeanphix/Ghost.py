@@ -108,9 +108,8 @@
         <span class="k">return</span> <span class="n">app</span>
 
     <span class="k">def</span> <span class="nf">test_open_home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">page</span><span class="p">,</span> <span class="n">ressources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-            <span class="s">&quot;http://localhost:</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s">&#39;hello world&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ghost</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;http://localhost:</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ghost</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s">&#39;hello world&#39;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
