@@ -93,8 +93,12 @@
 <p>Requirements:</p>
 <div class="highlight-python"><pre>pip install tornado</pre>
 </div>
-<p>ghost.py provides a simple GhostTestCase that deals with WSGI applcations:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<p>ghost.py provides a simple GhostTestCase that deals with WSGI applications:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">ghost</span> <span class="kn">import</span> <span class="n">GhostTestCase</span>
+
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 <span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">home</span><span class="p">():</span>

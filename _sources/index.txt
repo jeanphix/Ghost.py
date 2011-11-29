@@ -65,7 +65,11 @@ Requirements::
 
     pip install tornado
 
-ghost.py provides a simple GhostTestCase that deals with WSGI applcations::
+ghost.py provides a simple GhostTestCase that deals with WSGI applications::
+
+    from flask import Flask
+    from ghost import GhostTestCase
+
 
     app = Flask(__name__)
 
