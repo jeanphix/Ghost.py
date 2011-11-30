@@ -52,11 +52,11 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Checks if ghost is waiting for confirm, then returns the right
         value.
         """
-        if Ghost.confirm_exepted is None:
+        if Ghost.confirm_expected is None:
             raise Exception('You must specified a value to confirm "%s"' %
                 message)
-        confirmation = Ghost.confirm_exepted
-        Ghost.confirm_exepted = None
+        confirmation = Ghost.confirm_expected
+        Ghost.confirm_expected = None
         return confirmation
 
 
@@ -117,7 +117,7 @@ class Ghost(object):
     retval = None
     alert = None
     prompt = None
-    confirm_exepted = None
+    confirm_expected = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
@@ -161,10 +161,10 @@ class Ghost(object):
             self.confirm = confirm
 
         def __enter__(self):
-            Ghost.confirm_exepted = self.confirm
+            Ghost.confirm_expected = self.confirm
 
         def __exit__(self, type, value, traceback):
-            Ghost.confirm_exepted = None
+            Ghost.confirm_expected = None
 
     @property
     def content(self):
