@@ -3,11 +3,21 @@
     <body>
         <h1>Mootools test page</h1>
         <p><a href="#" id="alert-button">click me for alert</a></p>
+        <p><a href="#" id="confirm-button">click me for confirm</a></p>
         <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.1/mootools.js" type="text/javascript"></script>
         <script type="text/javascript">
-            var button = document.id('alert-button');
-            button.addEvent('click', function(e) {
+            var alertButton = document.id('alert-button');
+            alertButton.addEvent('click', function(e) {
                 alert('this is an alert');
+                e.stop();
+            });
+            var confirmButton = document.id('confirm-button');
+            confirmButton.addEvent('click', function(e) {
+                if (confirm('this is a confirm')) {
+                    alert('you confirmed!');
+                } else {
+                    alert('you denied!');
+                }
                 e.stop();
             });
         </script>

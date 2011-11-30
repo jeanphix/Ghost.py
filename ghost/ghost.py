@@ -43,17 +43,21 @@ class GhostWebPage(QtWebKit.QWebPage):
         log_type = "error" if "Error" in message else "success"
         Logger.log("[Client javascript console]: %s" % message, type=log_type)
 
-    def javaScriptAlert(self, frame, msg):
-        # TODO
-        Ghost.alert = msg
-        Logger.log("[Client page]: Javascript alert('%s')" % msg)
+    def javaScriptAlert(self, frame, message):
+        """Notifies ghost for alert, then pass."""
+        Ghost.alert = message
+        Logger.log("[Client page]: Javascript alert('%s')" % message)
 
-    def javaScriptConfirm(self, frame, msg):
-        # TODO
-        Logger.log("[Client page]: Javascript confirm('%s')" % msg)
-        Logger.log("[Client page]: You must specified a value for confirm"
-            % msg, type="error")
-        return True
+    def javaScriptConfirm(self, frame, message):
+        """Checks if ghost is waiting for confirm, then returns the right
+        value.
+        """
+        if Ghost.confirm_exepted is None:
+            raise Exception('You must specified a value to confirm "%s"' %
+                message)
+        confirmation = Ghost.confirm_exepted
+        Ghost.confirm_exepted = None
+        return confirmation
 
 
 def client_utils_required(func):
@@ -113,7 +117,7 @@ class Ghost(object):
     retval = None
     alert = None
     prompt = None
-    confirm = None
+    confirm_exepted = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
@@ -151,6 +155,16 @@ class Ghost(object):
         if not self.exists(selector):
             raise Exception("Can't find element to click")
         return self.evaluate('GhostUtils.click("%s");' % selector)
+
+    class confirm:
+        def __init__(self, confirm=True):
+            self.confirm = confirm
+
+        def __enter__(self):
+            Ghost.confirm_exepted = self.confirm
+
+        def __exit__(self, type, value, traceback):
+            Ghost.confirm_exepted = None
 
     @property
     def content(self):
@@ -258,10 +272,10 @@ class Ghost(object):
     def wait_for_alert(self):
         """Waits for main frame alert().
         """
-        self._wait_for(lambda: self.alert is not None,
-            'User has not been alerted')
-        msg = self.alert
-        self.alert = None
+        self._wait_for(lambda: Ghost.alert is not None,
+            'User has not been alerted.')
+        msg = Ghost.alert
+        Ghost.alert = None
         return msg, self._release_last_ressources()
 
     def wait_for_page_loaded(self):

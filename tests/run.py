@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
-from ghost import GhostTestCase
+from ghost import GhostTestCase, Ghost
 from app import app
 
 
@@ -133,6 +133,20 @@ class GhostTest(GhostTestCase):
         self.ghost.click('#alert-button')
         msg, ressources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'this is an alert')
+
+    def test_confirm(self):
+        self.ghost.open("%salert" % base_url)
+        with Ghost.confirm():
+            self.ghost.click('#confirm-button')
+        msg, ressources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'you confirmed!')
+
+    def test_no_confirm(self):
+        self.ghost.open("%salert" % base_url)
+        with Ghost.confirm(False):
+            self.ghost.click('#confirm-button')
+        msg, ressources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'you denied!')
 
 
 if __name__ == '__main__':
