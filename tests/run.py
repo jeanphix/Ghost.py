@@ -128,5 +128,12 @@ class GhostTest(GhostTestCase):
         self.ghost.delete_cookies()
         self.assertEqual(len(self.ghost.cookies), 0)
 
+    def test_wait_for_alert(self):
+        self.ghost.open("%salert" % base_url)
+        self.ghost.click('#alert-button')
+        msg, ressources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'this is an alert')
+
+
 if __name__ == '__main__':
     unittest.main()

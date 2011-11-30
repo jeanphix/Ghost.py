@@ -13,6 +13,11 @@ def home():
     return render_template('home.html')
 
 
+@app.route('/alert')
+def alert():
+    return render_template('alert.html')
+
+
 @app.route('/cookie')
 def cookie():
     resp = make_response('Response text')

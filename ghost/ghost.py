@@ -45,6 +45,7 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def javaScriptAlert(self, frame, msg):
         # TODO
+        Ghost.alert = msg
         Logger.log("[Client page]: Javascript alert('%s')" % msg)
 
     def javaScriptConfirm(self, frame, msg):
@@ -110,6 +111,9 @@ class Ghost(object):
     lock = None
     command = None
     retval = None
+    alert = None
+    prompt = None
+    confirm = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
@@ -250,6 +254,15 @@ class Ghost(object):
         self.loaded = False
         self._run(open_page, True, *(self, address, method))
         return self.wait_for_page_loaded()
+
+    def wait_for_alert(self):
+        """Waits for main frame alert().
+        """
+        self._wait_for(lambda: self.alert is not None,
+            'User has not been alerted')
+        msg = self.alert
+        self.alert = None
+        return msg, self._release_last_ressources()
 
     def wait_for_page_loaded(self):
         """Waits until page is loaded, assumed that a page as been requested.
