@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 setup(
     name='Flask-Dashed',
     version='0.1a',
-    url='https://github.com/jean-philippe/Ghost.py',
+    url='https://github.com/jeanphix/Ghost.py',
     license='mit',
     author='Jean-Philippe Serafin',
     author_email='serafinjp@gmail.com',
