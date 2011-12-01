@@ -22,7 +22,7 @@ First you need to install PyQt_ that is available for many plateforms.
 
 Then you may install ghost.py using pip::
 
-    pip install git+git://github.com/jean-philippe/Ghost.py.git#egg=ghost
+    pip install git+git://github.com/jeanphix/Ghost.py.git#egg=ghost
 
 
 Quick start
