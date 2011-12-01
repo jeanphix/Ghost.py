@@ -242,4 +242,4 @@ texinfo_documents = [
 #texinfo_show_urls = 'footnote'
 
 html_theme_options = {'index_logo': False,
-    'github_fork': 'jean-philippe/Ghost.py'}
+    'github_fork': 'jeanphix/Ghost.py'}
