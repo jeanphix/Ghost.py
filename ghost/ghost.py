@@ -133,7 +133,7 @@ class Ghost(object):
     prompt_expected = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=5,
-            display=True):
+            display=False):
         self.http_ressources = []
 
         self.user_agent = user_agent
