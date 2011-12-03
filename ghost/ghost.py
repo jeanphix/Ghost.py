@@ -122,6 +122,7 @@ class Ghost(object):
 
     :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
+    :param display: A boolean that tells ghost to displays UI
     """
     lock = None
     command = None
@@ -131,11 +132,13 @@ class Ghost(object):
     confirm_expected = None
     prompt_expected = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=5):
+    def __init__(self, user_agent=default_user_agent, wait_timeout=5,
+            display=True):
         self.http_ressources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
+        self.display = display
 
         self.loaded = False
 
@@ -400,6 +403,10 @@ class Ghost(object):
 
         self.main_frame = self.page.mainFrame()
 
+        if self.display:
+            webview = QtWebKit.QWebView()
+            webview.setPage(self.page)
+            webview.show()
         app.exec_()
 
     def _release_last_ressources(self):
