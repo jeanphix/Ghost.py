@@ -107,18 +107,6 @@ class GhostTest(GhostTestCase):
         page, ressources = self.ghost.click('a', expect_loading=True)
         self.assertEqual(page.url, "%sform" % base_url)
 
-    def test_open_street_map(self):
-        page, ressources = self.ghost.open("http://www.openstreetmap.org/")
-        self.ghost.wait_for_selector('input[name=query]')
-        self.ghost.fill("#search_form", {'query': 'france'})
-        self.ghost.fire_on("#search_form", "submit")
-        r, ressources = self.ghost.wait_for_selector(
-            '#search_osm_nominatim .search_results_entry a')
-        self.ghost.click(
-            '#search_osm_nominatim .search_results_entry:first-child a')
-        lat, ressources = self.ghost.evaluate("map.center.lat")
-        self.assertEqual(float(lat.toString()), 5860090.806537)
-
     def test_cookies(self):
         self.ghost.open("%scookie" % base_url)
         self.assertEqual(len(self.ghost.cookies), 1)
@@ -147,6 +135,13 @@ class GhostTest(GhostTestCase):
             self.ghost.click('#confirm-button')
         msg, ressources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'you denied!')
+
+    def test_prompt(self):
+        self.ghost.open("%salert" % base_url)
+        with Ghost.prompt('my value'):
+            self.ghost.click('#prompt-button')
+        value, ressources = self.ghost.evaluate('promptValue')
+        self.assertEqual(value.toString(), 'my value')
 
 
 if __name__ == '__main__':

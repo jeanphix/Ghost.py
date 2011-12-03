@@ -59,6 +59,17 @@ class GhostWebPage(QtWebKit.QWebPage):
         Ghost.confirm_expected = None
         return confirmation
 
+    def javaScriptPrompt(self, frame, message, defaultValue, result):
+        """Checks if ghost is waiting for prompt, then enters the right
+        value.
+        """
+        if Ghost.prompt_expected is None:
+            raise Exception('You must specified a value for prompt "%s"' %
+                message)
+        result.append(Ghost.prompt_expected)
+        Ghost.prompt_expected = None
+        return True
+
 
 def client_utils_required(func):
     """Decorator that checks avabality of Ghost client side utils,
@@ -118,6 +129,7 @@ class Ghost(object):
     alert = None
     prompt = None
     confirm_expected = None
+    prompt_expected = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=5):
         self.http_ressources = []
@@ -268,6 +280,16 @@ class Ghost(object):
         self.loaded = False
         self._run(open_page, True, *(self, address, method))
         return self.wait_for_page_loaded()
+
+    class prompt:
+        def __init__(self, value):
+            self.value = value
+
+        def __enter__(self):
+            Ghost.prompt_expected = self.value
+
+        def __exit__(self, type, value, traceback):
+            Ghost.prompt_expected = None
 
     def wait_for_alert(self):
         """Waits for main frame alert().
