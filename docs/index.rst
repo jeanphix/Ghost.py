@@ -58,6 +58,40 @@ The following test tries to center http://www.openstreetmap.org/ map to France::
     assert float(lat.toString()) == 5860090.806537
 
 
+Alert()
+-------
+
+Ghost intercepts javascript alerts that it can wait for::
+
+    self.ghost.click('#alert-button')
+    msg, ressources = self.ghost.wait_for_alert()
+    self.assertEqual(msg, 'this alert message')
+
+
+Confirm()
+---------
+
+Accept or denied javascript confirm is quite easy::
+
+    with Ghost.confirm():
+        # The confirm() box fired up by click will be accepted
+        self.ghost.click('#confirm-button')
+
+    with Ghost.confirm(False):
+        # The confirm() box fired up by click will be denied
+        self.ghost.click('#confirm-button')
+
+
+Prompt()
+--------
+
+Filling a value in prompt boxes::
+
+    with Ghost.prompt('my value'):
+        # prompt() box fired up by click will be filled with 'my value'
+        self.ghost.click('#prompt-button')
+
+
 Testing your WSGI apps
 ======================
 
