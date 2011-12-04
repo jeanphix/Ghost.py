@@ -128,6 +128,14 @@ ghost.py provides a simple GhostTestCase that deals with WSGI applications::
         unittest.main()
 
 
+Debuging tests
+--------------
+
+Tests can be run with a UI by setting `display` class member to `True`::
+
+    class MyTest(GhostTestCase):
+        display = True
+
 Api
 ===
 
