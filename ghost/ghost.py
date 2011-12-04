@@ -347,7 +347,6 @@ class Ghost(object):
 
     @client_utils_required
     def region_for_selector(self, selector):
-
         """Returns frame region for given selector as tupple.
 
         :param selector: The targeted element.
