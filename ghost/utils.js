@@ -48,6 +48,11 @@ var GhostUtils = {
         }
         return element[method]();
     },
+    /**
+    * Return region occupied by element targeted by given selector.
+    *
+    * @param  String  selector  A CSS3 selector that targets the element.
+    */
     regionForSelector: function(selector) {
         try {
             var clipRect = document.querySelector(selector).getBoundingClientRect();

@@ -171,13 +171,16 @@ class Ghost(object):
     def __del__(self):
         self.app.quit()
 
-    def capture(self, region=None, format=QImage.Format_ARGB32):
+    def capture(self, region=None, selector=None, format=QImage.Format_ARGB32):
         """Returns snapshot as QImage.
 
         :param region: An optional tupple containing region as pixel
             coodinates.
+        :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
+        if region is None and selector is not None:
+            region = self.region_for_selector(selector)
         if region:
             x1, y1, x2, y2 = region
             w, h = (x2 - x1), (y2 - y1)
@@ -193,15 +196,18 @@ class Ghost(object):
             painter.end()
         return image
 
-    def capture_to(self, path, region=None, format=QImage.Format_ARGB32):
+    def capture_to(self, path, region=None, selector=None,
+        format=QImage.Format_ARGB32):
         """Saves snapshot as image.
 
         :param path: The destination path.
         :param region: An optional tupple containing region as pixel
             coodinates.
+        :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
-        self.capture(region=region, format=format).save(path)
+        self.capture(region=region, format=format,
+            selector=selector).save(path)
 
     @client_utils_required
     @can_load_page
@@ -341,20 +347,25 @@ class Ghost(object):
 
     @client_utils_required
     def region_for_selector(self, selector):
+
         """Returns frame region for given selector as tupple.
 
         :param selector: The targeted element.
         """
         map_ = self.evaluate("GhostUtils.regionForSelector('%s');" %
             selector)[0].toMap()
-        return (
-            map_[QString(u'left')].toInt()[0],
-            map_[QString(u'top')].toInt()[0],
-            map_[QString(u'left')].toInt()[0] +
-                map_[QString(u'width')].toInt()[0],
-            map_[QString(u'top')].toInt()[0] +
-                map_[QString(u'height')].toInt()[0]
-        )
+        try:
+            region = (
+                map_[QString(u'left')].toInt()[0],
+                map_[QString(u'top')].toInt()[0],
+                map_[QString(u'left')].toInt()[0] +
+                    map_[QString(u'width')].toInt()[0],
+                map_[QString(u'top')].toInt()[0] +
+                    map_[QString(u'height')].toInt()[0]
+            )
+        except:
+            raise Exception("can't get region for selector '%s'" % selector)
+        return region
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.

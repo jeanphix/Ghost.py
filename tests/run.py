@@ -170,6 +170,12 @@ class GhostTest(GhostTestCase):
         self.assertEqual(self.ghost.region_for_selector('h1'),
             (8, 21, 392, 58))
 
+    def test_capture_selector_to(self):
+        self.ghost.open(base_url)
+        self.ghost.capture_to('test.png', selector='h1')
+        self.assertTrue(os.path.isfile('test.png'))
+        os.remove('test.png')
+
 
 if __name__ == '__main__':
     unittest.main()
