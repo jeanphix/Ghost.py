@@ -121,7 +121,7 @@ class HttpRessource(object):
 
 
 class Ghost(object):
-    """Ghost manage a QtApplication executed on its own thread.
+    """Ghost manages a QWebPage.
 
     :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
