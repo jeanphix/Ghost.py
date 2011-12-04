@@ -51,9 +51,11 @@ class GhostWebPage(QtWebKit.QWebPage):
         if Ghost.confirm_expected is None:
             raise Exception('You must specified a value to confirm "%s"' %
                 message)
-        confirmation = Ghost.confirm_expected
+        confirmation, callback = Ghost.confirm_expected
         Ghost.confirm_expected = None
         Logger.log("confirm('%s')" % message, sender="Frame")
+        if callback is not None:
+            return callback()
         return confirmation
 
     def javaScriptPrompt(self, frame, message, defaultValue, result):
@@ -63,9 +65,15 @@ class GhostWebPage(QtWebKit.QWebPage):
         if Ghost.prompt_expected is None:
             raise Exception('You must specified a value for prompt "%s"' %
                 message)
-        result.append(Ghost.prompt_expected)
-        Ghost.prompt_expected = None
+        result_value, callback = Ghost.prompt_expected
         Logger.log("prompt('%s')" % message, sender="Frame")
+        if callback is not None:
+            result_value = callback()
+        result.append(result_value)
+        if result_value == '':
+            Logger.log("'%s' prompt filled with empty string" % message,
+                level='warning')
+        Ghost.prompt_expected = None
         return True
 
 
@@ -179,12 +187,16 @@ class Ghost(object):
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
+
+        :param confirm: A bollean that confirm.
+        :param callable: A callable that returns a boolean for confirmation.
         """
-        def __init__(self, confirm=True):
+        def __init__(self, confirm=True, callback=None):
             self.confirm = confirm
+            self.callback = callback
 
         def __enter__(self):
-            Ghost.confirm_expected = self.confirm
+            Ghost.confirm_expected = (self.confirm, self.callback)
 
         def __exit__(self, type, value, traceback):
             Ghost.confirm_expected = None
@@ -281,12 +293,16 @@ class Ghost(object):
 
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
+
+        :param value: A string value to fill in prompt.
+        :param callback: A callable that returns the value to fill in.
         """
-        def __init__(self, value):
+        def __init__(self, value='', callback=None):
             self.value = value
+            self.callback = callback
 
         def __enter__(self):
-            Ghost.prompt_expected = self.value
+            Ghost.prompt_expected = (self.value, self.callback)
 
         def __exit__(self, type, value, traceback):
             Ghost.prompt_expected = None

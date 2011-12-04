@@ -136,12 +136,26 @@ class GhostTest(GhostTestCase):
         msg, ressources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'you denied!')
 
+    def test_confirm_callback(self):
+        self.ghost.open("%salert" % base_url)
+        with Ghost.confirm(callback=lambda: False):
+            self.ghost.click('#confirm-button')
+        msg, ressources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'you denied!')
+
     def test_prompt(self):
         self.ghost.open("%salert" % base_url)
         with Ghost.prompt('my value'):
             self.ghost.click('#prompt-button')
         value, ressources = self.ghost.evaluate('promptValue')
         self.assertEqual(value.toString(), 'my value')
+
+    def test_prompt_callback(self):
+        self.ghost.open("%salert" % base_url)
+        with Ghost.prompt(callback=lambda: 'another value'):
+            self.ghost.click('#prompt-button')
+        value, ressources = self.ghost.evaluate('promptValue')
+        self.assertEqual(value.toString(), 'another value')
 
 
 if __name__ == '__main__':
