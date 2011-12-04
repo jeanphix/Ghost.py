@@ -74,19 +74,6 @@ class GhostWebPage(QtWebKit.QWebPage):
         return True
 
 
-def client_utils_required(func):
-    """Decorator that checks avabality of Ghost client side utils,
-    injects require javascript file instead.
-    """
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if not self.global_exists('GhostUtils'):
-            self.evaluate_js_file(
-                os.path.join(os.path.dirname(__file__), 'utils.js'))
-        return func(self, *args, **kwargs)
-    return wrapper
-
-
 def can_load_page(func):
     """Decorator that specifies if user can expect page loading from
     this action. If expect_loading is set to True, ghost will wait
@@ -103,6 +90,19 @@ def can_load_page(func):
             self.loaded = False
             func(self, *args, **kwargs)
             return self.wait_for_page_loaded()
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
+def client_utils_required(func):
+    """Decorator that checks avabality of Ghost client side utils,
+    injects require javascript file instead.
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self.global_exists('GhostUtils'):
+            self.evaluate_js_file(
+                os.path.join(os.path.dirname(__file__), 'utils.js'))
         return func(self, *args, **kwargs)
     return wrapper
 
@@ -131,7 +131,7 @@ class Ghost(object):
     confirm_expected = None
     prompt_expected = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=10,
+    def __init__(self, user_agent=default_user_agent, wait_timeout=4,
             display=False):
         self.http_ressources = []
 
