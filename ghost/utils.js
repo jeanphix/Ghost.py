@@ -48,6 +48,19 @@ var GhostUtils = {
         }
         return element[method]();
     },
+    regionForSelector: function(selector) {
+        try {
+            var clipRect = document.querySelector(selector).getBoundingClientRect();
+            return {
+                top:    clipRect.top,
+                left:   clipRect.left,
+                width:  clipRect.width,
+                height: clipRect.height
+            };
+        } catch (e) {
+            throw "Unable to fetch bounds for element " + selector;
+        }
+    },
     /**
     * Sets form field value.
     *

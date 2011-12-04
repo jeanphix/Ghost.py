@@ -8,7 +8,7 @@ from functools import wraps
 from PyQt4 import QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                             QNetworkCookieJar
-from PyQt4.QtCore import QSize, QByteArray, QUrl
+from PyQt4.QtCore import QSize, QByteArray, QUrl, QString
 from PyQt4.QtGui import QApplication, QImage, QPainter
 
 
@@ -338,6 +338,23 @@ class Ghost(object):
 
         def __exit__(self, type, value, traceback):
             Ghost.prompt_expected = None
+
+    @client_utils_required
+    def region_for_selector(self, selector):
+        """Returns frame region for given selector as tupple.
+
+        :param selector: The targeted element.
+        """
+        map_ = self.evaluate("GhostUtils.regionForSelector('%s');" %
+            selector)[0].toMap()
+        return (
+            map_[QString(u'left')].toInt()[0],
+            map_[QString(u'top')].toInt()[0],
+            map_[QString(u'left')].toInt()[0] +
+                map_[QString(u'width')].toInt()[0],
+            map_[QString(u'top')].toInt()[0] +
+                map_[QString(u'height')].toInt()[0]
+        )
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
