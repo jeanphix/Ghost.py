@@ -174,6 +174,8 @@ class Ghost(object):
         return self.evaluate('GhostUtils.click("%s");' % selector)
 
     class confirm:
+        """Statement that tells Ghost how to deal with javascript confirm().
+        """
         def __init__(self, confirm=True):
             self.confirm = confirm
 
@@ -274,6 +276,8 @@ class Ghost(object):
         return self.wait_for_page_loaded()
 
     class prompt:
+        """Statement that tells Ghost how to deal with javascript prompt().
+        """
         def __init__(self, value):
             self.value = value
 
