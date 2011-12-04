@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
 import unittest
+
 from ghost import GhostTestCase, Ghost
 from app import app
 
@@ -156,6 +158,12 @@ class GhostTest(GhostTestCase):
             self.ghost.click('#prompt-button')
         value, ressources = self.ghost.evaluate('promptValue')
         self.assertEqual(value.toString(), 'another value')
+
+    def test_capture_to(self):
+        self.ghost.open(base_url)
+        self.ghost.capture_to('test.png')
+        self.assertTrue(os.path.isfile('test.png'))
+        os.remove('test.png')
 
 
 if __name__ == '__main__':

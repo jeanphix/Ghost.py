@@ -6,10 +6,10 @@ import json
 import logging
 from functools import wraps
 from PyQt4 import QtWebKit
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
-from PyQt4 import QtCore
-from PyQt4.QtGui import QApplication
-from PyQt4 import QtNetwork
+from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
+                            QNetworkCookieJar
+from PyQt4.QtCore import QSize, QByteArray, QUrl
+from PyQt4.QtGui import QApplication, QImage, QPainter
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -156,7 +156,7 @@ class Ghost(object):
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
 
-        self.cookie_jar = QtNetwork.QNetworkCookieJar()
+        self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
 
         self.main_frame = self.page.mainFrame()
@@ -170,6 +170,38 @@ class Ghost(object):
 
     def __del__(self):
         self.app.quit()
+
+    def capture(self, region=None, format=QImage.Format_ARGB32):
+        """Returns snapshot as QImage.
+
+        :param region: An optional tupple containing region as pixel
+            coodinates.
+        :param format: The output image format.
+        """
+        if region:
+            x1, y1, x2, y2 = region
+            w, h = (x2 - x1), (y2 - y1)
+            image = QImage(QSize(x2, y2), format)
+            painter = QPainter(image)
+            self.main_frame.render(painter)
+            painter.end()
+            image = image.copy(x1, y1, w, h)
+        else:
+            image = QImage(self.page.viewportSize(), format)
+            painter = QPainter(image)
+            self.main_frame.render(painter)
+            painter.end()
+        return image
+
+    def capture_to(self, path, region=None, format=QImage.Format_ARGB32):
+        """Saves snapshot as image.
+
+        :param path: The destination path.
+        :param region: An optional tupple containing region as pixel
+            coodinates.
+        :param format: The output image format.
+        """
+        self.capture(region=region, format=format).save(path)
 
     @client_utils_required
     @can_load_page
@@ -279,13 +311,13 @@ class Ghost(object):
         :param method: The Http method.
         :return: Page ressource, All loaded ressources.
         """
-        body = QtCore.QByteArray()
+        body = QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
                 "%sOperation" % method.capitalize())
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
-        request = QNetworkRequest(QtCore.QUrl(address))
+        request = QNetworkRequest(QUrl(address))
         request.setRawHeader("User-Agent", self.user_agent)
         self.main_frame.load(request, method, body)
         self.loaded = False
@@ -313,7 +345,7 @@ class Ghost(object):
         :param width: An integer that sets width pixel count.
         :param height: An integer that sets height pixel count.
         """
-        self.page.setViewportSize(QtCore.QSize(width, height))
+        self.page.setViewportSize(QSize(width, height))
 
     def wait_for_alert(self):
         """Waits for main frame alert().
