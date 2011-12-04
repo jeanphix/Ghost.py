@@ -144,7 +144,7 @@ class Ghost(object):
         self.app = QApplication(['ghost'])
 
         self.page = GhostWebPage(self.app)
-        self.page.setViewportSize(QtCore.QSize(400, 300))
+        self.set_viewport_size(400, 300)
 
         self.page.loadFinished.connect(self._page_loaded)
         self.page.loadStarted.connect(self._page_load_started)
@@ -286,6 +286,14 @@ class Ghost(object):
 
         def __exit__(self, type, value, traceback):
             Ghost.prompt_expected = None
+
+    def set_viewport_size(self, width, height):
+        """Sets the page viewport size.
+
+        :param width: An integer that sets width pixel count.
+        :param height: An integer that sets height pixel count.
+        """
+        self.page.setViewportSize(QtCore.QSize(width, height))
 
     def wait_for_alert(self):
         """Waits for main frame alert().
