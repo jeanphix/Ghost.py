@@ -173,6 +173,9 @@ class Ghost(object):
             raise Exception("Can't find element to click")
         return self.evaluate('GhostUtils.click("%s");' % selector)
 
+    def close_webview(self):
+        self.webview.close()
+
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
         """

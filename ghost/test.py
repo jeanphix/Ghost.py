@@ -33,6 +33,8 @@ class GhostTestCase(TestCase):
     def _post_teardown(self):
         """Stops HTTPServer instance."""
         self.http_server.stop()
+        if self.display:
+            self.ghost.close_webview()
 
     def _pre_setup(self):
         """Starts HTTPServer instance from WSGI application.
