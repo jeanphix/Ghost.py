@@ -71,7 +71,7 @@ Ghost intercepts javascript alerts that it can wait for::
 Confirm()
 ---------
 
-Accept or denied javascript confirm is quite easy::
+Accept or deny javascript confirm is quite easy::
 
     with Ghost.confirm():
         # The confirm() box fired up by click will be accepted
