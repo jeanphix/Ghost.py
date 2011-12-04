@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import pdb
 import os
 import time
 import codecs
 import json
+import logging
 from functools import wraps
 from PyQt4 import QtWebKit
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
@@ -16,22 +16,15 @@ default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
 
 
-class Logger(object):
-    """Output colorized logs."""
-    INFO = '\033[94m'  # Blue
-    SUCCESS = '\033[92m'  # Green
-    WARNING = '\033[93m'  # Yellow
-    ERROR = '\033[91m'  # Red
-    END = '\033[0m'
+logger = logging.getLogger('ghost')
 
+
+class Logger(logging.Logger):
     @staticmethod
-    def log(message, type="info"):
-        """Sends given message to std ouput."""
-        try:
-            print "%s%s%s" % (getattr(Logger, type.upper()), message,
-                Logger.END)
-        except AttributeError:
-            raise Exception("Invalid log type")
+    def log(message, sender="Ghost", level="info"):
+        if not hasattr(logger, level):
+            raise Exception('invalid log level')
+        getattr(logger, level)("%s: %s", sender, message)
 
 
 class GhostWebPage(QtWebKit.QWebPage):
@@ -43,13 +36,13 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Prints client console message in current output stream."""
         super(GhostWebPage, self).javaScriptConsoleMessage(message, *args,
         **kwargs)
-        log_type = "error" if "Error" in message else "success"
-        Logger.log("[Client javascript console]: %s" % message, type=log_type)
+        log_type = "error" if "Error" in message else "info"
+        Logger.log(message, sender="Frame", level=log_type)
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
         Ghost.alert = message
-        Logger.log("[Client page]: Javascript alert('%s')" % message)
+        Logger.log("alert('%s')" % message, sender="Frame")
 
     def javaScriptConfirm(self, frame, message):
         """Checks if ghost is waiting for confirm, then returns the right
@@ -60,6 +53,7 @@ class GhostWebPage(QtWebKit.QWebPage):
                 message)
         confirmation = Ghost.confirm_expected
         Ghost.confirm_expected = None
+        Logger.log("confirm('%s')" % message, sender="Frame")
         return confirmation
 
     def javaScriptPrompt(self, frame, message, defaultValue, result):
@@ -71,6 +65,7 @@ class GhostWebPage(QtWebKit.QWebPage):
                 message)
         result.append(Ghost.prompt_expected)
         Ghost.prompt_expected = None
+        Logger.log("prompt('%s')" % message, sender="Frame")
         return True
 
 
@@ -125,14 +120,15 @@ class Ghost(object):
 
     :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
-    :param display: A boolean that tells ghost to displays UI
+    :param display: A boolean that tells ghost to displays UI.
+    :param log_level: The logging level.
     """
     alert = None
     confirm_expected = None
     prompt_expected = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=4,
-            display=False):
+            display=False, log_level=logging.WARNING):
         self.http_ressources = []
 
         self.user_agent = user_agent
@@ -157,10 +153,15 @@ class Ghost(object):
 
         self.main_frame = self.page.mainFrame()
 
+        logger.setLevel(log_level)
+
         if self.display:
             self.webview = QtWebKit.QWebView()
             self.webview.setPage(self.page)
             self.webview.show()
+
+    def __del__(self):
+        self.app.quit()
 
     @client_utils_required
     @can_load_page
