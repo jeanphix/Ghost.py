@@ -11,7 +11,6 @@ class GhostTestCase(TestCase):
     """TestCase that provides a ghost instance and manage
     an HTTPServer running a WSGI application.
     """
-    ghost = Ghost()
     port = 5000
 
     def __call__(self, result=None):
@@ -33,11 +32,11 @@ class GhostTestCase(TestCase):
     def _post_teardown(self):
         """Stops HTTPServer instance."""
         self.http_server.stop()
-        self.ghost.delete_cookies()
 
     def _pre_setup(self):
         """Starts HTTPServer instance from WSGI application.
         """
+        self.ghost = Ghost()
         self.app = self.create_app()
         self.http_server = HTTPServer(WSGIContainer(self.app))
         self.http_server.listen(self.port)

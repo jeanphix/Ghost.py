@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import pdb
 import os
-import thread
 import time
 import codecs
 import json
 from functools import wraps
 from PyQt4 import QtWebKit
-from PyQt4.QtNetwork import QNetworkRequest
+from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
+from PyQt4 import QtCore
+from PyQt4.QtGui import QApplication
+from PyQt4 import QtNetwork
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -124,15 +127,11 @@ class Ghost(object):
     :param wait_timeout: Maximum step duration in second.
     :param display: A boolean that tells ghost to displays UI
     """
-    lock = None
-    command = None
-    retval = None
     alert = None
-    prompt = None
     confirm_expected = None
     prompt_expected = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=5,
+    def __init__(self, user_agent=default_user_agent, wait_timeout=10,
             display=False):
         self.http_ressources = []
 
@@ -142,23 +141,26 @@ class Ghost(object):
 
         self.loaded = False
 
-        if not Ghost.lock:
-            Ghost.lock = thread.allocate_lock()
+        self.app = QApplication(['ghost'])
 
-            # To Qt thread pipe
-            Ghost.pipetoveusz_r, w = os.pipe()
-            Ghost.pipetoveusz_w = os.fdopen(w, 'w', 0)
+        self.page = GhostWebPage(self.app)
+        self.page.setViewportSize(QtCore.QSize(400, 300))
 
-            # Return pipe
-            r, w = os.pipe()
-            Ghost.pipefromveusz_r = os.fdopen(r, 'r', 0)
-            Ghost.pipefromveusz_w = os.fdopen(w, 'w', 0)
+        self.page.loadFinished.connect(self._page_loaded)
+        self.page.loadStarted.connect(self._page_load_started)
 
-            thread.start_new_thread(Ghost._start, (self,))
-            # As there's no callback on application started,
-            # lets sleep for a while...
-            # TODO: fix this
-            time.sleep(0.5)
+        self.manager = self.page.networkAccessManager()
+        self.manager.finished.connect(self._request_ended)
+
+        self.cookie_jar = QtNetwork.QNetworkCookieJar()
+        self.manager.setCookieJar(self.cookie_jar)
+
+        self.main_frame = self.page.mainFrame()
+
+        if self.display:
+            webview = QtWebKit.QWebView()
+            webview.setPage(self.page)
+            webview.show()
 
     @client_utils_required
     @can_load_page
@@ -196,17 +198,13 @@ class Ghost(object):
         self.cookie_jar.setAllCookies([])
 
     @can_load_page
-    def evaluate(self, script, releasable=True):
+    def evaluate(self, script):
         """Evaluates script in page frame.
 
         :param script: The script to evaluate.
-        :param releasable: Specifies if callback waiting is needed.
         """
-        return self._run(
-                lambda self, script: self.main_frame\
-                    .evaluateJavaScript("%s" % script),
-                releasable, *(self, script)
-            ), self._release_last_ressources()
+        return (self.main_frame.evaluateJavaScript("%s" % script),
+            self._release_last_ressources())
 
     def evaluate_js_file(self, path, encoding='utf-8'):
         """Evaluates javascript file at given path in current frame.
@@ -222,10 +220,7 @@ class Ghost(object):
 
         :param string: The element selector.
         """
-        return not self._run(
-                lambda self, selector: self.main_frame\
-                    .findFirstElement(selector), True, *(self, selector)
-            ).isNull()
+        return not self.main_frame.findFirstElement(selector).isNull()
 
     @client_utils_required
     def fill(self, selector, values):
@@ -266,22 +261,16 @@ class Ghost(object):
         :param method: The Http method.
         :return: Page ressource, All loaded ressources.
         """
-        def open_page(self, address, method):
-            from PyQt4 import QtCore
-            from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-            body = QtCore.QByteArray()
-            try:
-                method = getattr(QNetworkAccessManager,
-                    "%sOperation" % method.capitalize())
-            except AttributeError:
-                raise Exception("Invalid http method %s" % method)
-            request = QNetworkRequest(QtCore.QUrl(address))
-            request.setRawHeader("User-Agent", self.user_agent)
-            self.main_frame.load(request, method, body)
-            return self.page
-
+        body = QtCore.QByteArray()
+        try:
+            method = getattr(QNetworkAccessManager,
+                "%sOperation" % method.capitalize())
+        except AttributeError:
+            raise Exception("Invalid http method %s" % method)
+        request = QNetworkRequest(QtCore.QUrl(address))
+        request.setRawHeader("User-Agent", self.user_agent)
+        self.main_frame.load(request, method, body)
         self.loaded = False
-        self._run(open_page, True, *(self, address, method))
         return self.wait_for_page_loaded()
 
     class prompt:
@@ -334,81 +323,6 @@ class Ghost(object):
             'Can\'t find "%s" in current frame' % text)
         return True, self._release_last_ressources()
 
-    def _run(self, cmd, releasable, *args, **kwargs):
-        """Execute the given command in the Qt thread.
-
-        :param cmd: The command to execute.
-        :param releasable: Specifies if callback waiting is needed.
-        """
-        assert Ghost.command == None and Ghost.retval == None
-        # Sends the command to Qt thread
-        Ghost.lock.acquire()
-        Ghost.command = (cmd, releasable, args, kwargs)
-        Ghost.lock.release()
-        Ghost.pipetoveusz_w.write('N')
-        # Waits for command to be executed
-        Ghost.pipefromveusz_r.read(1)
-        Ghost.lock.acquire()
-        retval = Ghost.retval
-        Ghost.command = None
-        Ghost.retval = None
-        Ghost.lock.release()
-        if isinstance(retval, Exception):
-            raise retval
-        else:
-            return retval
-
-    def _start(self):
-        """Starts a QtApplication on the dedicated thread.
-
-        :note: Imports have to be done inside thread.
-        """
-        from PyQt4 import QtCore
-        from PyQt4 import QtGui
-        from PyQt4 import QtNetwork
-
-        class GhostApp(QtGui.QApplication):
-            def notification(self, i):
-                """Notifies application from main thread calls.
-                """
-                Ghost.lock.acquire()
-                os.read(Ghost.pipetoveusz_r, 1)
-                assert Ghost.command is not None
-                cmd, releasable, args, kwargs = Ghost.command
-                try:
-                    Ghost.retval = cmd(*args, **kwargs)
-                except Exception, e:
-                    Ghost.retval = e
-
-                if releasable:
-                    Ghost._release()
-
-        app = GhostApp(['ghost'])
-        notifier = QtCore.QSocketNotifier(Ghost.pipetoveusz_r,
-                                       QtCore.QSocketNotifier.Read)
-        app.connect(notifier, QtCore.SIGNAL('activated(int)'),
-            app.notification)
-        notifier.setEnabled(True)
-
-        self.page = GhostWebPage(app)
-        self.page.setViewportSize(QtCore.QSize(400, 300))
-
-        self.page.loadFinished.connect(self._page_loaded)
-        self.page.loadStarted.connect(self._page_load_started)
-
-        self.page.networkAccessManager().finished.connect(self._request_ended)
-
-        self.cookie_jar = QtNetwork.QNetworkCookieJar()
-        self.page.networkAccessManager().setCookieJar(self.cookie_jar)
-
-        self.main_frame = self.page.mainFrame()
-
-        if self.display:
-            webview = QtWebKit.QWebView()
-            webview.setPage(self.page)
-            webview.show()
-        app.exec_()
-
     def _release_last_ressources(self):
         """Releases last loaded ressources.
 
@@ -428,12 +342,6 @@ class Ghost(object):
         """
         self.loaded = False
 
-    @staticmethod
-    def _release():
-        """Releases the back pipe."""
-        Ghost.lock.release()
-        Ghost.pipefromveusz_w.write('r')
-
     def _request_ended(self, res):
         """Adds an HttpRessource object to http_ressources.
 
@@ -452,3 +360,4 @@ class Ghost(object):
             if time.time() > (started_at + self.wait_timeout):
                 raise Exception(timeout_message)
             time.sleep(0.01)
+            self.app.processEvents()
