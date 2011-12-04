@@ -182,6 +182,47 @@
 </tbody>
 </table>
 <dl class="method">
+<dt id="ghost.ghost.Ghost.capture">
+<tt class="descname">capture</tt><big>(</big><em>region=None</em>, <em>selector=None</em>, <em>format=5</em><big>)</big><a class="headerlink" href="#ghost.ghost.Ghost.capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns snapshot as QImage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>region</strong> &#8211; An optional tupple containing region as pixel
+coodinates.</li>
+<li><strong>selector</strong> &#8211; A selector targeted the element to crop on.</li>
+<li><strong>format</strong> &#8211; The output image format.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.ghost.Ghost.capture_to">
+<tt class="descname">capture_to</tt><big>(</big><em>path</em>, <em>region=None</em>, <em>selector=None</em>, <em>format=5</em><big>)</big><a class="headerlink" href="#ghost.ghost.Ghost.capture_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves snapshot as image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> &#8211; The destination path.</li>
+<li><strong>region</strong> &#8211; An optional tupple containing region as pixel
+coodinates.</li>
+<li><strong>selector</strong> &#8211; A selector targeted the element to crop on.</li>
+<li><strong>format</strong> &#8211; The output image format.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="ghost.ghost.Ghost.click">
 <tt class="descname">click</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ghost/ghost.html#Ghost.click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghost.ghost.Ghost.click" title="Permalink to this definition">¶</a></dt>
 <dd><p>Click the targeted element.</p>
@@ -363,6 +404,20 @@ Raises native IOException in case of invalid file.</p>
 <li><strong>callback</strong> &#8211; A callable that returns the value to fill in.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghost.ghost.Ghost.region_for_selector">
+<tt class="descclassname">Ghost.</tt><tt class="descname">region_for_selector</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#ghost.ghost.Ghost.region_for_selector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns frame region for given selector as tupple.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>selector</strong> &#8211; The targeted element.</td>
 </tr>
 </tbody>
 </table>
