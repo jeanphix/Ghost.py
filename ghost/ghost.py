@@ -158,9 +158,9 @@ class Ghost(object):
         self.main_frame = self.page.mainFrame()
 
         if self.display:
-            webview = QtWebKit.QWebView()
-            webview.setPage(self.page)
-            webview.show()
+            self.webview = QtWebKit.QWebView()
+            self.webview.setPage(self.page)
+            self.webview.show()
 
     @client_utils_required
     @can_load_page
