@@ -85,7 +85,7 @@ Accept or denied javascript confirm is quite easy::
 Prompt()
 --------
 
-Filling a value in prompt boxes::
+Filling a value in prompt box::
 
     with Ghost.prompt('my value'):
         # prompt() box fired up by click will be filled with 'my value'
