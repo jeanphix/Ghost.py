@@ -282,7 +282,7 @@ class Ghost(object):
         """
         return not self.main_frame.findFirstElement(selector).isNull()
 
-    @client_utils_required
+    @can_load_page
     def fill(self, selector, values):
         """Fills a form with provided values.
 
@@ -291,8 +291,12 @@ class Ghost(object):
         """
         if not self.exists(selector):
             raise Exception("Can't find form")
-        return self.evaluate('GhostUtils.fill("%s", %s);' % (
-            selector, unicode(json.dumps(values))))
+        ressources = []
+        for field in values:
+            r, res = self.set_field_value("%s [name=%s]" % (selector, field),
+                values[field])
+            ressources.extend(res)
+        return True, ressources
 
     @client_utils_required
     @can_load_page
