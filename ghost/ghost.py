@@ -147,7 +147,7 @@ class Ghost(object):
         self.wait_timeout = wait_timeout
         self.display = display
 
-        self.loaded = False
+        self.loaded = True
 
         self.app = QApplication(['ghost'])
 
