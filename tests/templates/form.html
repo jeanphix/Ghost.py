@@ -2,7 +2,7 @@
 <html>
     <body>
         <h1>Contact form</h1>
-        <form id="contact-form" action="" method="post">
+        <form id="contact-form" action="" method="post" enctype="multipart/form-data">
             <fieldset>
                 <p>
                     <label for="text">text</label>
@@ -21,10 +21,20 @@
                     <input type="checkbox" id="checkbox" name="checkbox" />
                 </p>
                 <p>
+                    <label for="multiple-checkbox-first">multiple checkbox first choice</label>
+                    <input type="checkbox" id="multiple-checkbox-first" name="multiple-checkbox" value="first choice" />
+                    <label for="multiple-checkbox-second">multiple checkbox second choice</label>
+                    <input type="checkbox" id="multiple-checkbox-second" name="multiple-checkbox" value="second choice" />
+                </p>
+                <p>
                     <label for="radio-first">first choice</label>
                     <input id="radio-first" type="radio" name="radio" value="first choice" />
                     <label for="radio-second">second choice</label>
                     <input id="radio-second" type="radio" name="radio" value="second choice" />
+                </p>
+                <p>
+                    <label for="simple-file">simple file upload</label>
+                    <input id="simple-file" type="file" name="simple-file" />
                 </p>
                 <input type="submit" value="go!" />
             </fieldset>

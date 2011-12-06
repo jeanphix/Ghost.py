@@ -140,7 +140,7 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=4,
-            display=False, log_level=logging.WARNING):
+            display=False, log_level=logging.INFO):
         self.http_ressources = []
 
         self.user_agent = user_agent
@@ -369,6 +369,48 @@ class Ghost(object):
         except:
             raise Exception("can't get region for selector '%s'" % selector)
         return region
+
+    @can_load_page
+    @client_utils_required
+    def set_field_value(self, selector, value, blur=True):
+        """Sets the value of the field matched by given selector.
+
+        :param selector: A CSS selector that target the field.
+        :param value: The value to fill in.
+        :param blur: An optional boolean that force blur when filled in.
+        """
+        def _set_text_value(selector, value):
+            return self.evaluate(
+                'document.querySelector("%s").value=%s;' %
+                    (selector, json.dumps(value)))
+
+        res, ressources = None, []
+
+        element = self.main_frame.findFirstElement(selector)
+        if element.isNull():
+            raise Exception('can\'t find element for %s"' % selector)
+        self.fire_on(selector, 'focus')
+        if element.tagName() in ["TEXTAREA", "SELECT"]:
+            res, ressources = _set_text_value(selector, value)
+        elif element.tagName() == "INPUT":
+            if element.attribute('type') in ["color", "date", "datetime",
+                "datetime-local", "email", "hidden", "month", "number",
+                "password", "range", "search", "tel", "text", "time",
+                "url", "week"]:
+                res, ressources = _set_text_value(selector, value)
+            elif element.attribute('type') == "checkbox":
+                res, ressources = self.evaluate(
+                    'GhostUtils.setCheckboxValue("%s", %s);' %
+                        (selector, json.dumps(value)))
+            elif element.attribute('type') == "radio":
+                res, ressources = self.evaluate(
+                    'GhostUtils.setRadioValue("%s", %s);' %
+                        (selector, json.dumps(value)))
+        else:
+            raise Exception('unsuported field tag')
+        if blur:
+            self.fire_on(selector, 'blur')
+        return res, ressources
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.

@@ -176,6 +176,41 @@ class GhostTest(GhostTestCase):
         self.assertTrue(os.path.isfile('test.png'))
         os.remove('test.png')
 
+    def test_set_field_value(self):
+        self.ghost.open("%sform" % base_url)
+        values = {
+            'text': "Here is a sample text with ' \" quotes.",
+            'email': 'my@awesome.email',
+            'textarea': 'Here is a sample text.\nWith several lines.',
+            'checkbox': True,
+            "multiple-checkbox": "second choice",
+            "radio": "first choice"
+        }
+        for field in values:
+            self.ghost.set_field_value('[name=%s]' % field, values[field])
+
+        for field in ['text', 'email', 'textarea']:
+            value, resssources = self.ghost\
+                .evaluate('document.getElementById("%s").value' % field)
+            self.assertEqual(value.toString(), values[field])
+
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("checkbox").checked')
+        self.assertEqual(value, True)
+
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("multiple-checkbox-first").checked')
+        self.assertEqual(value, False)
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("multiple-checkbox-second").checked')
+        self.assertEqual(value, True)
+
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("radio-first").checked')
+        self.assertEqual(value, True)
+        value, ressources = self.ghost.evaluate(
+            'document.getElementById("radio-second").checked')
+        self.assertEqual(value, False)
 
 if __name__ == '__main__':
     unittest.main()

@@ -67,57 +67,35 @@ var GhostUtils = {
         }
     },
     /**
-    * Sets form field value.
-    *
-    * @param  String  field  The field name.
-    * @param  Mixed   value  The value to fill in.
-    */
-    setFieldValue: function(fieldName, value) {
-        var field = document.querySelector('[name="' + fieldName + '"]');
-        if (!field || !field instanceof HTMLElement) {
-            throw 'Error: Invalid field ' + fieldName;
+     * Sets checkboxes value.
+     *
+     * @param  String  field  The field selector.
+     * @param  Mixed   value  The value to fill in.
+     */
+    setCheckboxValue: function(selector, value) {
+        var fields = document.querySelectorAll(selector);
+        if (fields.length > 1) {
+            var values = value;
+            if (!Array.isArray(values)) {
+                values = [values];
+            }
+            Array.prototype.forEach.call(fields, function(f) {
+                f.checked = values.indexOf(f.value) !== -1 ? true : false;
+            });
+        } else {
+            fields[0].checked = value ? true : false;
         }
-        var nodeName = field.nodeName.toLowerCase();
-        switch (nodeName) {
-            case 'input':
-                var type = field.type || "text";
-                    switch (type) {
-                        case "color":
-                        case "date":
-                        case "datetime":
-                        case "datetime-local":
-                        case "email":
-                        case "hidden":
-                        case "month":
-                        case "number":
-                        case "password":
-                        case "range":
-                        case "search":
-                        case "tel":
-                        case "text":
-                        case "time":
-                        case "url":
-                        case "week":
-                            field.value = value;
-                            break;
-                        case "radio":
-                            var radios = document.querySelectorAll('[name=' + fieldName + ']');
-                            Array.prototype.forEach.call(radios, function(e) {
-                                e.checked = (e.value === value);
-                            });
-                            break;
-                        case "checkbox":
-                            field.setAttribute('checked', value ? "checked" : "");
-                            break;
-                    }
-                break;
-
-            case 'textarea':
-                field.value = value;
-                break;
-
-            default:
-                throw 'unsupported field type: ' + nodeName;
-        }
+    },
+    /**
+     * Sets radios value.
+     *
+     * @param  String  field  The field selector.
+     * @param  Mixed   value  The value to fill in.
+     */
+    setRadioValue: function(selector, value) {
+        var fields = document.querySelectorAll(selector);
+        Array.prototype.forEach.call(fields, function(f) {
+            f.checked = (f.value === value);
+        });
     }
 };
