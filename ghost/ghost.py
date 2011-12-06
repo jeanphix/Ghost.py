@@ -33,6 +33,7 @@ class GhostWebPage(QtWebKit.QWebPage):
     Also intercepts client side console.log().
     """
     def chooseFile(frame, suggested_file):
+        #TODO
         return Ghost._upload_file
 
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
@@ -140,7 +141,7 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=4,
-            display=False, log_level=logging.INFO):
+            display=False, log_level=logging.WARNING):
         self.http_ressources = []
 
         self.user_agent = user_agent
