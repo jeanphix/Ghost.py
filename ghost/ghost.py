@@ -32,6 +32,9 @@ class GhostWebPage(QtWebKit.QWebPage):
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
+    def chooseFile(frame, suggested_file):
+        return Ghost._upload_file
+
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
         """Prints client console message in current output stream."""
         super(GhostWebPage, self).javaScriptConsoleMessage(message, *args,
@@ -41,18 +44,18 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
-        Ghost.alert = message
+        Ghost._alert = message
         Logger.log("alert('%s')" % message, sender="Frame")
 
     def javaScriptConfirm(self, frame, message):
         """Checks if ghost is waiting for confirm, then returns the right
         value.
         """
-        if Ghost.confirm_expected is None:
+        if Ghost._confirm_expected is None:
             raise Exception('You must specified a value to confirm "%s"' %
                 message)
-        confirmation, callback = Ghost.confirm_expected
-        Ghost.confirm_expected = None
+        confirmation, callback = Ghost._confirm_expected
+        Ghost._confirm_expected = None
         Logger.log("confirm('%s')" % message, sender="Frame")
         if callback is not None:
             return callback()
@@ -62,10 +65,10 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Checks if ghost is waiting for prompt, then enters the right
         value.
         """
-        if Ghost.prompt_expected is None:
+        if Ghost._prompt_expected is None:
             raise Exception('You must specified a value for prompt "%s"' %
                 message)
-        result_value, callback = Ghost.prompt_expected
+        result_value, callback = Ghost._prompt_expected
         Logger.log("prompt('%s')" % message, sender="Frame")
         if callback is not None:
             result_value = callback()
@@ -73,7 +76,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if result_value == '':
             Logger.log("'%s' prompt filled with empty string" % message,
                 level='warning')
-        Ghost.prompt_expected = None
+        Ghost._prompt_expected = None
         return True
 
 
@@ -131,9 +134,10 @@ class Ghost(object):
     :param display: A boolean that tells ghost to displays UI.
     :param log_level: The logging level.
     """
-    alert = None
-    confirm_expected = None
-    prompt_expected = None
+    _alert = None
+    _confirm_expected = None
+    _prompt_expected = None
+    _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=4,
             display=False, log_level=logging.WARNING):
@@ -234,10 +238,10 @@ class Ghost(object):
             self.callback = callback
 
         def __enter__(self):
-            Ghost.confirm_expected = (self.confirm, self.callback)
+            Ghost._confirm_expected = (self.confirm, self.callback)
 
         def __exit__(self, type, value, traceback):
-            Ghost.confirm_expected = None
+            Ghost._confirm_expected = None
 
     @property
     def content(self):
@@ -340,10 +344,10 @@ class Ghost(object):
             self.callback = callback
 
         def __enter__(self):
-            Ghost.prompt_expected = (self.value, self.callback)
+            Ghost._prompt_expected = (self.value, self.callback)
 
         def __exit__(self, type, value, traceback):
-            Ghost.prompt_expected = None
+            Ghost._prompt_expected = None
 
     @client_utils_required
     def region_for_selector(self, selector):
@@ -377,10 +381,10 @@ class Ghost(object):
     def wait_for_alert(self):
         """Waits for main frame alert().
         """
-        self._wait_for(lambda: Ghost.alert is not None,
+        self._wait_for(lambda: Ghost._alert is not None,
             'User has not been alerted.')
-        msg = Ghost.alert
-        Ghost.alert = None
+        msg = Ghost._alert
+        Ghost._alert = None
         return msg, self._release_last_ressources()
 
     def wait_for_page_loaded(self):

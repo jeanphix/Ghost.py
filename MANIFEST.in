@@ -1,5 +1,6 @@
 include README.rst *.py
-include ghost/*.py
+include ghost/ghost.py
+include ghost/test.py
 include ghost/utils.js
 recursive-include docs *
 recursive-exclude docs *.pyc
