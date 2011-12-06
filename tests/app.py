@@ -34,12 +34,14 @@ def form():
     return render_template('form.html')
 
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    file = request.files['simple-file']
-    file.save(os.path.join(os.path.dirname(__file__),
-        "uploaded_%s" % file.filename))
-    return redirect(url_for('form'))
+@app.route('/upload', methods=['get', 'post'])
+def upload():
+    if request.method == 'POST':
+        file = request.files['simple-file']
+        file.save(os.path.join(os.path.dirname(__file__),
+            "uploaded_%s" % file.filename))
+        return redirect(url_for('upload'))
+    return render_template('upload.html')
 
 
 @app.route('/redirect-me')
