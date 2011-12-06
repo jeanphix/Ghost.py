@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+
 from flask import Flask, render_template, url_for, redirect, jsonify
 from flask import request
 from flask import make_response
@@ -30,6 +32,14 @@ def form():
     if request.method == 'POST':
         return redirect(url_for('form'))
     return render_template('form.html')
+
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    file = request.files['simple-file']
+    file.save(os.path.join(os.path.dirname(__file__),
+        "uploaded_%s" % file.filename))
+    return redirect(url_for('form'))
 
 
 @app.route('/redirect-me')

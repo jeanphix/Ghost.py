@@ -212,5 +212,16 @@ class GhostTest(GhostTestCase):
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
 
+    def test_set_simple_file_field(self):
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=simple-file]',
+            os.path.join(os.path.dirname(__file__), 'static', 'blackhat.jpg'))
+        self.ghost.fire_on('form', 'submit', expect_loading=True)
+        file_path = os.path.join(
+            os.path.dirname(__file__), 'uploaded_blackhat.jpg')
+        self.assertTrue(os.path.isfile(file_path))
+        os.remove(file_path)
+
+
 if __name__ == '__main__':
     unittest.main()

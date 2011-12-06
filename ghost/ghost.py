@@ -32,8 +32,7 @@ class GhostWebPage(QtWebKit.QWebPage):
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
-    def chooseFile(frame, suggested_file):
-        #TODO
+    def chooseFile(self, frame, suggested_file=None):
         return Ghost._upload_file
 
     def javaScriptConsoleMessage(self, message, *args, **kwargs):
@@ -411,6 +410,10 @@ class Ghost(object):
                 res, ressources = self.evaluate(
                     'GhostUtils.setRadioValue("%s", %s);' %
                         (selector, json.dumps(value)))
+            elif element.attribute('type') == "file":
+                Ghost._upload_file = value
+                res, ressources = self.click(selector)
+                Ghost._upload_file = None
         else:
             raise Exception('unsuported field tag')
         if blur:
