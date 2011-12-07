@@ -131,8 +131,10 @@ class Ghost(object):
 
     :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
-    :param display: A boolean that tells ghost to displays UI.
-    :param log_level: The logging level.
+    :param wait_callback: An optional callable that is periodically
+        executed until Ghost stops waiting.
+    :param display: An optional boolean that tells ghost to displays UI.
+    :param log_level: The optional logging level.
     """
     _alert = None
     _confirm_expected = None
@@ -140,11 +142,12 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            display=False, log_level=logging.WARNING):
+            wait_callback=None, display=False, log_level=logging.WARNING):
         self.http_ressources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
+        self.wait_callback = wait_callback
         self.display = display
 
         self.loaded = True
@@ -155,6 +158,7 @@ class Ghost(object):
         self.set_viewport_size(400, 300)
 
         self.page.loadFinished.connect(self._page_loaded)
+
         self.page.loadStarted.connect(self._page_load_started)
 
         self.manager = self.page.networkAccessManager()
@@ -506,3 +510,5 @@ class Ghost(object):
                 raise Exception(timeout_message)
             time.sleep(0.01)
             self.app.processEvents()
+            if self.wait_callback is not None:
+                self.wait_callback()
