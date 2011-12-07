@@ -133,7 +133,6 @@ class Ghost(object):
     :param wait_timeout: Maximum step duration in second.
     :param wait_callback: An optional callable that is periodically
         executed until Ghost stops waiting.
-    :param display: An optional boolean that tells ghost to displays UI.
     :param log_level: The optional logging level.
     """
     _alert = None
@@ -142,13 +141,12 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, display=False, log_level=logging.WARNING):
+            wait_callback=None, log_level=logging.WARNING):
         self.http_ressources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
         self.wait_callback = wait_callback
-        self.display = display
 
         self.loaded = True
 
@@ -171,13 +169,8 @@ class Ghost(object):
 
         logger.setLevel(log_level)
 
-        if self.display:
-            self.webview = QtWebKit.QWebView()
-            self.webview.setPage(self.page)
-            self.webview.show()
-
     def __del__(self):
-        self.app.quit()
+        self.exit()
 
     def capture(self, region=None, selector=None, format=QImage.Format_ARGB32):
         """Returns snapshot as QImage.
@@ -227,9 +220,6 @@ class Ghost(object):
         if not self.exists(selector):
             raise Exception("Can't find element to click")
         return self.evaluate('GhostUtils.click("%s");' % selector)
-
-    def close_webview(self):
-        self.webview.close()
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
@@ -286,6 +276,16 @@ class Ghost(object):
         """
         return not self.main_frame.findFirstElement(selector).isNull()
 
+    def exit(self):
+        """Exists application and relateds."""
+        if self.display:
+            self.webview.close()
+        self.app.exit()
+        del self.manager
+        del self.page
+        del self.main_frame
+        del self.app
+
     @can_load_page
     def fill(self, selector, values):
         """Fills a form with provided values.
@@ -321,6 +321,13 @@ class Ghost(object):
         """
         return self.evaluate('!(typeof %s === "undefined");' %
             global_name)[0].toBool()
+
+    def hide(self):
+        """Close the webview."""
+        try:
+            self.webview.close()
+        except:
+            raise Exception("no webview to close")
 
     def open(self, address, method='get'):
         """Opens a web page.
@@ -431,6 +438,13 @@ class Ghost(object):
         :param height: An integer that sets height pixel count.
         """
         self.page.setViewportSize(QSize(width, height))
+
+    def show(self):
+        """Show current page inside a QWebView.
+        """
+        self.webview = QtWebKit.QWebView()
+        self.webview.setPage(self.page)
+        self.webview.show()
 
     def wait_for_alert(self):
         """Waits for main frame alert().

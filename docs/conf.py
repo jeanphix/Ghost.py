@@ -241,5 +241,4 @@ texinfo_documents = [
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
 
-html_theme_options = {'index_logo': False,
-    'github_fork': 'jeanphix/Ghost.py'}
+html_theme_options = {'github_fork': 'jeanphix/Ghost.py'}
