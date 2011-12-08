@@ -41,7 +41,7 @@ ghost = Ghost()</code>
                 <h1 id="browsing"><a href="#browsing">Open a web page</a></h1>
                 <p>Ghost provide a method that open web page the following way:</p>
                 <code class="python">page, ressources = ghost.open('http://my.web.page')</code>
-                <p>This method returns a tupple of main ressource (web page) and all loaded ressources (such as CSS files, javascripts, images...).</p>
+                <p>This method returns a tuple of main ressource (web page) and all loaded ressources (such as CSS files, javascripts, images...).</p>
                 <p>All those ressources are backed as HttpRessource objects.</p>
                 <p>At the moment HttpRessource objects provide the following attributes:</p>
                 <ul>
@@ -63,7 +63,7 @@ ghost = Ghost()</code>
                 <p>As many other Ghost methods, you can pass an extra parameter that tells Ghost you expect a page loading:</p>
                 <code class="python">page, ressources = ghost.evaluate(
     "document.getElementById('link').click();", expect_loading=True)</code>
-                <p>Then the result tupple wil be the same as the one returned by Ghost.open().</p>
+                <p>Then the result tuple wil be the same as the one returned by Ghost.open().</p>
             </article>
             <article>
                 <h1 id="form"><a href="#form">Play with forms</a></h1>
@@ -86,7 +86,7 @@ ghost = Ghost()</code>
             <article>
                 <h1 id="waiter"><a href="#waiter">Waiters</a></h1>
                 <p>Ghost provides several methods for waiting for specific things before the script continue execution:</p>
-                <h2>wait_alert()</h2>
+                <h2>wait_for_alert()</h2>
                 <p> That wait until a javascript alert() is send.</p>
                 <code class="python">result, ressources = ghost.wait_for_alert()</code>
                 <h2>wait_for_page_loaded()</h2>
