@@ -1,0 +1,145 @@
+body {
+    font-family: 'Georgia', serif;
+    font-size: 15px;
+    color: #3E4349;
+    line-height: 1.3em;
+}
+a {
+    color: #004B6B;
+}
+code, pre {
+    display: block;
+    overflow-x: auto;
+    background: #000;
+    color: #f8f8f8;
+    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 0.9em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 100%;
+    padding: 0.5em 1em;
+}
+@media screen and (min-width: 955px) {
+    header,
+    body > section,
+    footer p{
+        width: 955px;
+        margin: 0 auto;
+    }
+}
+@media screen and (max-width: 970px) {
+    header,
+    body > section,
+        footer{
+        padding: 0 1em;
+        width: auto;
+    }
+}
+header > h1 {
+    font-size: 2.5em;
+}
+header > h1,
+section h1,
+article > h1,
+article > h2 {
+    font-weight: normal;
+}
+section > h1,
+aside > h1 {
+    font-size: 1.6em;
+}
+article > h1 {
+    font-size: 1.4em;
+}
+article > h2 {
+    font-size: 1.2em;
+}
+article > h2:before {
+    content: ">";
+    margin: 0 0.5em 0 0;
+}
+h1 > a,
+h1 > a:hover,
+h2 > a,
+h2 > a:hover {
+    color: inherit;
+    text-decoration: none;
+}
+section h1,
+section h2 {
+    line-height : 1.3em;
+}
+section h1:target,
+section h2:target {
+    background: #FFFFB3;
+}
+
+section h1 > a:hover:after,
+section h2 > a:hover:after {
+    content: "¶";
+}
+aside {
+    position: fixed;
+    top: 1em;
+    right: 0;
+    padding: 0 2em 0 0 ;
+}
+aside > h1 {
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    background: #3E4349;
+    color: #eee;
+    padding: 0 0 0 1em;
+    border-radius: 0.5em;
+}
+aside > h1,
+aside > nav > ul {
+    background: #3E4349;
+    border-radius: 0.5em;
+    opacity: 0.9;
+}
+aside > h1 > a {
+    line-height: 2em;
+    display: block;
+}
+aside > nav{
+    padding: 0;
+    margin: 0;
+    padding-top: 3em;
+    margin-top: -3em;
+    visibility: hidden;
+}
+aside > nav:target {
+    visibility: visible;
+}
+aside > nav ul {
+    padding: 0 0 0 1.5em;
+    font-size: 0.95em;
+}
+aside > nav > ul{
+    padding: 0.5em 1em;
+}
+aside > nav  a {
+    color : #fff;
+    text-decoration: none;
+}
+aside > nav li {
+    line-height: 1.6em;
+}
+footer {
+    margin: 2em 0 0 0;
+    background: #222;
+    color: #fff;
+}
+footer p {
+    margin: 0 auto;
+    padding: 0;
+    line-height: 6em;
+    font-family: "Liberation Sans",Arial,Helvetica,Garuda,sans-serif;
+    font-size: 0.9em;
+}
+footer > p > a {
+    color: #E6DB74;
+    text-decoration: none;
+}
