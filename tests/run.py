@@ -43,7 +43,6 @@ class GhostTest(GhostTestCase):
     def test_wait_for_selector(self):
         page, ressources = self.ghost.open("%smootools" % base_url)
         success, ressources = self.ghost.click("#button")
-        # This is loaded via XHR :)
         success, ressources = self.ghost\
             .wait_for_selector("#list li:nth-child(2)")
         self.assertEqual(ressources[0].url, "%sitems.json" % base_url)
