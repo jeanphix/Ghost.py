@@ -48,6 +48,13 @@ section > h1,
 aside > h1 {
     font-size: 1.6em;
 }
+section > h1{
+    border-bottom: 1px #ddd solid;
+}
+article{
+    border-left: 0.5em #ddd solid;
+    padding: 0 0 0 1em;
+}
 article > h1 {
     font-size: 1.4em;
 }
