@@ -24,13 +24,13 @@ page, extra_ressources = ghost.open("http://jeanphi.fr")
 assert page.http_status==200 and 'jeanphix' in ghost.content</code>
         </header>
         <section>
-            <h1 id="documentation"><a href="#documentation">Documentation</a></h1>
-            <article>
-                <h1 id="installation"><a href="#installation">Installation</a></h1>
-                <p>First you need to install <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> that is available for many plateforms.</p>
-                <p>Then you may install ghost.py using pip:</p>
-                <pre>pip install git+git://github.com/jeanphix/Ghost.py.git#egg=ghost</pre>
-            </article>
+            <h1 id="installation"><a href="#installation">Installation</a></h1>
+            <p>First you need to install <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> that is available for many plateforms.</p>
+            <p>Then you may install ghost.py using pip:</p>
+            <pre>pip install git+git://github.com/jeanphix/Ghost.py.git#egg=ghost</pre>
+        </section>
+        <section>
+            <h1 id="browsing"><a href="#browsing">Browsing</a></h1>
             <article>
                 <h1 id="quick-start"><a href="#quick-start">Quick start</a></h1>
                 <p>First of all, you need a instance of Ghost web client:</p>
@@ -123,41 +123,43 @@ with Ghost.confirm(False):
                 <p>If you need to capture a specific region of the viewport, just provide a selector (or coordinates tuple) that feets your needs:</p>
                 <code class="python">ghost.capture_to('header.png', selector="header")</code>
             </article>
-            <article>
-                <h1 id="test"><a href="#test">Testing your WSGI apps</a></h1>
-                <p>Requirements:</p>
-                <pre>pip install tornado</pre>
-                <p>ghost.py provides a simple GhostTestCase that deals with WSGI applications:</p>
-                <code class="python">import unittest
-from flask import Flask
-from ghost import GhostTestCase
+            <section>
+                <h1 id="test"><a href="#test">Test client</a></h1>
+                <article>
+                    <h1 id="wsgi"><a href="#wsgi">WSGI apps</a></h1>
+                    <p>Requirements:</p>
+                    <pre>pip install tornado</pre>
+                    <p>ghost.py provides a simple GhostTestCase that deals with WSGI applications:</p>
+                    <code class="python">import unittest
+    from flask import Flask
+    from ghost import GhostTestCase
 
 
-app = Flask(__name__)
+    app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return 'hello world'
-
-
-class MyTest(GhostTestCase):
-    port = 5000
-
-    def create_app(self):
-        return app
-
-    def test_open_home(self):
-        self.ghost.open("http://localhost:%s/" % self.port)
-        self.assertEqual(self.ghost.content, 'hello world')
+    @app.route('/')
+    def home():
+        return 'hello world'
 
 
-if __name__ == '__main__':
-    unittest.main()</code>
-                <h2>Debug your test</h2>
-                <p>Tests can be run with a UI by setting display class member to True:</p>
-                <code class="python">class MyTest(GhostTestCase):
-    display = True</code>
-            </article>
+    class MyTest(GhostTestCase):
+        port = 5000
+
+        app = app
+
+        def test_open_home(self):
+            self.ghost.open("http://localhost:%s/" % self.port)
+            self.assertEqual(self.ghost.content, 'hello world')
+
+
+    if __name__ == '__main__':
+        unittest.main()</code>
+                    <h2>Debug your test</h2>
+                    <p>Tests can be run with a UI by setting display class member to True:</p>
+                    <code class="python">class MyTest(GhostTestCase):
+        display = True</code>
+                </article>
+            </section>
             <article>
                 <h1 id="sample"><a href="#sample">Sample use case</a></h1>
                 <p>The following test tries to center <a href="http://www.openstreetmap.org/" title="OpenStreetMap">http://www.openstreetmap.org/</a> map to France:</p>
@@ -185,9 +187,9 @@ assert float(lat.toString()) == 5860090.806537</code>
             <nav id="navigation" role="navigation">
                 <ul>
                     <li><a href="#intro">introduction</a>
-                    <li><a href="#documentation">documentation</a>
+                    <li><a href="#installation">installation</a></li>
+                    <li><a href="#browsing">browsing</a>
                         <ul>
-                            <li><a href="#installation">installation</a></li>
                             <li><a href="#quick-start">quick start</a></li>
                             <li><a href="#browsing">open a web page</a></li>
                             <li><a href="#javascript">execute javascript</a></li>
@@ -196,7 +198,11 @@ assert float(lat.toString()) == 5860090.806537</code>
                             <li><a href="#confirm">confirm</a></li>
                             <li><a href="#prompt">prompt</a></li>
                             <li><a href="#capture">capture</a></li>
-                            <li><a href="#test">testing</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#test">tests</a>
+                        <ul>
+                            <li><a href="#wsgi">WSGI</a></li>
                             <li><a href="#sample">sample</a></li>
                         </ul>
                     </li>

@@ -73,43 +73,45 @@ section h1:target,
 section h2:target {
     background: #FFFFB3;
 }
+
 section h1 > a:hover:after,
 section h2 > a:hover:after {
     content: "¶";
 }
 aside {
     position: fixed;
-    top: 0;
+    top: 1em;
     right: 0;
-    background: #3E4349;
+    padding: 0 2em 0 0 ;
 }
 aside > h1 {
     font-size: 1em;
     font-weight: normal;
     margin: 0;
+    background: #3E4349;
     color: #eee;
     padding: 0 0 0 1em;
-    border-radius: 0.5em 0.5em 0 0;
-    text-align: center;
-    width: 1em;
-    padding: 0 1em;
-    vertical-align: center;
+    border-radius: 0.5em;
 }
-aside > h1 > a:before,
+aside > h1,
 aside > nav > ul {
     background: #3E4349;
+    border-radius: 0.5em;
     opacity: 0.9;
 }
 aside > h1 > a {
+    line-height: 2em;
     display: block;
 }
 aside > nav{
     padding: 0;
     margin: 0;
-    display: none;
+    padding-top: 3em;
+    margin-top: -3em;
+    visibility: hidden;
 }
 aside > nav:target {
-    display: block;
+    visibility: visible;
 }
 aside > nav ul {
     padding: 0 0 0 1.5em;
