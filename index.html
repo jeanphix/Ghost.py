@@ -38,7 +38,7 @@ assert page.http_status==200 and 'jeanphix' in ghost.content</code>
 ghost = Ghost()</code>
             </article>
             <article>
-                <h1 id="browsing"><a href="#browsing">Open a web page</a></h1>
+                <h1 id="open"><a href="#browsing">Open a web page</a></h1>
                 <p>Ghost provide a method that open web page the following way:</p>
                 <code class="python">page, ressources = ghost.open('http://my.web.page')</code>
                 <p>This method returns a tuple of main ressource (web page) and all loaded ressources (such as CSS files, javascripts, images...).</p>
@@ -191,7 +191,7 @@ assert float(lat.toString()) == 5860090.806537</code>
                     <li><a href="#browsing">browsing</a>
                         <ul>
                             <li><a href="#quick-start">quick start</a></li>
-                            <li><a href="#browsing">open a web page</a></li>
+                            <li><a href="#open">open a web page</a></li>
                             <li><a href="#javascript">execute javascript</a></li>
                             <li><a href="#form">forms</a></li>
                             <li><a href="#waiter">waiters</a></li>
