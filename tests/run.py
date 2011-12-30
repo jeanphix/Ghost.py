@@ -168,7 +168,7 @@ class GhostTest(GhostTestCase):
     def test_region_for_selector(self):
         self.ghost.open(base_url)
         self.assertEqual(self.ghost.region_for_selector('h1'),
-            (8, 21, 392, 58))
+            (8, 21, 391, 57))
 
     def test_capture_selector_to(self):
         self.ghost.open(base_url)

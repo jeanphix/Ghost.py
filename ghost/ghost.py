@@ -391,17 +391,9 @@ class Ghost(object):
 
         :param selector: The targeted element.
         """
-        map_ = self.evaluate("GhostUtils.regionForSelector('%s');" %
-            selector)[0].toMap()
+        geo = self.main_frame.findFirstElement(selector).geometry()
         try:
-            region = (
-                map_[QString(u'left')].toInt()[0],
-                map_[QString(u'top')].toInt()[0],
-                map_[QString(u'left')].toInt()[0] +
-                    map_[QString(u'width')].toInt()[0],
-                map_[QString(u'top')].toInt()[0] +
-                    map_[QString(u'height')].toInt()[0]
-            )
+            region = (geo.left(), geo.top(), geo.right(), geo.bottom())
         except:
             raise Exception("can't get region for selector '%s'" % selector)
         return region
