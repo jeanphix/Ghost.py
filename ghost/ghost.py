@@ -137,6 +137,7 @@ class Ghost(object):
     :param wait_callback: An optional callable that is periodically
         executed until Ghost stops waiting.
     :param log_level: The optional logging level.
+    :param display: A boolean that tells ghost to displays UI.
     """
     _alert = None
     _confirm_expected = None
@@ -144,7 +145,7 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, log_level=logging.WARNING):
+            wait_callback=None, log_level=logging.WARNING, display=False):
         self.http_ressources = []
 
         self.user_agent = user_agent
@@ -171,6 +172,12 @@ class Ghost(object):
         self.main_frame = self.page.mainFrame()
 
         logger.setLevel(log_level)
+
+        self.display = display
+        if self.display:
+            self.webview = QtWebKit.QWebView()
+            self.webview.setPage(self.page)
+            self.webview.show()
 
     def __del__(self):
         self.exit()

@@ -36,7 +36,11 @@ class GhostTestCase(TestCase):
     """
     port = 5000
     display = False
-    ghost = Ghost()
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, 'ghost'):
+            cls.ghost = Ghost(display=cls.display)
+        return super(GhostTestCase, cls).__new__(cls, *args, **kwargs)
 
     def __call__(self, result=None):
         """Does the required setup, doing it here
