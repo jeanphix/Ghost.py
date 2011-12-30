@@ -12,7 +12,7 @@ try:
     from PyQt4.QtCore import QSize, QByteArray, QUrl, QString
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
-    raise Exception("You must install PyQt")
+    raise Exception("Ghost.py requires PyQt")
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -160,7 +160,6 @@ class Ghost(object):
         self.set_viewport_size(400, 300)
 
         self.page.loadFinished.connect(self._page_loaded)
-
         self.page.loadStarted.connect(self._page_load_started)
 
         self.manager = self.page.networkAccessManager()

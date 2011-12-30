@@ -13,7 +13,7 @@ base_url = 'http://localhost:%s/' % PORT
 
 class GhostTest(GhostTestCase):
     port = PORT
-    display = True
+    display = False
 
     def create_app(self):
         return app
