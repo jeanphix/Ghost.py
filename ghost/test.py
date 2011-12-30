@@ -55,6 +55,7 @@ class GhostTestCase(TestCase):
     def _post_teardown(self):
         """Stops HTTPServer instance."""
         self.server_thread.join()
+        self.ghost.delete_cookies()
         if self.display:
             self.ghost.hide()
 
