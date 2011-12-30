@@ -4,6 +4,7 @@ import time
 import codecs
 import json
 import logging
+import subprocess
 from functools import wraps
 try:
     from PyQt4 import QtWebKit
@@ -154,6 +155,16 @@ class Ghost(object):
 
         self.loaded = True
 
+        if not 'DISPLAY' in os.environ and not hasattr(Ghost, 'xvfb'):
+            try:
+                os.environ['DISPLAY'] = ':99'
+                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
+            except OSError:
+                raise Exception('Xvfb is required to a ghost run oustside ' +\
+                    'an X instance')
+
+        self.display = display
+
         self.app = QApplication(['ghost'])
 
         self.page = GhostWebPage(self.app)
@@ -172,7 +183,6 @@ class Ghost(object):
 
         logger.setLevel(log_level)
 
-        self.display = display
         if self.display:
             self.webview = QtWebKit.QWebView()
             self.webview.setPage(self.page)
