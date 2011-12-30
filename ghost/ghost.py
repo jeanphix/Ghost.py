@@ -296,7 +296,7 @@ class Ghost(object):
         return not self.main_frame.findFirstElement(selector).isNull()
 
     def exit(self):
-        """Exists application and relateds."""
+        """Exits application and relateds."""
         if self.display:
             self.webview.close()
         self.app.exit()
@@ -304,6 +304,8 @@ class Ghost(object):
         del self.page
         del self.main_frame
         del self.app
+        if hasattr(self, 'xvfb'):
+            self.xvfb.terminate()
 
     @can_load_page
     def fill(self, selector, values):
