@@ -5,11 +5,14 @@ import codecs
 import json
 import logging
 from functools import wraps
-from PyQt4 import QtWebKit
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                            QNetworkCookieJar
-from PyQt4.QtCore import QSize, QByteArray, QUrl, QString
-from PyQt4.QtGui import QApplication, QImage, QPainter
+try:
+    from PyQt4 import QtWebKit
+    from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
+                                QNetworkCookieJar
+    from PyQt4.QtCore import QSize, QByteArray, QUrl, QString
+    from PyQt4.QtGui import QApplication, QImage, QPainter
+except ImportError:
+    raise Exception("You must install PyQt")
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\

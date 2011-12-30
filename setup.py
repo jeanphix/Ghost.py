@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='Flask-Dashed',
+    name='Ghost.py',
     version='0.1a',
     url='https://github.com/jeanphix/Ghost.py',
     license='mit',
