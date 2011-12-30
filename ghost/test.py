@@ -1,10 +1,33 @@
 # -*- coding: utf-8 -*-
-import thread
+import threading
 from unittest import TestCase
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from ghost import Ghost
+
+
+class ServerThread(threading.Thread):
+    """Starts a Tornado HTTPServer from given WSGI application.
+
+    :param app: The WSGI application to run.
+    :param port: The port to run on.
+    """
+    def __init__(self, app, port=5000):
+        self.app = app
+        self.port = port
+        super(ServerThread, self).__init__()
+
+    def run(self):
+        self.http_server = HTTPServer(WSGIContainer(self.app))
+        self.http_server.listen(self.port)
+        self.io = IOLoop.instance()
+        self.io.start()
+
+    def join(self, timeout=None):
+        if hasattr(self, 'http_server'):
+            self.http_server.stop()
+            del self.http_server
 
 
 class GhostTestCase(TestCase):
@@ -31,18 +54,15 @@ class GhostTestCase(TestCase):
 
     def _post_teardown(self):
         """Stops HTTPServer instance."""
-        self.http_server.stop()
+        self.server_thread.join()
         if self.display:
             self.ghost.hide()
 
     def _pre_setup(self):
         """Starts HTTPServer instance from WSGI application.
         """
-        # self.ghost = Ghost(display=self.display)
-        self.app = self.create_app()
-        self.http_server = HTTPServer(WSGIContainer(self.app))
-        self.http_server.listen(self.port)
-        self.io = IOLoop.instance()
-        thread.start_new_thread(lambda io: io.start(), (self.io,))
+        self.server_thread = ServerThread(self.create_app(), self.port)
+        self.server_thread.daemon = True
+        self.server_thread.start()
         if self.display:
             self.ghost.show()
