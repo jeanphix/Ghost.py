@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Ghost.py',
-    version='0.1a',
+    version='0.1a2',
     url='https://github.com/jeanphix/Ghost.py',
     license='mit',
     author='Jean-Philippe Serafin',
@@ -23,6 +23,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
+        'tornado'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
