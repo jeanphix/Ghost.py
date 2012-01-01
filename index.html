@@ -131,33 +131,33 @@ with Ghost.confirm(False):
                     <pre>pip install tornado</pre>
                     <p>ghost.py provides a simple GhostTestCase that deals with WSGI applications:</p>
                     <code class="python">import unittest
-    from flask import Flask
-    from ghost import GhostTestCase
+from flask import Flask
+from ghost import GhostTestCase
 
 
-    app = Flask(__name__)
+app = Flask(__name__)
 
-    @app.route('/')
-    def home():
-        return 'hello world'
-
-
-    class MyTest(GhostTestCase):
-        port = 5000
-
-        app = app
-
-        def test_open_home(self):
-            self.ghost.open("http://localhost:%s/" % self.port)
-            self.assertEqual(self.ghost.content, 'hello world')
+@app.route('/')
+def home():
+    return 'hello world'
 
 
-    if __name__ == '__main__':
-        unittest.main()</code>
+class MyTest(GhostTestCase):
+    port = 5000
+
+    app = app
+
+    def test_open_home(self):
+        self.ghost.open("http://localhost:%s/" % self.port)
+        self.assertEqual(self.ghost.content, 'hello world')
+
+
+if __name__ == '__main__':
+    unittest.main()</code>
                     <h2>Debug your test</h2>
                     <p>Tests can be run with a UI by setting display class member to True:</p>
                     <code class="python">class MyTest(GhostTestCase):
-        display = True</code>
+    display = True</code>
                 </article>
             </section>
             <article>
