@@ -10,7 +10,7 @@ try:
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                 QNetworkCookieJar
-    from PyQt4.QtCore import QSize, QByteArray, QUrl, QString
+    from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
     raise Exception("Ghost.py requires PyQt")
