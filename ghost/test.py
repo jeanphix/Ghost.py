@@ -31,7 +31,6 @@ class ServerThread(threading.Thread):
 
 
 class BaseGhostTestCase(TestCase):
-    port = 5000
     display = False
 
     def __new__(cls, *args, **kwargs):
@@ -66,6 +65,8 @@ class GhostTestCase(BaseGhostTestCase):
     """TestCase that provides a ghost instance and manage
     an HTTPServer running a WSGI application.
     """
+    port = 5000
+
     def create_app(self):
         """Returns your WSGI application for testing.
         """
