@@ -30,17 +30,14 @@ class ServerThread(threading.Thread):
             del self.http_server
 
 
-class GhostTestCase(TestCase):
-    """TestCase that provides a ghost instance and manage
-    an HTTPServer running a WSGI application.
-    """
+class BaseGhostTestCase(TestCase):
     port = 5000
     display = False
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, 'ghost'):
             cls.ghost = Ghost(display=cls.display)
-        return super(GhostTestCase, cls).__new__(cls, *args, **kwargs)
+        return super(BaseGhostTestCase, cls).__new__(cls, *args, **kwargs)
 
     def __call__(self, result=None):
         """Does the required setup, doing it here
@@ -48,9 +45,26 @@ class GhostTestCase(TestCase):
         in subclasses.
         """
         self._pre_setup()
-        super(GhostTestCase, self).__call__(result)
+        super(BaseGhostTestCase, self).__call__(result)
         self._post_teardown()
 
+    def _post_teardown(self):
+        """Deletes ghost cookies and hide UI if needed."""
+        self.ghost.delete_cookies()
+        if self.display:
+            self.ghost.hide()
+
+    def _pre_setup(self):
+        """Shows UI if needed.
+        """
+        if self.display:
+            self.ghost.show()
+
+
+class GhostTestCase(BaseGhostTestCase):
+    """TestCase that provides a ghost instance and manage
+    an HTTPServer running a WSGI application.
+    """
     def create_app(self):
         """Returns your WSGI application for testing.
         """
@@ -59,9 +73,7 @@ class GhostTestCase(TestCase):
     def _post_teardown(self):
         """Stops HTTPServer instance."""
         self.server_thread.join()
-        self.ghost.delete_cookies()
-        if self.display:
-            self.ghost.hide()
+        super(GhostTestCase, self)._post_teardown()
 
     def _pre_setup(self):
         """Starts HTTPServer instance from WSGI application.
@@ -69,5 +81,4 @@ class GhostTestCase(TestCase):
         self.server_thread = ServerThread(self.create_app(), self.port)
         self.server_thread.daemon = True
         self.server_thread.start()
-        if self.display:
-            self.ghost.show()
+        super(GhostTestCase, self)._pre_setup()
