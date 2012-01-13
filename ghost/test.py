@@ -35,6 +35,7 @@ class BaseGhostTestCase(TestCase):
     display = False
 
     def __new__(cls, *args, **kwargs):
+        """Creates Ghost instance."""
         if not hasattr(cls, 'ghost'):
             cls.ghost = Ghost(display=cls.display)
         return super(BaseGhostTestCase, cls).__new__(cls, *args, **kwargs)
