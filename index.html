@@ -181,6 +181,11 @@ ghost.click(
 lat, ressources = ghost.evaluate("map.center.lat")
 assert float(lat.toString()) == 5860090.806537</code>
             </article>
+            <article>
+                <h1 id="django"><a href="#django">Django</a></h1>
+                <p>Ghost provides an extension for django built on to of the upcoming <a href="https://github.com/django/django/blob/master/django/test/testcases.py#L947">LiveServerTestCase</a>.</p>
+                <code class="python">from ghost.ext.django.test import GhostTestCase</code>
+            </article>
         </section>
         <aside>
             <h1><a href="#navigation" accesskey="n">navigation</a></h1>
@@ -204,6 +209,7 @@ assert float(lat.toString()) == 5860090.806537</code>
                         <ul>
                             <li><a href="#wsgi">WSGI</a></li>
                             <li><a href="#sample">sample</a></li>
+                            <li><a href="#django">django</a></li>
                         </ul>
                     </li>
                 </ul>
