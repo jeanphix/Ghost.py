@@ -20,12 +20,12 @@
             <p>As ghost.py has been designed to be used inside python projects, please consider using another library like <a href="http://n1k0.github.com/casperjs/" title="CasperJS">Casper.js</a> for any other stuff.</p>
             <code class="python">from ghost import Ghost
 ghost = Ghost()
-page, extra_ressources = ghost.open("http://jeanphi.fr")
+page, extra_resources = ghost.open("http://jeanphi.fr")
 assert page.http_status==200 and 'jeanphix' in ghost.content</code>
         </header>
         <section>
             <h1 id="installation"><a href="#installation">Installation</a></h1>
-            <p>First you need to install <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> that is available for many plateforms.</p>
+            <p>First you need to install <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> that is available for many platforms.</p>
             <p>Then you may install ghost.py using pip:</p>
             <pre>pip install Ghost.py</pre>
         </section>
@@ -40,12 +40,12 @@ ghost = Ghost()</code>
             <article>
                 <h1 id="open"><a href="#open">Open a web page</a></h1>
                 <p>Ghost provide a method that open web page the following way:</p>
-                <code class="python">page, ressources = ghost.open('http://my.web.page')</code>
-                <p>This method returns a tuple of main ressource (web page) and all loaded ressources (such as CSS files, javascripts, images...).</p>
-                <p>All those ressources are backed as HttpRessource objects.</p>
-                <p>At the moment HttpRessource objects provide the following attributes:</p>
+                <code class="python">page, resources = ghost.open('http://my.web.page')</code>
+                <p>This method returns a tuple of main resource (web page) and all loaded resources (such as CSS files, javascripts, images...).</p>
+                <p>All those resources are backed as HttpResource objects.</p>
+                <p>At the moment Httpresource objects provide the following attributes:</p>
                 <ul>
-                    <li><strong>url</strong>: The ressource url.</li>
+                    <li><strong>url</strong>: The resource url.</li>
                     <li><strong>http_status</strong>: The HTTP response status code.</li>
                     <li><strong>headers</strong>: The response headers as a dict.</li>
                 </ul>
@@ -53,15 +53,15 @@ ghost = Ghost()</code>
             <article>
                 <h1 id="javascript"><a href="#javascript">Execute javascript</a></h1>
                 <p>Executing javascripts inside webkit frame is one of the most interesting features provided by Ghost:</p>
-                <code class="python">result, ressources = ghost.evaluate(
+                <code class="python">result, resources = ghost.evaluate(
     "document.getElementById('my-input').getAttribute('value');")</code>
                 <p>The return value is a tuple of:</p>
                 <ul>
                     <li>last javascript last statement result.</li>
-                    <li>loaded ressources (e.g.: when an XHR is fired up).</li>
+                    <li>loaded resources (e.g.: when an XHR is fired up).</li>
                 </ul>
                 <p>As many other Ghost methods, you can pass an extra parameter that tells Ghost you expect a page loading:</p>
-                <code class="python">page, ressources = ghost.evaluate(
+                <code class="python">page, resources = ghost.evaluate(
     "document.getElementById('link').click();", expect_loading=True)</code>
                 <p>Then the result tuple wil be the same as the one returned by Ghost.open().</p>
             </article>
@@ -70,34 +70,34 @@ ghost = Ghost()</code>
 
                 <h2>Fill a field</h2>
                 <p>You can set a form field value trougth Ghost.set_field_value(selector, value, blur=True, expect_loading=False):</p>
-                <code class="python">result, ressources = ghost.set_field_value("input[name=username]", "jeanphix")</code>
+                <code class="python">result, resources = ghost.set_field_value("input[name=username]", "jeanphix")</code>
                 <p>If you set optional parameter `blur` to False, the focus will be left on the field (usefull for autocomplete tests).</p>
                 <p>For filling file input field, simply pass file path as `value`.</p>
                 <h2>Fill an entire form</h2>
                 <p>You can fill entire form trougth Ghost.fill(selector, values, expect_loading=False):</p>
-                <code class="python">result, ressources = ghost.fill("form", {
+                <code class="python">result, resources = ghost.fill("form", {
     "username": "jeanphix",
     "password": "mypassword"
 })</code>
                 <h2>Submit the form</h2>
                 <p>Yon can submit the form by firing `submit` event:</p>
-                <code class="python">page, ressources = ghost.fire_on("form", "submit", expect_loading=True)</code>
+                <code class="python">page, resources = ghost.fire_on("form", "submit", expect_loading=True)</code>
             </article>
             <article>
                 <h1 id="waiter"><a href="#waiter">Waiters</a></h1>
                 <p>Ghost provides several methods for waiting for specific things before the script continue execution:</p>
                 <h2>wait_for_alert()</h2>
                 <p> That wait until a javascript alert() is send.</p>
-                <code class="python">result, ressources = ghost.wait_for_alert()</code>
+                <code class="python">result, resources = ghost.wait_for_alert()</code>
                 <h2>wait_for_page_loaded()</h2>
                 <p> That wait until a new page is loaded.</p>
-                <code class="python">page, ressources = ghost.wait_for_page_loaded()</code>
+                <code class="python">page, resources = ghost.wait_for_page_loaded()</code>
                 <h2>wait_for_selector(selector)</h2>
                 <p> That wait until a element match the given selector.</p>
-                <code class="python">result, ressources = ghost.wait_for_selector("ul.results")</code>
+                <code class="python">result, resources = ghost.wait_for_selector("ul.results")</code>
                 <h2>wait_for_text(text)</h2>
                 <p> That wait until the given text exists inside the frame.</p>
-                <code class="python">result, ressources = ghost.wait_for_selector("My result")</code>
+                <code class="python">result, resources = ghost.wait_for_selector("My result")</code>
             </article>
             <article>
                 <h1 id="confirm"><a href="#confirm">Confirm</a></h1>
@@ -178,7 +178,7 @@ ghost.wait_for_selector(
 ghost.click(
     '#search_osm_nominatim .search_results_entry:first-child a')
 # Checks if map has moved to expected latitude
-lat, ressources = ghost.evaluate("map.center.lat")
+lat, resources = ghost.evaluate("map.center.lat")
 assert float(lat.toString()) == 5860090.806537</code>
             </article>
             <article>
