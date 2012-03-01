@@ -168,6 +168,10 @@ class Ghost(object):
         self.app = QApplication(['ghost'])
 
         self.page = GhostWebPage(self.app)
+        self.settings = self.page.settings()
+        QtWebKit.QWebSettings.setMaximumPagesInCache(0)
+        QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0);
+
         self.set_viewport_size(400, 300)
 
         self.page.loadFinished.connect(self._page_loaded)
