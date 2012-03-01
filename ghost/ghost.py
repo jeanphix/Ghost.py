@@ -117,8 +117,8 @@ def client_utils_required(func):
     return wrapper
 
 
-class HttpRessource(object):
-    """Represents an HTTP ressource.
+class HttpResource(object):
+    """Represents an HTTP resource.
     """
     def __init__(self, reply):
         self.url = unicode(reply.url().toString())
@@ -147,7 +147,7 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False):
-        self.http_ressources = []
+        self.http_resources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
@@ -277,7 +277,7 @@ class Ghost(object):
         :param script: The script to evaluate.
         """
         return (self.main_frame.evaluateJavaScript("%s" % script),
-            self._release_last_ressources())
+            self._release_last_resources())
 
     def evaluate_js_file(self, path, encoding='utf-8'):
         """Evaluates javascript file at given path in current frame.
@@ -316,12 +316,12 @@ class Ghost(object):
         """
         if not self.exists(selector):
             raise Exception("Can't find form")
-        ressources = []
+        resources = []
         for field in values:
             r, res = self.set_field_value("%s [name=%s]" % (selector, field),
                 values[field])
-            ressources.extend(res)
-        return True, ressources
+            resources.extend(res)
+        return True, resources
 
     @client_utils_required
     @can_load_page
@@ -353,9 +353,9 @@ class Ghost(object):
     def open(self, address, method='get'):
         """Opens a web page.
 
-        :param address: The ressource URL.
+        :param address: The resource URL.
         :param method: The Http method.
-        :return: Page ressource, All loaded ressources.
+        :return: Page resource, All loaded resources.
         """
         body = QByteArray()
         try:
@@ -412,37 +412,37 @@ class Ghost(object):
                 'document.querySelector("%s").value=%s;' %
                     (selector, json.dumps(value)))
 
-        res, ressources = None, []
+        res, resources = None, []
 
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
         self.fire_on(selector, 'focus')
         if element.tagName() in ["TEXTAREA", "SELECT"]:
-            res, ressources = _set_text_value(selector, value)
+            res, resources = _set_text_value(selector, value)
         elif element.tagName() == "INPUT":
             if element.attribute('type') in ["color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week"]:
-                res, ressources = _set_text_value(selector, value)
+                res, resources = _set_text_value(selector, value)
             elif element.attribute('type') == "checkbox":
-                res, ressources = self.evaluate(
+                res, resources = self.evaluate(
                     'GhostUtils.setCheckboxValue("%s", %s);' %
                         (selector, json.dumps(value)))
             elif element.attribute('type') == "radio":
-                res, ressources = self.evaluate(
+                res, resources = self.evaluate(
                     'GhostUtils.setRadioValue("%s", %s);' %
                         (selector, json.dumps(value)))
             elif element.attribute('type') == "file":
                 Ghost._upload_file = value
-                res, ressources = self.click(selector)
+                res, resources = self.click(selector)
                 Ghost._upload_file = None
         else:
             raise Exception('unsuported field tag')
         if blur:
             self.fire_on(selector, 'blur')
-        return res, ressources
+        return res, resources
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
@@ -466,20 +466,20 @@ class Ghost(object):
             'User has not been alerted.')
         msg = Ghost._alert
         Ghost._alert = None
-        return msg, self._release_last_ressources()
+        return msg, self._release_last_resources()
 
     def wait_for_page_loaded(self):
         """Waits until page is loaded, assumed that a page as been requested.
         """
         self._wait_for(lambda: self.loaded,
             'Unable to load requested page')
-        ressources = self._release_last_ressources()
+        resources = self._release_last_resources()
         page = None
-        for ressource in ressources:
-            if not int(ressource.http_status / 100) == 3:
-                # Assumed that current ressource is the first non redirect
-                page = ressource
-        return page, ressources
+        for resource in resources:
+            if not int(resource.http_status / 100) == 3:
+                # Assumed that current resource is the first non redirect
+                page = resource
+        return page, resources
 
     def wait_for_selector(self, selector):
         """Waits until selector match an element on the frame.
@@ -488,7 +488,7 @@ class Ghost(object):
         """
         self._wait_for(lambda: self.exists(selector),
             'Can\'t find element matching "%s"' % selector)
-        return True, self._release_last_ressources()
+        return True, self._release_last_resources()
 
     def wait_for_text(self, text):
         """Waits until given text appear on main frame.
@@ -497,16 +497,16 @@ class Ghost(object):
         """
         self._wait_for(lambda: text in self.content,
             'Can\'t find "%s" in current frame' % text)
-        return True, self._release_last_ressources()
+        return True, self._release_last_resources()
 
-    def _release_last_ressources(self):
-        """Releases last loaded ressources.
+    def _release_last_resources(self):
+        """Releases last loaded resources.
 
-        :return: The released ressources.
+        :return: The released resources.
         """
-        last_ressources = self.http_ressources
-        self.http_ressources = []
-        return last_ressources
+        last_resources = self.http_resources
+        self.http_resources = []
+        return last_resources
 
     def _page_loaded(self):
         """Called back when page is loaded.
@@ -519,11 +519,11 @@ class Ghost(object):
         self.loaded = False
 
     def _request_ended(self, res):
-        """Adds an HttpRessource object to http_ressources.
+        """Adds an HttpResource object to http_resources.
 
         :param res: The request result.
         """
-        self.http_ressources.append(HttpRessource(res))
+        self.http_resources.append(HttpResource(res))
 
     def _wait_for(self, condition, timeout_message):
         """Waits until condition is True.
