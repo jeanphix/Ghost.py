@@ -17,7 +17,6 @@
         <header id="intro">
             <h1><a href="#intro">ghost.py</a></h1>
             <p>ghost.py is a webkit web client written in python.</p>
-            <p>As ghost.py has been designed to be used inside python projects, please consider using another library like <a href="http://n1k0.github.com/casperjs/" title="CasperJS">Casper.js</a> for any other stuff.</p>
             <code class="python">from ghost import Ghost
 ghost = Ghost()
 page, extra_resources = ghost.open("http://jeanphi.fr")
@@ -25,7 +24,7 @@ assert page.http_status==200 and 'jeanphix' in ghost.content</code>
         </header>
         <section>
             <h1 id="installation"><a href="#installation">Installation</a></h1>
-            <p>First you need to install <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> that is available for many platforms.</p>
+            <p>First you need to install either <a href="http://www.riverbankcomputing.co.uk/software/pyqt/intro" title="PyQt homepage">PyQt</a> or <a href="http://www.pyside.org/" title="PySide homepage">PySide</a> that are availables for many platforms.</p>
             <p>Then you may install ghost.py using pip:</p>
             <pre>pip install Ghost.py</pre>
         </section>
@@ -186,6 +185,20 @@ assert float(lat.toString()) == 5860090.806537</code>
                 <p>Ghost provides an extension for django built on to of the upcoming <a href="https://github.com/django/django/blob/master/django/test/testcases.py#L947">LiveServerTestCase</a>.</p>
                 <code class="python">from ghost.ext.django.test import GhostTestCase</code>
             </article>
+            <article>
+                <h1 id="credits"><a href="#credits">Credits</a></h1>
+                <ul>
+                    <li><a href="http://nicolas.perriault.net" title="nicolas perriault">n1ko</a> for <a href="http://n1k0.github.com/casperjs/" title="Casper.js">Casper.js</a> and many helps.</li>
+                    <li><a href="http://traviscline.com/blog" title="Travis Cline">traviscline</a> for PySide support.</li>
+                </ul>
+            </article>
+        </section>
+        <section>
+            <h1 id="credits"><a href="#credits">Credits</a></h1>
+            <ul>
+                <li><a href="http://nicolas.perriault.net" title="nicolas perriault">n1k0</a> for <a href="http://n1k0.github.com/casperjs/" title="Casper.js">Casper.js</a> and many helps.</li>
+                <li><a href="http://traviscline.com/blog" title="Travis Cline">traviscline</a> for PySide support.</li>
+            </ul>
         </section>
         <aside>
             <h1><a href="#navigation" accesskey="n">navigation</a></h1>
@@ -212,6 +225,7 @@ assert float(lat.toString()) == 5860090.806537</code>
                             <li><a href="#django">django</a></li>
                         </ul>
                     </li>
+                    <li><a href="#credits">credits</a></li>
                 </ul>
             </nav>
         </aside>
