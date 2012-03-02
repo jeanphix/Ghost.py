@@ -7,6 +7,8 @@ import logging
 import subprocess
 from functools import wraps
 try:
+    import sip
+    sip.setapi('QVariant', 2)
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                 QNetworkCookieJar
@@ -121,9 +123,9 @@ class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, reply):
-        self.url = unicode(reply.url().toString())
+        self.url = reply.url().toString()
         self.http_status = reply.attribute(
-            QNetworkRequest.HttpStatusCodeAttribute).toInt()[0]
+            QNetworkRequest.HttpStatusCodeAttribute)
         self.headers = {}
         for header in reply.rawHeaderList():
             self.headers[unicode(header)] = unicode(reply.rawHeader(header))
@@ -345,7 +347,7 @@ class Ghost(object):
         :param global_name: The name of the global.
         """
         return self.evaluate('!(typeof %s === "undefined");' %
-            global_name)[0].toBool()
+            global_name)[0]
 
     def hide(self):
         """Close the webview."""
@@ -480,7 +482,8 @@ class Ghost(object):
         resources = self._release_last_resources()
         page = None
         for resource in resources:
-            if not int(resource.http_status / 100) == 3:
+            if resource.http_status and \
+                not int(resource.http_status / 100) == 3:
                 # Assumed that current resource is the first non redirect
                 page = resource
         return page, resources

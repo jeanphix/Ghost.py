@@ -36,10 +36,8 @@ class GhostTest(GhostTestCase):
     def test_external_api(self):
         page, resources = self.ghost.open("%smootools" % base_url)
         self.assertEqual(len(resources), 2)
-        self.assertEqual(self.ghost.evaluate("document.id('list')")[0].type(),
-            8)
-        self.assertEqual(self.ghost.evaluate("document.id('list')")[0],
-            self.ghost.evaluate("document.getElementById('list')")[0])
+        self.assertEqual(type(self.ghost.evaluate("document.id('list')")[0]),
+            dict)
 
     def test_wait_for_selector(self):
         page, resources = self.ghost.open("%smootools" % base_url)
@@ -71,7 +69,7 @@ class GhostTest(GhostTestCase):
         for field in ['text', 'email', 'textarea']:
             value, resssources = self.ghost\
                 .evaluate('document.getElementById("%s").value' % field)
-            self.assertEqual(value.toString(), values[field])
+            self.assertEqual(value, values[field])
         value, resources = self.ghost.evaluate(
             'document.getElementById("checkbox").checked')
         self.assertEqual(value, True)
@@ -150,14 +148,14 @@ class GhostTest(GhostTestCase):
         with Ghost.prompt('my value'):
             self.ghost.click('#prompt-button')
         value, resources = self.ghost.evaluate('promptValue')
-        self.assertEqual(value.toString(), 'my value')
+        self.assertEqual(value, 'my value')
 
     def test_prompt_callback(self):
         self.ghost.open("%salert" % base_url)
         with Ghost.prompt(callback=lambda: 'another value'):
             self.ghost.click('#prompt-button')
         value, resources = self.ghost.evaluate('promptValue')
-        self.assertEqual(value.toString(), 'another value')
+        self.assertEqual(value, 'another value')
 
     def test_capture_to(self):
         self.ghost.open(base_url)
@@ -192,7 +190,7 @@ class GhostTest(GhostTestCase):
         for field in ['text', 'email', 'textarea']:
             value, resssources = self.ghost\
                 .evaluate('document.getElementById("%s").value' % field)
-            self.assertEqual(value.toString(), values[field])
+            self.assertEqual(value, values[field])
 
         value, resources = self.ghost.evaluate(
             'document.getElementById("checkbox").checked')
