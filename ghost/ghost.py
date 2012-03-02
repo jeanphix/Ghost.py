@@ -141,6 +141,7 @@ class Ghost(object):
         executed until Ghost stops waiting.
     :param log_level: The optional logging level.
     :param display: A boolean that tells ghost to displays UI.
+    :param viewport_size: A tupple that sets initial viewport size.
     """
     _alert = None
     _confirm_expected = None
