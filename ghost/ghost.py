@@ -15,7 +15,14 @@ try:
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
-    raise Exception("Ghost.py requires PyQt")
+    try:
+        from PySide import QtWebKit
+        from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
+                                    QNetworkCookieJar
+        from PySide.QtCore import QSize, QByteArray, QUrl
+        from PySide.QtGui import QApplication, QImage, QPainter
+    except ImportError:
+        raise Exception("Ghost.py requires PySide or PyQt")
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -67,7 +74,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             return callback()
         return confirmation
 
-    def javaScriptPrompt(self, frame, message, defaultValue, result):
+    def javaScriptPrompt(self, frame, message, defaultValue, result=None):
         """Checks if ghost is waiting for prompt, then enters the right
         value.
         """
@@ -78,11 +85,14 @@ class GhostWebPage(QtWebKit.QWebPage):
         Logger.log("prompt('%s')" % message, sender="Frame")
         if callback is not None:
             result_value = callback()
-        result.append(result_value)
         if result_value == '':
             Logger.log("'%s' prompt filled with empty string" % message,
                 level='warning')
         Ghost._prompt_expected = None
+        if result is None:
+            # PySide
+            return True, result_value
+        result.append(result_value)
         return True
 
 
