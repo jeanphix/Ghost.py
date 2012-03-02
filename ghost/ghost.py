@@ -148,7 +148,8 @@ class Ghost(object):
     _upload_file = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, log_level=logging.WARNING, display=False):
+            wait_callback=None, log_level=logging.WARNING, display=False,
+            viewport_size=(800,600)):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -173,7 +174,7 @@ class Ghost(object):
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0);
 
-        self.set_viewport_size(400, 300)
+        self.set_viewport_size(*viewport_size)
 
         self.page.loadFinished.connect(self._page_loaded)
         self.page.loadStarted.connect(self._page_load_started)
