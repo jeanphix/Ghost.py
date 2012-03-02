@@ -32,11 +32,13 @@ class ServerThread(threading.Thread):
 
 class BaseGhostTestCase(TestCase):
     display = False
+    wait_timeout = 2
 
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
         if not hasattr(cls, 'ghost'):
-            cls.ghost = Ghost(display=cls.display)
+            cls.ghost = Ghost(display=cls.display,
+                wait_timeout=cls.wait_timeout)
         return super(BaseGhostTestCase, cls).__new__(cls, *args, **kwargs)
 
     def __call__(self, result=None):
