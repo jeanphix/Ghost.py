@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import unittest
+import logging
 
 from ghost import GhostTestCase, Ghost
 from app import app
@@ -14,6 +15,7 @@ base_url = 'http://localhost:%s/' % PORT
 class GhostTest(GhostTestCase):
     port = PORT
     display = False
+    log_level = logging.INFO
 
     def create_app(self):
         return app

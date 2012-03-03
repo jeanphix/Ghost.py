@@ -136,6 +136,7 @@ class HttpResource(object):
         self.url = reply.url().toString()
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
+        Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
         self.headers = {}
         for header in reply.rawHeaderList():
             self.headers[unicode(header)] = unicode(reply.rawHeader(header))
