@@ -5,7 +5,7 @@ from unittest import TestCase
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from ghost import Ghost
+from ghost import Ghost, Logger
 
 
 class ServerThread(threading.Thread):
