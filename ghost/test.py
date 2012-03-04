@@ -79,15 +79,17 @@ class GhostTestCase(BaseGhostTestCase):
         """
         raise NotImplementedError
 
-    def _post_teardown(self):
+    @classmethod
+    def tearDownClass(cls):
         """Stops HTTPServer instance."""
-        self.server_thread.join()
-        super(GhostTestCase, self)._post_teardown()
+        cls.server_thread.join()
+        super(GhostTestCase, cls).tearDownClass()
 
-    def _pre_setup(self):
+    @classmethod
+    def setUpClass(cls):
         """Starts HTTPServer instance from WSGI application.
         """
-        self.server_thread = ServerThread(self.create_app(), self.port)
-        self.server_thread.daemon = True
-        self.server_thread.start()
-        super(GhostTestCase, self)._pre_setup()
+        cls.server_thread = ServerThread(cls.create_app(), cls.port)
+        cls.server_thread.daemon = True
+        cls.server_thread.start()
+        super(GhostTestCase, cls).setUpClass()

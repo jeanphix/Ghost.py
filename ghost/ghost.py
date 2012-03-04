@@ -495,9 +495,7 @@ class Ghost(object):
         resources = self._release_last_resources()
         page = None
         for resource in resources:
-            if resource.http_status and \
-                not int(resource.http_status / 100) == 3:
-                # Assumed that current resource is the first non redirect
+            if self.main_frame.url().toString() == resource.url:
                 page = resource
         return page, resources
 
@@ -543,7 +541,8 @@ class Ghost(object):
 
         :param res: The request result.
         """
-        self.http_resources.append(HttpResource(res))
+        if res.attribute(QNetworkRequest.HttpStatusCodeAttribute):
+            self.http_resources.append(HttpResource(res))
 
     def _wait_for(self, condition, timeout_message):
         """Waits until condition is True.

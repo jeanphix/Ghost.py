@@ -17,7 +17,8 @@ class GhostTest(GhostTestCase):
     display = False
     log_level = logging.INFO
 
-    def create_app(self):
+    @classmethod
+    def create_app(cls):
         return app
 
     def test_open(self):
