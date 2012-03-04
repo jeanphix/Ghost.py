@@ -144,7 +144,9 @@ def home():
 class MyTest(GhostTestCase):
     port = 5000
 
-    app = app
+    @classmethod
+    def create_app(cls):
+        return app
 
     def test_open_home(self):
         self.ghost.open("http://localhost:%s/" % self.port)
