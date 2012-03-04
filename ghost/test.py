@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import threading
 import logging
+import time
 from unittest import TestCase
-from tornado.wsgi import WSGIContainer
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
-from ghost import Ghost, Logger
+from wsgiref.simple_server import make_server
+from ghost import Ghost
 
 
 class ServerThread(threading.Thread):
@@ -20,14 +19,12 @@ class ServerThread(threading.Thread):
         super(ServerThread, self).__init__()
 
     def run(self):
-        self.http_server = HTTPServer(WSGIContainer(self.app))
-        self.http_server.listen(self.port)
-        self.io = IOLoop.instance()
-        self.io.start()
+        self.http_server = make_server('', self.port, self.app)
+        self.http_server.serve_forever()
 
     def join(self, timeout=None):
         if hasattr(self, 'http_server'):
-            self.http_server.stop()
+            self.http_server.shutdown()
             del self.http_server
 
 
@@ -92,4 +89,6 @@ class GhostTestCase(BaseGhostTestCase):
         cls.server_thread = ServerThread(cls.create_app(), cls.port)
         cls.server_thread.daemon = True
         cls.server_thread.start()
+        while not hasattr(cls.server_thread, 'http_server'):
+            time.sleep(0.01)
         super(GhostTestCase, cls).setUpClass()
