@@ -1,0 +1,10 @@
+language: python
+python:
+  - "2.7"
+install:
+  - sudo apt-get install python-qt4
+  - python setup.py install
+before_script:
+  - sh -e /etc/init.d/xvfb start
+script: tests/run.py
+
