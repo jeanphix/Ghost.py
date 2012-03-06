@@ -99,8 +99,8 @@ class GhostTest(GhostTestCase):
         self.assertTrue(self.ghost.global_exists('myGlobal'))
 
     def test_resource_headers(self):
-        page, resources = self.ghost.open("%sitems.json" % base_url)
-        self.assertEqual(page.headers['Content-Type'], 'application/json')
+        page, resources = self.ghost.open(base_url)
+        self.assertEqual(page.headers['Content-Type'], 'text/html; charset=utf-8')
 
     def test_click_link(self):
         page, resources = self.ghost.open("%s" % base_url)
