@@ -3,6 +3,7 @@ python:
   - "2.7"
 install:
   - sudo apt-get install python-qt4
+  - pip install -r tests/requirements.txt --use-mirrors
   - python setup.py install
 before_script:
   - "export DISPLAY=:99.0"
