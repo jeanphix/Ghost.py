@@ -30,7 +30,7 @@ class ServerThread(threading.Thread):
 
 class BaseGhostTestCase(TestCase):
     display = False
-    wait_timeout = 2
+    wait_timeout = 5
     viewport_size = (800, 600)
     log_level = logging.INFO
 
