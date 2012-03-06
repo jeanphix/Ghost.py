@@ -8,7 +8,7 @@ install:
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-  - ln -s /usr/lib/pymodules/python2.6/PyQt4 /home/vagrant/virtualenv/python2.7/lib/python2.7/site-packages/PyQt4
-  - ln -s /usr/lib/pymodules/python2.6/sip.so /home/vagrant/virtualenv/python2.7/lib/python2.7/site-packages/sip.so
+  - ln -s /usr/lib/pymodules/python2.6/PyQt4 /home/vagrant/virtualenv/python2.7/lib/python$PYTHON_VERSION/site-packages/PyQt4
+  - ln -s /usr/lib/pymodules/python2.6/sip.so /home/vagrant/virtualenv/python2.7/lib/python$PYTHON_VERSION/site-packages/sip.so
 script: tests/run.py
 
