@@ -94,10 +94,6 @@ class GhostTest(GhostTestCase):
             expect_loading=True)
         self.assertEqual(resources[0].http_status, 302)
 
-    def test_open_timeout(self):
-        self.assertRaises(Exception,
-            self.ghost.open, "http://this.is.a.wrong.uri")
-
     def test_global_exists(self):
         self.ghost.open("%s" % base_url)
         self.assertTrue(self.ghost.global_exists('myGlobal'))
