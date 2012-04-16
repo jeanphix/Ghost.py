@@ -5,4 +5,4 @@ ghost.py is a webkit web client written in python::
     page, extra_resources = ghost.open("http://jeanphi.fr")
     assert page.http_status==200 and 'jeanphix' in ghost.content
 
-.. image:: https://travis-ci.org/jeanphix/Ghost.py.png
+.. image:: https://secure.travis-ci.org/jeanphix/Ghost.py.png
