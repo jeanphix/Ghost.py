@@ -25,9 +25,17 @@ class BasicAuth(object):
         request.setRawHeader('Authorization', _basic_auth_str(self.username,
             self.password))
 
+
+class ProxyAuth(BasicAuth):
+    """Sets the HTTP proxy auth header for given request."""
+    def __call__(self, request):
+        request.setRawHeader('Proxy-Authorization', _basic_auth_str(
+            self.username, self.password))
+
+
 def http_auth(request, auth_type, username, password):
     try:
-        auth_class = globals()['%sAuth' % auth_type]
+        auth_class = globals()['%sAuth' % auth_type.capitalize()]
     except:
         raise Exception("Supported authentication are Basic, Proxy")
     return auth_class(username, password)(request)
