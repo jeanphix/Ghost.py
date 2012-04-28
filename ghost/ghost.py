@@ -161,6 +161,7 @@ class Ghost(object):
     _confirm_expected = None
     _prompt_expected = None
     _upload_file = None
+    _app = None
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
@@ -184,9 +185,10 @@ class Ghost(object):
 
         self.display = display
 
-        self.app = QApplication(['ghost'])
+        if not Ghost._app:
+            Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        self.page = GhostWebPage(self.app)
+        self.page = GhostWebPage(Ghost._app)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0);
 
@@ -321,11 +323,10 @@ class Ghost(object):
         """Exits application and relateds."""
         if self.display:
             self.webview.close()
-        self.app.exit()
+        Ghost._app.exit()
         del self.manager
         del self.page
         del self.main_frame
-        del self.app
         if hasattr(self, 'xvfb'):
             self.xvfb.terminate()
 
@@ -566,6 +567,6 @@ class Ghost(object):
             if time.time() > (started_at + self.wait_timeout):
                 raise Exception(timeout_message)
             time.sleep(0.01)
-            self.app.processEvents()
+            Ghost._app.processEvents()
             if self.wait_callback is not None:
                 self.wait_callback()
