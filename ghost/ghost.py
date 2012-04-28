@@ -369,11 +369,12 @@ class Ghost(object):
         except:
             raise Exception("no webview to close")
 
-    def open(self, address, method='get'):
+    def open(self, address, method='get', headers={}):
         """Opens a web page.
 
         :param address: The resource URL.
         :param method: The Http method.
+        :param headers: An optional dict of extra request hearders.
         :return: Page resource, All loaded resources.
         """
         body = QByteArray()
@@ -383,7 +384,10 @@ class Ghost(object):
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
-        request.setRawHeader("User-Agent", self.user_agent)
+        if not "User-Agent" in headers:
+            headers["User-Agent"] = self.user_agent
+        for header in headers:
+            request.setRawHeader(header, headers[header])
         self.main_frame.load(request, method, body)
         self.loaded = False
         return self.wait_for_page_loaded()
