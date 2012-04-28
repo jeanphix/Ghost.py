@@ -2,7 +2,7 @@
 import os
 
 from flask import Flask, render_template, url_for, redirect, jsonify
-from flask import request
+from flask import request, abort
 from flask import make_response
 
 
@@ -57,6 +57,18 @@ def mootools():
 @app.route('/items.json')
 def items():
     return jsonify(items=['second item', 'third item'])
+
+
+def _check_auth(username, password):
+    return username == 'admin' and password == 'secret'
+
+
+@app.route('/basic-auth')
+def basic_auth():
+    auth = request.authorization
+    if not _check_auth(auth.username, auth.password):
+        abort(401)
+    return '<p>successfully authenticated</p>'
 
 
 if __name__ == '__main__':

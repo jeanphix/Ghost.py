@@ -223,6 +223,16 @@ class GhostTest(GhostTestCase):
         self.assertTrue(os.path.isfile(file_path))
         os.remove(file_path)
 
+    def test_basic_http_auth_success(self):
+        page, resources = self.ghost.open("%sbasic-auth" % base_url,
+            auth=('Basic', 'admin', 'secret'))
+        self.assertEqual(page.http_status, 200)
+
+    def test_basic_http_auth_error(self):
+        page, resources = self.ghost.open("%sbasic-auth" % base_url,
+            auth=('Basic', 'admin', 'wrongsecret'))
+        self.assertEqual(page.http_status, 401)
+
 
 if __name__ == '__main__':
     unittest.main()

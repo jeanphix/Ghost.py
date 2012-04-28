@@ -6,6 +6,7 @@ import json
 import logging
 import subprocess
 from functools import wraps
+from auth import http_auth
 try:
     import sip
     sip.setapi('QVariant', 2)
@@ -369,12 +370,13 @@ class Ghost(object):
         except:
             raise Exception("no webview to close")
 
-    def open(self, address, method='get', headers={}):
+    def open(self, address, method='get', headers={}, auth=None):
         """Opens a web page.
 
         :param address: The resource URL.
         :param method: The Http method.
         :param headers: An optional dict of extra request hearders.
+        :param auth: An optional tupple of HTTP auth (Basic, username, password).
         :return: Page resource, All loaded resources.
         """
         body = QByteArray()
@@ -384,6 +386,9 @@ class Ghost(object):
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
+        if auth is not None:
+            auth_type, username, password = auth
+            http_auth(request, auth_type, username, password)
         if not "User-Agent" in headers:
             headers["User-Agent"] = self.user_agent
         for header in headers:
