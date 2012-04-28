@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import os
 import time
 import codecs
@@ -172,7 +173,8 @@ class Ghost(object):
 
         self.loaded = True
 
-        if not 'DISPLAY' in os.environ and not hasattr(Ghost, 'xvfb'):
+        if not sys.platform.startswith('win') and not 'DISPLAY' in os.environ\
+                and not hasattr(Ghost, 'xvfb'):
             try:
                 os.environ['DISPLAY'] = ':99'
                 Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
