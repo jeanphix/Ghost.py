@@ -106,11 +106,10 @@ def can_load_page(func):
     """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        expect_loading = False
         if 'expect_loading' in kwargs:
-            expect_loading = True
+            expect_loading = kwargs['expect_loading']
             del kwargs['expect_loading']
-        else:
-            expect_loading = False
         if expect_loading:
             self.loaded = False
             func(self, *args, **kwargs)
