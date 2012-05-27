@@ -51,12 +51,12 @@ class GhostWebPage(QtWebKit.QWebPage):
     def chooseFile(self, frame, suggested_file=None):
         return Ghost._upload_file
 
-    def javaScriptConsoleMessage(self, message, *args, **kwargs):
+    def javaScriptConsoleMessage(self, message, line, source):
         """Prints client console message in current output stream."""
-        super(GhostWebPage, self).javaScriptConsoleMessage(message, *args,
-        **kwargs)
+        super(GhostWebPage, self).javaScriptConsoleMessage(message, line, source)
         log_type = "error" if "Error" in message else "info"
-        Logger.log(message, sender="Frame", level=log_type)
+        Logger.log("%s(%d): %s" % (source or '<unknown>', line, message),
+        sender="Frame", level=log_type)
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
