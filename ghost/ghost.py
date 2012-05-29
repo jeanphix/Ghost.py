@@ -7,7 +7,6 @@ import json
 import logging
 import subprocess
 from functools import wraps
-from auth import http_auth
 try:
     import sip
     sip.setapi('QVariant', 2)
