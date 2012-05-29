@@ -541,15 +541,6 @@ class Ghost(object):
             authenticator.setPassword(password)
             self._auth_attempt+= 1
 
-    def _release_last_resources(self):
-        """Releases last loaded resources.
-
-        :return: The released resources.
-        """
-        last_resources = self.http_resources
-        self.http_resources = []
-        return last_resources
-
     def _page_loaded(self):
         """Called back when page is loaded.
         """
@@ -559,6 +550,15 @@ class Ghost(object):
         """Called back when page load started.
         """
         self.loaded = False
+
+    def _release_last_resources(self):
+        """Releases last loaded resources.
+
+        :return: The released resources.
+        """
+        last_resources = self.http_resources
+        self.http_resources = []
+        return last_resources
 
     def _request_ended(self, res):
         """Adds an HttpResource object to http_resources.
