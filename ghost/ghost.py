@@ -7,6 +7,7 @@ import json
 import logging
 import subprocess
 from functools import wraps
+from auth import http_auth
 try:
     import sip
     sip.setapi('QVariant', 2)
@@ -389,12 +390,7 @@ class Ghost(object):
         request = QNetworkRequest(QUrl(address))
         if auth is not None:
             auth_type, username, password = auth
-
-            def authenticate(reply, authenticator):
-                authenticator.setUser(username)
-                authenticator.setPassword(password)
-
-            self.page.networkAccessManager().authenticationRequired.connect(authenticate)
+            http_auth(request, auth_type, username, password)
         if not "User-Agent" in headers:
             headers["User-Agent"] = self.user_agent
         for header in headers:
@@ -402,7 +398,6 @@ class Ghost(object):
         self.main_frame.load(request, method, body)
         self.loaded = False
         return self.wait_for_page_loaded()
-
 
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
