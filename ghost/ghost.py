@@ -203,6 +203,8 @@ class Ghost(object):
 
         self.page.networkAccessManager().authenticationRequired\
             .connect(self._authenticate)
+        self.page.networkAccessManager().proxyAuthenticationRequired\
+            .connect(self._authenticate)
 
         self.main_frame = self.page.mainFrame()
 
@@ -529,10 +531,10 @@ class Ghost(object):
             'Can\'t find "%s" in current frame' % text)
         return True, self._release_last_resources()
 
-    def _authenticate(self, reply, authenticator):
-        """Called back on basic http auth.
+    def _authenticate(self, mix, authenticator):
+        """Called back on basic / proxy http auth.
 
-        :param reply: The QNetworkReply object.
+        :param mix: The QNetworkReply or QNetworkProxy object.
         :param authenticator: The QAuthenticator object.
         """
         if self._auth_attempt == 0:
