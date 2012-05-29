@@ -2,7 +2,7 @@
 import os
 
 from flask import Flask, render_template, url_for, redirect, jsonify
-from flask import request, abort
+from flask import request, abort, Response
 from flask import make_response
 
 
@@ -66,8 +66,11 @@ def _check_auth(username, password):
 @app.route('/basic-auth')
 def basic_auth():
     auth = request.authorization
-    if not _check_auth(auth.username, auth.password):
-        abort(401)
+    if auth is None or not _check_auth(auth.username, auth.password):
+        return Response(
+            'Could not verify your access level for that URL.\n'
+            'You have to login with proper credentials', 401,
+            {'WWW-Authenticate': 'Basic realm="Login Required"'})
     return '<p>successfully authenticated</p>'
 
 

@@ -7,7 +7,6 @@ import json
 import logging
 import subprocess
 from functools import wraps
-from auth import http_auth
 try:
     import sip
     sip.setapi('QVariant', 2)
@@ -202,6 +201,9 @@ class Ghost(object):
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
 
+        self.page.networkAccessManager().authenticationRequired\
+            .connect(self._authenticate)
+
         self.main_frame = self.page.mainFrame()
 
         logger.setLevel(log_level)
@@ -378,7 +380,7 @@ class Ghost(object):
         :param address: The resource URL.
         :param method: The Http method.
         :param headers: An optional dict of extra request hearders.
-        :param auth: An optional tupple of HTTP auth (Basic, username, password).
+        :param auth: An optional tupple of HTTP auth (username, password).
         :return: Page resource, All loaded resources.
         """
         body = QByteArray()
@@ -388,13 +390,12 @@ class Ghost(object):
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
-        if auth is not None:
-            auth_type, username, password = auth
-            http_auth(request, auth_type, username, password)
         if not "User-Agent" in headers:
             headers["User-Agent"] = self.user_agent
         for header in headers:
             request.setRawHeader(header, headers[header])
+        self._auth = auth
+        self._auth_attempt = 0  # Avoids reccursion
         self.main_frame.load(request, method, body)
         self.loaded = False
         return self.wait_for_page_loaded()
@@ -527,6 +528,18 @@ class Ghost(object):
         self._wait_for(lambda: text in self.content,
             'Can\'t find "%s" in current frame' % text)
         return True, self._release_last_resources()
+
+    def _authenticate(self, reply, authenticator):
+        """Called back on basic http auth.
+
+        :param reply: The QNetworkReply object.
+        :param authenticator: The QAuthenticator object.
+        """
+        if self._auth_attempt == 0:
+            username, password = self._auth
+            authenticator.setUser(username)
+            authenticator.setPassword(password)
+            self._auth_attempt+= 1
 
     def _release_last_resources(self):
         """Releases last loaded resources.

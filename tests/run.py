@@ -225,12 +225,12 @@ class GhostTest(GhostTestCase):
 
     def test_basic_http_auth_success(self):
         page, resources = self.ghost.open("%sbasic-auth" % base_url,
-            auth=('Basic', 'admin', 'secret'))
+            auth=('admin', 'secret'))
         self.assertEqual(page.http_status, 200)
 
     def test_basic_http_auth_error(self):
         page, resources = self.ghost.open("%sbasic-auth" % base_url,
-            auth=('Basic', 'admin', 'wrongsecret'))
+            auth=('admin', 'wrongsecret'))
         self.assertEqual(page.http_status, 401)
 
 
