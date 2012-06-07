@@ -392,6 +392,7 @@ class Ghost(object):
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
+        request.CacheLoadControl(0)
         if not "User-Agent" in headers:
             headers["User-Agent"] = self.user_agent
         for header in headers:
