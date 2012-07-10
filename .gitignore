@@ -6,3 +6,4 @@ Ghost.py.egg-info
 dist
 *.swp
 *.swo
+.tox
