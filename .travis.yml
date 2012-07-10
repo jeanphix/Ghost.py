@@ -8,6 +8,5 @@ install:
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-  - ln -s /usr/lib/pymodules/python2.7/PySide /home/vagrant/virtualenv/python2.7/lib/python2.7/site-packages/PySide -v
+  - ln -s /usr/lib/python2.7/dist-packages/PySide /home/vagrant/virtualenv/python2.7/lib/python2.7/site-packages/PySide -v
 script: tests/run.py -v
-
