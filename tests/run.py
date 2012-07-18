@@ -28,8 +28,8 @@ class GhostTest(GhostTestCase):
         self.assertTrue("Test page" in self.ghost.content)
 
     def test_http_status(self):
-        page, resources = self.ghost.open("%sredirect-me" % base_url)
-        self.assertEqual(resources[0].http_status, 302)
+        page, resources = self.ghost.open("%sprotected" % base_url)
+        self.assertEqual(resources[0].http_status, 403)
         page, resources = self.ghost.open("%s404" % base_url)
         self.assertEqual(page.http_status, 404)
 
@@ -92,7 +92,7 @@ class GhostTest(GhostTestCase):
         self.ghost.fill('#contact-form', values)
         page, resources = self.ghost.fire_on('#contact-form', 'submit',
             expect_loading=True)
-        self.assertEqual(resources[0].http_status, 302)
+        self.assertIn('form successfully posted', self.ghost.content)
 
     def test_global_exists(self):
         self.ghost.open("%s" % base_url)

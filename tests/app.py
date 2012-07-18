@@ -2,12 +2,13 @@
 import os
 
 from flask import Flask, render_template, url_for, redirect, jsonify
-from flask import request, abort, Response
+from flask import request, abort, Response, flash
 from flask import make_response
 
 
 app = Flask(__name__)
 app.config['CSRF_ENABLED'] = False
+app.config['SECRET_KEY'] = 'asecret'
 
 
 @app.route('/')
@@ -30,6 +31,7 @@ def cookie():
 @app.route('/form', methods=['get', 'post'])
 def form():
     if request.method == 'POST':
+        flash('form successfully posted')
         return redirect(url_for('form'))
     return render_template('form.html')
 
@@ -44,9 +46,9 @@ def upload():
     return render_template('upload.html')
 
 
-@app.route('/redirect-me')
-def redirect_me():
-    return redirect(url_for('home'))
+@app.route('/protected')
+def protected():
+    return abort(403)
 
 
 @app.route('/mootools')

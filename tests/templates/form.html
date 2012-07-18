@@ -2,6 +2,15 @@
 <html>
     <body>
         <h1>Form</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
         <form id="contact-form" action="" method="post">
             <fieldset>
                 <p>
