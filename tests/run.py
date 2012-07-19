@@ -43,6 +43,11 @@ class GhostTest(GhostTestCase):
         self.assertEqual(type(self.ghost.evaluate("document.id('list')")[0]),
             dict)
 
+    def test_extra_resource_content(self):
+        page, resources = self.ghost.open("%smootools" % base_url)
+        self.assertIn('MooTools: the javascript framework',
+            resources[1].content)
+
     def test_wait_for_selector(self):
         page, resources = self.ghost.open("%smootools" % base_url)
         success, resources = self.ghost.click("#button")

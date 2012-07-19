@@ -12,14 +12,16 @@ try:
     sip.setapi('QVariant', 2)
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                QNetworkCookieJar
+                                QNetworkCookieJar, QNetworkReply,\
+                                QNetworkDiskCache
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                    QNetworkCookieJar
+                                    QNetworkCookieJar, QNetworkReply,\
+                                    QNetworkDiskCache
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
     except ImportError:
@@ -133,8 +135,12 @@ def client_utils_required(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
-    def __init__(self, reply):
+    def __init__(self, reply, cache):
         self.url = reply.url().toString()
+        buffer = cache.data(self.url)
+        self.content = None
+        if buffer is not None:
+            self.content = unicode(buffer.readAll())
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
@@ -163,7 +169,7 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800,600)):
+            viewport_size=(800,600), cache_dir='/tmp/ghost.py'):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -197,7 +203,11 @@ class Ghost(object):
 
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
-
+        # Cache
+        self.cache = QNetworkDiskCache()
+        self.cache.setCacheDirectory(cache_dir)
+        self.manager.setCache(self.cache)
+        # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
 
@@ -548,6 +558,7 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
+        self.cache.clear()
 
     def _page_load_started(self):
         """Called back when page load started.
@@ -563,13 +574,13 @@ class Ghost(object):
         self.http_resources = []
         return last_resources
 
-    def _request_ended(self, res):
+    def _request_ended(self, reply):
         """Adds an HttpResource object to http_resources.
 
-        :param res: The request result.
+        :param reply: The QNetworkReply object.
         """
-        if res.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(res))
+        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
+            self.http_resources.append(HttpResource(reply, self.cache))
 
     def _wait_for(self, condition, timeout_message):
         """Waits until condition is True.
