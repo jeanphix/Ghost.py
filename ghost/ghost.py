@@ -12,16 +12,14 @@ try:
     sip.setapi('QVariant', 2)
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                QNetworkCookieJar, QNetworkReply,\
-                                QNetworkDiskCache
+                                QNetworkCookieJar, QNetworkDiskCache
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                    QNetworkCookieJar, QNetworkReply,\
-                                    QNetworkDiskCache
+                                    QNetworkCookieJar, QNetworkDiskCache
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
     except ImportError:
@@ -54,7 +52,8 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def javaScriptConsoleMessage(self, message, line, source):
         """Prints client console message in current output stream."""
-        super(GhostWebPage, self).javaScriptConsoleMessage(message, line, source)
+        super(GhostWebPage, self).javaScriptConsoleMessage(message, line,
+            source)
         log_type = "error" if "Error" in message else "info"
         Logger.log("%s(%d): %s" % (source or '<unknown>', line, message),
         sender="Frame", level=log_type)
@@ -169,7 +168,7 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800,600), cache_dir='/tmp/ghost.py'):
+            viewport_size=(800, 600), cache_dir='/tmp/ghost.py'):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -194,7 +193,7 @@ class Ghost(object):
 
         self.page = GhostWebPage(Ghost._app)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
-        QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0);
+        QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
 
         self.set_viewport_size(*viewport_size)
 
@@ -552,7 +551,7 @@ class Ghost(object):
             username, password = self._auth
             authenticator.setUser(username)
             authenticator.setPassword(password)
-            self._auth_attempt+= 1
+            self._auth_attempt += 1
 
     def _page_loaded(self):
         """Called back when page is loaded.
