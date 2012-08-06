@@ -227,7 +227,8 @@ class Ghost(object):
     def __del__(self):
         self.exit()
 
-    def capture(self, region=None, selector=None, format=QImage.Format_ARGB32):
+    def capture(self, region=None, selector=None,
+            format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
 
         :param region: An optional tupple containing region as pixel
@@ -253,7 +254,7 @@ class Ghost(object):
         return image
 
     def capture_to(self, path, region=None, selector=None,
-        format=QImage.Format_ARGB32):
+        format=QImage.Format_ARGB32_Premultiplied):
         """Saves snapshot as image.
 
         :param path: The destination path.
