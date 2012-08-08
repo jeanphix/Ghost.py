@@ -98,6 +98,12 @@ class GhostWebPage(QtWebKit.QWebPage):
         result.append(result_value)
         return True
 
+    def setUserAgent(self, user_agent):
+        self.user_agent = user_agent
+
+    def userAgentForUrl(self, url):
+        return self.user_agent
+
 
 def can_load_page(func):
     """Decorator that specifies if user can expect page loading from
@@ -213,6 +219,8 @@ class Ghost(object):
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
+        # User Agent
+        self.page.setUserAgent(self.user_agent)
 
         self.page.networkAccessManager().authenticationRequired\
             .connect(self._authenticate)
@@ -407,8 +415,6 @@ class Ghost(object):
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
         request.CacheLoadControl(0)
-        if not "User-Agent" in headers:
-            headers["User-Agent"] = self.user_agent
         for header in headers:
             request.setRawHeader(header, headers[header])
         self._auth = auth
