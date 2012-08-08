@@ -139,7 +139,11 @@ class HttpResource(object):
         buffer = cache.data(self.url)
         self.content = None
         if buffer is not None:
-            self.content = unicode(buffer.readAll())
+            content = buffer.readAll()
+            try:
+                self.content = unicode(content)
+            except UnicodeDecodeError:
+                self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))

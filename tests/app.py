@@ -36,6 +36,11 @@ def form():
     return render_template('form.html')
 
 
+@app.route('/image')
+def image():
+    return render_template('image.html')
+
+
 @app.route('/upload', methods=['get', 'post'])
 def upload():
     if request.method == 'POST':

@@ -48,6 +48,11 @@ class GhostTest(GhostTestCase):
         self.assertIn('MooTools: the javascript framework',
             resources[1].content)
 
+    def test_extra_resource_binaries(self):
+        page, resources = self.ghost.open("%simage" % base_url)
+        self.assertEqual(resources[1].content.__class__.__name__,
+            'QByteArray')
+
     def test_wait_for_selector(self):
         page, resources = self.ghost.open("%smootools" % base_url)
         success, resources = self.ghost.click("#button")
