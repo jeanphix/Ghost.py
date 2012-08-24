@@ -5,6 +5,8 @@ from flask import Flask, render_template, url_for, redirect, jsonify
 from flask import request, abort, Response, flash
 from flask import make_response
 
+from werkzeug import Headers
+
 
 app = Flask(__name__)
 app.config['CSRF_ENABLED'] = False
@@ -79,6 +81,15 @@ def basic_auth():
             'You have to login with proper credentials', 401,
             {'WWW-Authenticate': 'Basic realm="Login Required"'})
     return '<p>successfully authenticated</p>'
+
+
+@app.route('/send-file')
+def send_file():
+    h = Headers()
+    h.add('Content-type', 'application/octet-stream', charset='utf8')
+    h.add('Content-disposition', 'attachment', filename='name.tar.gz')
+    return Response(open(os.path.join(os.path.dirname(__file__), 'static',
+        'foo.tar.gz'), 'r'), headers=h)
 
 
 if __name__ == '__main__':

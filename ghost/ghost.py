@@ -140,16 +140,18 @@ def client_utils_required(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
-    def __init__(self, reply, cache):
+    def __init__(self, reply, cache, content=None):
         self.url = reply.url().toString()
-        buffer = cache.data(self.url)
-        self.content = None
-        if buffer is not None:
-            content = buffer.readAll()
-            try:
-                self.content = unicode(content)
-            except UnicodeDecodeError:
-                self.content = content
+        self.content = content
+        if self.content is None:
+            # Tries to get back content from cache
+            buffer = cache.data(self.url)
+            if buffer is not None:
+                content = buffer.readAll()
+                try:
+                    self.content = unicode(content)
+                except UnicodeDecodeError:
+                    self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
@@ -205,10 +207,14 @@ class Ghost(object):
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
 
+        self.page.setForwardUnsupportedContent(True)
+
         self.set_viewport_size(*viewport_size)
 
+        # Page signals
         self.page.loadFinished.connect(self._page_loaded)
         self.page.loadStarted.connect(self._page_load_started)
+        self.page.unsupportedContent.connect(self._unsupported_content)
 
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
@@ -529,8 +535,9 @@ class Ghost(object):
             'Unable to load requested page')
         resources = self._release_last_resources()
         page = None
+        url = self.main_frame.url().toString()
         for resource in resources:
-            if self.main_frame.url().toString() == resource.url:
+            if url == resource.url:
                 page = resource
         return page, resources
 
@@ -591,6 +598,16 @@ class Ghost(object):
         """
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.http_resources.append(HttpResource(reply, self.cache))
+
+    def _unsupported_content(self, reply):
+        """Adds an HttpResource object to http_resources with unsupported
+        content.
+
+        :param reply: The QNetworkReply object.
+        """
+        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
+            self.http_resources.append(HttpResource(reply, self.cache,
+                reply.readAll()))
 
     def _wait_for(self, condition, timeout_message):
         """Waits until condition is True.
