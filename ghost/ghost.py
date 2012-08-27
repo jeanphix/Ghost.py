@@ -519,10 +519,25 @@ class Ghost(object):
         self.webview.setPage(self.page)
         self.webview.show()
 
+    def wait_for(self, condition, timeout_message):
+        """Waits until condition is True.
+
+        :param condition: A callable that returns the condition.
+        :param timeout_message: The exception message on timeout.
+        """
+        started_at = time.time()
+        while not condition():
+            if time.time() > (started_at + self.wait_timeout):
+                raise Exception(timeout_message)
+            time.sleep(0.01)
+            Ghost._app.processEvents()
+            if self.wait_callback is not None:
+                self.wait_callback()
+
     def wait_for_alert(self):
         """Waits for main frame alert().
         """
-        self._wait_for(lambda: Ghost._alert is not None,
+        self.wait_for(lambda: Ghost._alert is not None,
             'User has not been alerted.')
         msg = Ghost._alert
         Ghost._alert = None
@@ -531,7 +546,7 @@ class Ghost(object):
     def wait_for_page_loaded(self):
         """Waits until page is loaded, assumed that a page as been requested.
         """
-        self._wait_for(lambda: self.loaded,
+        self.wait_for(lambda: self.loaded,
             'Unable to load requested page')
         resources = self._release_last_resources()
         page = None
@@ -546,7 +561,7 @@ class Ghost(object):
 
         :param selector: The selector to wait for.
         """
-        self._wait_for(lambda: self.exists(selector),
+        self.wait_for(lambda: self.exists(selector),
             'Can\'t find element matching "%s"' % selector)
         return True, self._release_last_resources()
 
@@ -555,7 +570,7 @@ class Ghost(object):
 
         :param text: The text to wait for.
         """
-        self._wait_for(lambda: text in self.content,
+        self.wait_for(lambda: text in self.content,
             'Can\'t find "%s" in current frame' % text)
         return True, self._release_last_resources()
 
@@ -608,18 +623,3 @@ class Ghost(object):
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.http_resources.append(HttpResource(reply, self.cache,
                 reply.readAll()))
-
-    def _wait_for(self, condition, timeout_message):
-        """Waits until condition is True.
-
-        :param condition: A callable that returns the condition.
-        :param timeout_message: The exception message on timeout.
-        """
-        started_at = time.time()
-        while not condition():
-            if time.time() > (started_at + self.wait_timeout):
-                raise Exception(timeout_message)
-            time.sleep(0.01)
-            Ghost._app.processEvents()
-            if self.wait_callback is not None:
-                self.wait_callback()
