@@ -14,6 +14,7 @@ try:
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                 QNetworkCookieJar, QNetworkDiskCache
+    from PyQt4 import QtCore
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
@@ -21,6 +22,7 @@ except ImportError:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                     QNetworkCookieJar, QNetworkDiskCache
+        from PySide import QtCore
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
         PYSIDE = True
@@ -168,6 +170,7 @@ class Ghost(object):
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param plugin_path: Array with paths to plugin directories (default ['/usr/lib/mozilla/plugins'])
+    :param download_images: Indicate if the browser download or not the images
     """
     _alert = None
     _confirm_expected = None
@@ -180,7 +183,8 @@ class Ghost(object):
             viewport_size=(800, 600), ignore_ssl_errors=True,
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
-            plugin_path=['/usr/lib/mozilla/plugins',]):
+            plugin_path=['/usr/lib/mozilla/plugins',],
+            download_images=False):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -212,6 +216,7 @@ class Ghost(object):
         QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.LocalStorageEnabled, True)
 
         self.page.setForwardUnsupportedContent(True)
+        self.page.settings().setAttribute(QtWebKit.QWebSettings.AutoLoadImages, download_images)
 
         self.set_viewport_size(*viewport_size)
 
@@ -245,9 +250,9 @@ class Ghost(object):
         if self.display:
             self.webview = QtWebKit.QWebView()
             if plugins_enabled:
-                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True) 
+                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True)
             if java_enabled:
-                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True) 
+                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True)
             self.webview.setPage(self.page)
             self.webview.show()
 
@@ -439,8 +444,10 @@ class Ghost(object):
             request.setRawHeader(header, headers[header])
         self._auth = auth
         self._auth_attempt = 0  # Avoids reccursion
+
         self.main_frame.load(request, method, body)
         self.loaded = False
+
         return self.wait_for_page_loaded()
 
     class prompt:
@@ -587,6 +594,7 @@ class Ghost(object):
         resources = self._release_last_resources()
         page = None
         url = self.main_frame.url().toString()
+
         for resource in resources:
             if url == resource.url:
                 page = resource
