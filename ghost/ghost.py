@@ -377,7 +377,6 @@ class Ghost(object):
             resources.extend(res)
         return True, resources
 
-    @client_utils_required
     @can_load_page
     def fire_on(self, selector, method):
         """Call method on element matching given selector.
@@ -386,8 +385,8 @@ class Ghost(object):
         :param method: The name of the method to fire.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        return self.evaluate('GhostUtils.fireOn("%s", "%s");' % (
-            selector, method))
+        return self.evaluate('document.querySelector("%s").%s();' % \
+            (selector, method))
 
     def global_exists(self, global_name):
         """Checks if javascript global exists.
@@ -458,8 +457,8 @@ class Ghost(object):
             raise Exception("can't get region for selector '%s'" % selector)
         return region
 
-    @can_load_page
     @client_utils_required
+    @can_load_page
     def set_field_value(self, selector, value, blur=True):
         """Sets the value of the field matched by given selector.
 

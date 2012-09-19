@@ -19,18 +19,5 @@ var GhostUtils = {
             return true;
         }
         return false;
-    },
-    /**
-    * Fire method on element matching given selector.
-    *
-    * @param  String  selector  A CSS3 selector that targets the form to fill.
-    * @param  String  method    The name of the method to fire.
-    */
-    fireOn: function(selector, method) {
-        var element = document.querySelector(selector);
-        if (!element) {
-            throw "Can't find element.";
-        }
-        return element[method]();
     }
 };
