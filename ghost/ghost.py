@@ -484,7 +484,7 @@ class Ghost(object):
             el.setFocus()
             el.setPlainText(value)
 
-        True, ressources = None, []
+        res, ressources = None, []
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
