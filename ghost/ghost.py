@@ -499,6 +499,7 @@ class Ghost(object):
             el.setFocus()
             el.setPlainText(value)
 
+        True, ressources = None, []
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
@@ -529,7 +530,7 @@ class Ghost(object):
             raise Exception('unsuported field tag')
         if blur:
             self.fire_on(selector, 'blur')
-        return None, []
+        return res, ressources
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
