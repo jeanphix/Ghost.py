@@ -467,29 +467,48 @@ class Ghost(object):
         :param value: The value to fill in.
         :param blur: An optional boolean that force blur when filled in.
         """
-        def _set_text_value(selector, value):
-            return self.evaluate(
-                'document.querySelector("%s").value=%s;' %
-                    (selector, json.dumps(value)))
+        def _set_checkbox_value(el, value):
+            el.setFocus()
+            if value is True:
+                el.setAttribute('checked', 'checked')
+            else:
+                el.removeAttribute('checked')
 
-        res, resources = None, []
+        def _set_checkboxes_value(els, value):
+            for el in els:
+                if el.attribute('value') == value:
+                    _set_checkbox_value(el, True)
+                else:
+                    _set_checkbox_value(el, False)
+
+        def _set_text_value(el, value):
+            el.setFocus()
+            el.setAttribute('value', value)
+
+        def _set_textarea_value(el, value):
+            el.setFocus()
+            el.setPlainText(value)
 
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
         self.fire_on(selector, 'focus')
-        if element.tagName() in ["TEXTAREA", "SELECT"]:
-            res, resources = _set_text_value(selector, value)
+        if element.tagName() == "SELECT":
+            _set_text_value(element, value)
+        elif element.tagName() == "TEXTAREA":
+            _set_textarea_value(element, value)
         elif element.tagName() == "INPUT":
             if element.attribute('type') in ["color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week"]:
-                res, resources = _set_text_value(selector, value)
+                _set_text_value(element, value)
             elif element.attribute('type') == "checkbox":
-                res, resources = self.evaluate(
-                    'GhostUtils.setCheckboxValue("%s", %s);' %
-                        (selector, json.dumps(value)))
+                els = self.main_frame.findAllElements(selector)
+                if els.count() > 1:
+                    _set_checkboxes_value(els, value)
+                else:
+                    _set_checkbox_value(element, value)
             elif element.attribute('type') == "radio":
                 res, resources = self.evaluate(
                     'GhostUtils.setRadioValue("%s", %s);' %
@@ -502,7 +521,7 @@ class Ghost(object):
             raise Exception('unsuported field tag')
         if blur:
             self.fire_on(selector, 'blur')
-        return res, resources
+        return None, []
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.

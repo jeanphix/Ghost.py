@@ -33,27 +33,7 @@ var GhostUtils = {
         }
         return element[method]();
     },
-    /**
-     * Sets checkboxes value.
-     *
-     * @param  String  field  The field selector.
-     * @param  Mixed   value  The value to fill in.
-     */
-    setCheckboxValue: function(selector, value) {
-        var fields = document.querySelectorAll(selector);
-        if (fields.length > 1) {
-            var values = value;
-            if (!Array.isArray(values)) {
-                values = [values];
-            }
-            Array.prototype.forEach.call(fields, function(f) {
-                f.checked = values.indexOf(f.value) !== -1 ? true : false;
-            });
-        } else {
-            fields[0].checked = value ? true : false;
-        }
-    },
-    /**
+   /**
      * Sets radios value.
      *
      * @param  String  field  The field selector.

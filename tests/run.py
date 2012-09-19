@@ -94,6 +94,9 @@ class GhostTest(GhostTestCase):
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
 
+    def test_fill_checkbox(self):
+        self.ghost.open("%sform" % base_url)
+
     def test_form_submission(self):
         self.ghost.open("%sform" % base_url)
         values = {
@@ -186,28 +189,24 @@ class GhostTest(GhostTestCase):
         self.assertTrue(os.path.isfile('test.png'))
         os.remove('test.png')
 
-    def test_set_field_value(self):
+    def test_set_field_value_checkbox_true(self):
         self.ghost.open("%sform" % base_url)
-        values = {
-            'text': "Here is a sample text with ' \" quotes.",
-            'email': 'my@awesome.email',
-            'textarea': 'Here is a sample text.\nWith several lines.',
-            'checkbox': True,
-            "multiple-checkbox": "second choice",
-            "radio": "first choice"
-        }
-        for field in values:
-            self.ghost.set_field_value('[name=%s]' % field, values[field])
-
-        for field in ['text', 'email', 'textarea']:
-            value, resssources = self.ghost\
-                .evaluate('document.getElementById("%s").value' % field)
-            self.assertEqual(value, values[field])
-
-        value, resources = self.ghost.evaluate(
+        self.ghost.set_field_value('[name=checkbox]', True)
+        value, resssources = self.ghost.evaluate(
             'document.getElementById("checkbox").checked')
         self.assertEqual(value, True)
 
+    def test_set_field_value_checkbox_false(self):
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=checkbox]', False)
+        value, resssources = self.ghost.evaluate(
+            'document.getElementById("checkbox").checked')
+        self.assertEqual(value, False)
+
+    def test_set_field_value_checkbox_multiple(self):
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=multiple-checkbox]',
+            'second choice')
         value, resources = self.ghost.evaluate(
             'document.getElementById("multiple-checkbox-first").checked')
         self.assertEqual(value, False)
@@ -215,12 +214,40 @@ class GhostTest(GhostTestCase):
             'document.getElementById("multiple-checkbox-second").checked')
         self.assertEqual(value, True)
 
+    def test_set_field_value_email(self):
+        expected = 'my@awesome.email'
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=email]', expected)
+        value, resssources = self.ghost\
+            .evaluate('document.getElementById("email").value')
+        self.assertEqual(value, expected)
+
+    def test_set_field_value_text(self):
+        expected = 'sample text'
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=text]', expected)
+        value, resssources = self.ghost\
+            .evaluate('document.getElementById("text").value')
+        self.assertEqual(value, expected)
+
+    def test_set_field_value_radio(self):
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=radio]',
+            'first choice')
         value, resources = self.ghost.evaluate(
             'document.getElementById("radio-first").checked')
         self.assertEqual(value, True)
         value, resources = self.ghost.evaluate(
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
+
+    def test_set_field_value_textarea(self):
+        expected = 'sample text\nanother line'
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=textarea]', expected)
+        value, resssources = self.ghost\
+            .evaluate('document.getElementById("textarea").value')
+        self.assertEqual(value, expected)
 
     def test_set_simple_file_field(self):
         self.ghost.open("%supload" % base_url)
