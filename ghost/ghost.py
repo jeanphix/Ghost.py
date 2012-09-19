@@ -497,7 +497,6 @@ class Ghost(object):
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
-        self.fire_on(selector, 'focus')
         if element.tagName() == "SELECT":
             _set_text_value(element, value)
         elif element.tagName() == "TEXTAREA":
