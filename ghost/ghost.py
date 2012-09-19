@@ -124,19 +124,6 @@ def can_load_page(func):
     return wrapper
 
 
-def client_utils_required(func):
-    """Decorator that checks avabality of Ghost client side utils,
-    injects require javascript file instead.
-    """
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if not self.global_exists('GhostUtils'):
-            self.evaluate_js_file(
-                os.path.join(os.path.dirname(__file__), 'utils.js'))
-        return func(self, *args, **kwargs)
-    return wrapper
-
-
 class HttpResource(object):
     """Represents an HTTP resource.
     """
@@ -449,7 +436,6 @@ class Ghost(object):
         def __exit__(self, type, value, traceback):
             Ghost._prompt_expected = None
 
-    @client_utils_required
     def region_for_selector(self, selector):
         """Returns frame region for given selector as tupple.
 
@@ -462,7 +448,6 @@ class Ghost(object):
             raise Exception("can't get region for selector '%s'" % selector)
         return region
 
-    @client_utils_required
     @can_load_page
     def set_field_value(self, selector, value, blur=True):
         """Sets the value of the field matched by given selector.
