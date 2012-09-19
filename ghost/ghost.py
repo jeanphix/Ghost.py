@@ -284,7 +284,6 @@ class Ghost(object):
         self.capture(region=region, format=format,
             selector=selector).save(path)
 
-    @client_utils_required
     @can_load_page
     def click(self, selector):
         """Click the targeted element.
@@ -293,7 +292,13 @@ class Ghost(object):
         """
         if not self.exists(selector):
             raise Exception("Can't find element to click")
-        return self.evaluate('GhostUtils.click("%s");' % selector)
+        return self.evaluate("""
+            var element = document.querySelector("%s");
+            var evt = document.createEvent("MouseEvents");
+            evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
+                false, false, false, false, 0, element);
+            element.dispatchEvent(evt)
+        """ % selector)
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
