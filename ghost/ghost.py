@@ -481,6 +481,12 @@ class Ghost(object):
                 else:
                     _set_checkbox_value(el, False)
 
+        def _set_radio_value(els, value):
+            for el in els:
+                if el.attribute('value') == value:
+                    el.setFocus()
+                    el.setAttribute('checked', 'checked')
+
         def _set_text_value(el, value):
             el.setFocus()
             el.setAttribute('value', value)
@@ -510,9 +516,8 @@ class Ghost(object):
                 else:
                     _set_checkbox_value(element, value)
             elif element.attribute('type') == "radio":
-                res, resources = self.evaluate(
-                    'GhostUtils.setRadioValue("%s", %s);' %
-                        (selector, json.dumps(value)))
+                _set_radio_value(self.main_frame.findAllElements(selector),
+                    value)
             elif element.attribute('type') == "file":
                 Ghost._upload_file = value
                 res, resources = self.click(selector)

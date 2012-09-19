@@ -32,17 +32,5 @@ var GhostUtils = {
             throw "Can't find element.";
         }
         return element[method]();
-    },
-   /**
-     * Sets radios value.
-     *
-     * @param  String  field  The field selector.
-     * @param  Mixed   value  The value to fill in.
-     */
-    setRadioValue: function(selector, value) {
-        var fields = document.querySelectorAll(selector);
-        Array.prototype.forEach.call(fields, function(f) {
-            f.checked = (f.value === value);
-        });
     }
 };
