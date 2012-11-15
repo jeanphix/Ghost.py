@@ -46,7 +46,14 @@ class GhostWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
+
+    :param raise_js_errors: Boolean to cause JS errors to raise exceptions
     """
+
+    def __init__(self, *args, **kwargs):
+        self.raise_js_errors = kwargs.pop('raise_js_errors', False)
+        super(QtWebKit.QWebPage, self).__init__(*args, **kwargs)
+
     def chooseFile(self, frame, suggested_file=None):
         return Ghost._upload_file
 
@@ -55,8 +62,10 @@ class GhostWebPage(QtWebKit.QWebPage):
         super(GhostWebPage, self).javaScriptConsoleMessage(message, line,
             source)
         log_type = "error" if "Error" in message else "info"
-        Logger.log("%s(%d): %s" % (source or '<unknown>', line, message),
-        sender="Frame", level=log_type)
+        error = "%s(%d): %s" % (source or '<unknown>', line, message)
+        Logger.log(error, sender="Frame", level=log_type)
+        if self.raise_js_errors == True and log_type == "error":
+            raise Exception(error)
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
@@ -132,7 +141,7 @@ class HttpResource(object):
         self.content = content
         if self.content is None:
             # Tries to get back content from cache
-            buffer = cache.data(self.url)
+            buffer = cache.data(QUrl(self.url))
             if buffer is not None:
                 content = buffer.readAll()
                 try:
@@ -167,12 +176,14 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), cache_dir='/tmp/ghost.py'):
+            viewport_size=(800, 600), cache_dir='/tmp/ghost.py',
+            raise_js_errors=False):
         self.http_resources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
         self.wait_callback = wait_callback
+        self.raise_js_errors = raise_js_errors
 
         self.loaded = True
 
@@ -180,7 +191,7 @@ class Ghost(object):
                 and not hasattr(Ghost, 'xvfb'):
             try:
                 os.environ['DISPLAY'] = ':99'
-                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
+                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'], stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT)
             except OSError:
                 raise Exception('Xvfb is required to a ghost run oustside ' +\
                     'an X instance')
@@ -190,7 +201,7 @@ class Ghost(object):
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        self.page = GhostWebPage(Ghost._app)
+        self.page = GhostWebPage(Ghost._app, raise_js_errors=self.raise_js_errors)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
 
