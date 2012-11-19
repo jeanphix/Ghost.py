@@ -395,16 +395,17 @@ class Ghost(object):
         except:
             raise Exception("no webview to close")
 
-    def open(self, address, method='get', headers={}, auth=None):
+    def open(self, address, method='get', headers={}, auth=None, body=None):
         """Opens a web page.
 
         :param address: The resource URL.
         :param method: The Http method.
         :param headers: An optional dict of extra request hearders.
         :param auth: An optional tupple of HTTP auth (username, password).
+        :param body: An optional string containing a payload.
         :return: Page resource, All loaded resources.
         """
-        body = QByteArray()
+        body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
                 "%sOperation" % method.capitalize())
