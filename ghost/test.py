@@ -69,6 +69,7 @@ class GhostTestCase(BaseGhostTestCase):
     """TestCase that provides a ghost instance and manage
     an HTTPServer running a WSGI application.
     """
+    server_class = ServerThread
     port = 5000
 
     def create_app(self):
@@ -86,7 +87,7 @@ class GhostTestCase(BaseGhostTestCase):
     def setUpClass(cls):
         """Starts HTTPServer instance from WSGI application.
         """
-        cls.server_thread = ServerThread(cls.create_app(), cls.port)
+        cls.server_thread = cls.server_class(cls.create_app(), cls.port)
         cls.server_thread.daemon = True
         cls.server_thread.start()
         while not hasattr(cls.server_thread, 'http_server'):
