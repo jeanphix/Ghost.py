@@ -131,7 +131,7 @@ class HttpResource(object):
     """
     def __init__(self, reply, cache, content=None):
         if PYSIDE: self.url = reply.url().toString()
-	else: self.url = reply.url()
+        else: self.url = reply.url()
         self.content = content
         if self.content is None:
             # Tries to get back content from cache
