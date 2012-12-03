@@ -14,14 +14,14 @@ try:
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                 QNetworkCookieJar, QNetworkDiskCache
-    from PyQt4.QtCore import QSize, QByteArray, QUrl
+    from PyQt4.QtCore import QSize, QByteArray, QUrl, SIGNAL
     from PyQt4.QtGui import QApplication, QImage, QPainter
 except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                     QNetworkCookieJar, QNetworkDiskCache
-        from PySide.QtCore import QSize, QByteArray, QUrl
+        from PySide.QtCore import QSize, QByteArray, QUrl, SIGNAL
         from PySide.QtGui import QApplication, QImage, QPainter
 	PYSIDE = True
     except ImportError:
@@ -170,13 +170,13 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), cache_dir='/tmp/ghost.py'):
+            viewport_size=(800, 600), cache_dir='/tmp/ghost.py', ignore_ssl_errors=True):
         self.http_resources = []
 
         self.user_agent = user_agent
         self.wait_timeout = wait_timeout
         self.wait_callback = wait_callback
-
+        self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
 
         if not sys.platform.startswith('win') and not 'DISPLAY' in os.environ\
@@ -208,6 +208,9 @@ class Ghost(object):
 
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
+        self.manager.connect(self.manager,
+            SIGNAL("sslErrors(QNetworkReply *, const QList<QSslError> &)"),
+            self._on_manager_ssl_errors)
         # Cache
         self.cache = QNetworkDiskCache()
         self.cache.setCacheDirectory(cache_dir)
@@ -640,3 +643,10 @@ class Ghost(object):
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.http_resources.append(HttpResource(reply, self.cache,
                 reply.readAll()))
+
+    def _on_manager_ssl_errors(self, reply, errors):
+        url = unicode(reply.url().toString())
+        if self.ignore_ssl_errors:
+            reply.ignoreSslErrors()
+        else:
+            Logger.log('SSL certificate error: %s' % url, level='warning')
