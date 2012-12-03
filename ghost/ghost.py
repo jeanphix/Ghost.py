@@ -7,6 +7,7 @@ import json
 import logging
 import subprocess
 from functools import wraps
+PYSIDE = False
 try:
     import sip
     sip.setapi('QVariant', 2)
@@ -22,6 +23,7 @@ except ImportError:
                                     QNetworkCookieJar, QNetworkDiskCache
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
+	PYSIDE = True
     except ImportError:
         raise Exception("Ghost.py requires PySide or PyQt")
 
@@ -128,7 +130,8 @@ class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, reply, cache, content=None):
-        self.url = reply.url().toString()
+        if PYSIDE: self.url = reply.url().toString()
+	else: self.url = reply.url()
         self.content = content
         if self.content is None:
             # Tries to get back content from cache
