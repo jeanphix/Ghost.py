@@ -21,7 +21,7 @@ except ImportError:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                     QNetworkCookieJar, QNetworkDiskCache
-        from PySide.QtCore import QSize, QByteArray, QUrl, SIGNAL
+        from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
 	PYSIDE = True
     except ImportError:
@@ -210,9 +210,7 @@ class Ghost(object):
 
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
-        self.manager.connect(self.manager,
-            SIGNAL("sslErrors(QNetworkReply *, const QList<QSslError> &)"),
-            self._on_manager_ssl_errors)
+        self.manager.sslErrors.connect(self._on_manager_ssl_errors)
         # Cache
         self.cache = QNetworkDiskCache()
         self.cache.setCacheDirectory(cache_dir)
