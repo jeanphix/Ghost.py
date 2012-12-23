@@ -5,6 +5,7 @@ import time
 import codecs
 import logging
 import subprocess
+import tempfile
 from functools import wraps
 try:
     import sip
@@ -157,6 +158,7 @@ class Ghost(object):
     :param log_level: The optional logging level.
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tupple that sets initial viewport size.
+    :param cache_dir: A directory path where to store cache datas.
     """
     _alert = None
     _confirm_expected = None
@@ -166,7 +168,8 @@ class Ghost(object):
 
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), cache_dir='/tmp/ghost.py'):
+            viewport_size=(800, 600),
+            cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py")):
         self.http_resources = []
 
         self.user_agent = user_agent
