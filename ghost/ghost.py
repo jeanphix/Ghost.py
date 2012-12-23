@@ -163,6 +163,7 @@ class Ghost(object):
     :param log_level: The optional logging level.
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tupple that sets initial viewport size.
+    :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
     :param cache_dir: A directory path where to store cache datas.
     """
     _alert = None
