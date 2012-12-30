@@ -201,6 +201,7 @@ class Ghost(object):
         self.page = GhostWebPage(Ghost._app)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
+        QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.LocalStorageEnabled, True)
 
         self.page.setForwardUnsupportedContent(True)
 
