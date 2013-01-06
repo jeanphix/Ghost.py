@@ -165,6 +165,9 @@ class Ghost(object):
     :param viewport_size: A tupple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
     :param cache_dir: A directory path where to store cache datas.
+    :param plugins_enabled: Enable plugins (like Flash).
+    :param java_enabled: Enable Java JRE.
+    :param plugin_path: Array with paths to plugin directories (default ['/usr/lib/mozilla/plugins'])
     """
     _alert = None
     _confirm_expected = None
@@ -175,7 +178,9 @@ class Ghost(object):
     def __init__(self, user_agent=default_user_agent, wait_timeout=8,
             wait_callback=None, log_level=logging.WARNING, display=False,
             viewport_size=(800, 600), ignore_ssl_errors=True,
-            cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py")):
+            cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
+            plugins_enabled=False, java_enabled=False,
+            plugin_path=['/usr/lib/mozilla/plugins',]):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -197,6 +202,9 @@ class Ghost(object):
 
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
+            if plugin_path:
+                for p in plugin_path:
+                    Ghost._app.addLibraryPath(p)
 
         self.page = GhostWebPage(Ghost._app)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
@@ -235,6 +243,10 @@ class Ghost(object):
 
         if self.display:
             self.webview = QtWebKit.QWebView()
+            if plugins_enabled:
+                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True) 
+            if java_enabled:
+                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True) 
             self.webview.setPage(self.page)
             self.webview.show()
 
