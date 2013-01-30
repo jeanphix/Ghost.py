@@ -2,6 +2,7 @@ language: python
 python:
   - "2.7"
 install:
+  - sudo apt-get update
   - sudo apt-get install python-pyside
   - pip install -r tests/requirements.txt --use-mirrors
   - python setup.py install
