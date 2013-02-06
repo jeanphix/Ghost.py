@@ -430,6 +430,9 @@ class Ghost(object):
         self.loaded = False
         return self.wait_for_page_loaded()
 
+    def scroll_to_anchor(self, anchor):
+        self.main_frame.scrollToAnchor(anchor)
+
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
 
