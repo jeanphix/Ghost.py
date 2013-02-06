@@ -170,7 +170,7 @@ class Ghost(object):
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param plugin_path: Array with paths to plugin directories (default ['/usr/lib/mozilla/plugins'])
-    :param download_images: Indicate if the browser download or not the images
+    :param download_images: Indicate if the browser should download images
     """
     _alert = None
     _confirm_expected = None
@@ -184,7 +184,7 @@ class Ghost(object):
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins',],
-            download_images=False):
+            download_images=True):
         self.http_resources = []
 
         self.user_agent = user_agent
