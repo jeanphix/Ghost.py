@@ -217,6 +217,9 @@ class Ghost(object):
 
         self.page.setForwardUnsupportedContent(True)
         self.page.settings().setAttribute(QtWebKit.QWebSettings.AutoLoadImages, download_images)
+        self.page.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
+        self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, java_enabled)
+
 
         self.set_viewport_size(*viewport_size)
 
@@ -250,9 +253,9 @@ class Ghost(object):
         if self.display:
             self.webview = QtWebKit.QWebView()
             if plugins_enabled:
-                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True)
+                self.webview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True)
             if java_enabled:
-                selfwebview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True)
+                self.webview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True)
             self.webview.setPage(self.page)
             self.webview.show()
 
