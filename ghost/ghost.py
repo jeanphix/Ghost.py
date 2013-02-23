@@ -334,9 +334,12 @@ class Ghost(object):
             Ghost._confirm_expected = None
 
     @property
-    def content(self):
+    def content(self, to_unicode=True):
         """Returns current frame HTML as a string."""
-        return unicode(self.main_frame.toHtml())
+        if to_unicode:
+            return unicode(self.main_frame.toHtml())
+        else:
+            return self.main_frame.toHtml()
 
     @property
     def cookies(self):
