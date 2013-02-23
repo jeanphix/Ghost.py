@@ -335,7 +335,10 @@ class Ghost(object):
 
     @property
     def content(self, to_unicode=True):
-        """Returns current frame HTML as a string."""
+        """Returns current frame HTML as a string.
+        
+        :param to_unicode: Whether to convert html to unicode or not
+        """
         if to_unicode:
             return unicode(self.main_frame.toHtml())
         else:
