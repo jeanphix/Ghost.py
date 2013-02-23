@@ -428,10 +428,10 @@ class Ghost(object):
         except:
             raise Exception("no webview to close")
 
-    def load_cookies( self, cookieStorage, keep_old=False ):
-        """load cookies into QNetworkCookieJar from cookielib.cookiejar or Set-Cookie3 format text file.
+    def load_cookies( self, cookie_storage, keep_old=False ):
+        """load from cookielib's CookieJar or Set-Cookie3 format text file.
 
-        :param cookieStorage: String of file location on disk or cookielib.CookieJar instance.
+        :param cookie_storage: file location string on disk or CookieJar instance.
         :param keep_old: Don't reset, keep cookies not overriden.
         """
         def toQtCookieJar( PyCookieJar, QtCookieJar ):
@@ -452,17 +452,18 @@ class Ghost(object):
                 t = QDateTime()
                 t.setTime_t(PyCookie.expires)
                 qc.setExpirationDate(t)
-            # not yet handled(maybe less useful): py cookie.rest / QNetworkCookie.setHttpOnly()
+            # not yet handled(maybe less useful): 
+            #   py cookie.rest / QNetworkCookie.setHttpOnly()
             return qc
 
-        if cookieStorage.__class__.__name__ == 'str':
-            cj = LWPCookieJar(cookieStorage)
+        if cookie_storage.__class__.__name__ == 'str':
+            cj = LWPCookieJar(cookie_storage)
             cj.load()
             toQtCookieJar(cj, self.cookie_jar)
-        elif cookieStorage.__class__.__name__.endswith('CookieJar') :
-            toQtCookieJar(cookieStorage, self.cookie_jar)
+        elif cookie_storage.__class__.__name__.endswith('CookieJar') :
+            toQtCookieJar(cookie_storage, self.cookie_jar)
         else:
-            raise ValueError, 'cookieStorage type not supported, must be string or cookielib.cookiejar !'
+            raise ValueError, 'unsupported cookie_storage type.'
 
     def open(self, address, method='get', headers={}, auth=None, body=None):
         """Opens a web page.
@@ -520,10 +521,10 @@ class Ghost(object):
             raise Exception("can't get region for selector '%s'" % selector)
         return region
 
-    def save_cookies(self, cookieStorage):
-        """Save QNetworkCookieJar to cookielib.cookiejar or Set-Cookie3 format text file.
+    def save_cookies(self, cookie_storage):
+        """Save to cookielib's CookieJar or Set-Cookie3 format text file.
 
-        :param cookieStorage: String of file location on disk or cookielib.CookieJar instance.
+        :param cookie_storage: file location string or CookieJar instance.
         """
         def toPyCookieJar(QtCookieJar, PyCookieJar):
             for c in QtCookieJar.allCookies():
@@ -543,21 +544,22 @@ class Ghost(object):
             domain = v
             domain_initial_dot = v.startswith('.') if domain_specified else None
             v = long(QtCookie.expirationDate().toTime_t())
-            expires = 2147483647 if v > 2147483647 else v # Long type boundary on 32bit platfroms; avoid ValueError
+            # Long type boundary on 32bit platfroms; avoid ValueError
+            expires = 2147483647 if v > 2147483647 else v
             rest={}
             discard=False
             return Cookie(0, name, value, port, port_specified, domain
             , domain_specified, domain_initial_dot, path, path_specified
             , secure, expires, discard, None, None, rest)
 
-        if cookieStorage.__class__.__name__ == 'str':
-            cj = LWPCookieJar(cookieStorage)
+        if cookie_storage.__class__.__name__ == 'str':
+            cj = LWPCookieJar(cookie_storage)
             toPyCookieJar(self.cookie_jar,cj)
             cj.save()
-        elif cookieStorage.__class__.__name__.endswith('CookieJar') :
-            toPyCookieJar(self.cookie_jar,cookieStorage)
+        elif cookie_storage.__class__.__name__.endswith('CookieJar') :
+            toPyCookieJar(self.cookie_jar,cookie_storage)
         else:
-            raise ValueError, 'cookieStorage type not supported, must be string or cookielib.cookiejar !'
+            raise ValueError, 'unsupported cookie_storage type.'
 
     @can_load_page
     def set_field_value(self, selector, value, blur=True):
