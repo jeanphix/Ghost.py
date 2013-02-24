@@ -29,6 +29,27 @@ def cookie():
     resp.set_cookie('mycookies', 'mycookie value')
     return resp
 
+@app.route('/set/cookie')
+def set_cookie():
+    resp = make_response('Response text')
+    resp.set_cookie('_path', value='/get/', path='/get/')
+    resp.set_cookie('_path_fail', value='/set/', path='/set/' )
+    resp.set_cookie('_domain', value='127.0.0.1' )
+    resp.set_cookie('_secure_fail', value='sslonly', secure=True)
+    resp.set_cookie('_expires', value='2147483647', expires=2147483647)
+    return resp
+
+@app.route('/get/cookie')
+def get_cookie():
+    cookies = { '_expires': '2147483647' \
+    , '_domain': '127.0.0.1' \
+    , '_path': '/get/'}
+    # make sure only what we expect is received.
+    if cookies != request.cookies:
+        return make_response('FAIL')
+        # print request.cookies
+    else:
+        return make_response('OK')
 
 @app.route('/form', methods=['get', 'post'])
 def form():
