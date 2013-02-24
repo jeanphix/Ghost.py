@@ -129,6 +129,15 @@ class GhostTest(GhostTestCase):
         self.ghost.delete_cookies()
         self.assertEqual(len(self.ghost.cookies), 0)
 
+    def test_save_load_cookies(self):
+        self.ghost.delete_cookies()
+        self.ghost.open("%sset/cookie" % base_url)
+        self.ghost.save_cookies('testcookie.txt')
+        self.ghost.delete_cookies()
+        self.ghost.load_cookies('testcookie.txt')
+        self.ghost.open("%sget/cookie" % base_url)
+        self.assertTrue( 'OK' in self.ghost.content )
+        
     def test_wait_for_alert(self):
         self.ghost.open("%salert" % base_url)
         self.ghost.click('#alert-button')
