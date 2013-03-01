@@ -553,7 +553,7 @@ class Ghost(object):
         return res, ressources
 
     def set_proxy(self, type, host='localhost', port=8888, user='', password=''):
-        """Set up proxy for FUTHER connections.
+        """Set up proxy for FURTHER connections.
 
         :param type: proxy type to use: \
             none/default/socks5/https/http.
