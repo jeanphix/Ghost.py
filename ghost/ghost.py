@@ -13,7 +13,8 @@ try:
     sip.setapi('QVariant', 2)
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                QNetworkCookieJar, QNetworkDiskCache
+                                QNetworkCookieJar, QNetworkDiskCache, \
+                                QNetworkProxy
     from PyQt4 import QtCore
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
@@ -21,7 +22,8 @@ except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                    QNetworkCookieJar, QNetworkDiskCache
+                                    QNetworkCookieJar, QNetworkDiskCache, \
+                                    QNetworkProxy
         from PySide import QtCore
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
@@ -549,6 +551,33 @@ class Ghost(object):
         if blur:
             self.fire_on(selector, 'blur')
         return res, ressources
+
+    def set_proxy(self, type, host='localhost', port=8888, user='', password=''):
+        """Set up proxy for FURTHER connections.
+
+        :param type: proxy type to use: \
+            none/default/socks5/https/http.
+        :param host: proxy server ip or host name.
+        :param port: proxy port.
+        """
+        _types = {'default': QNetworkProxy.DefaultProxy,
+            'none': QNetworkProxy.NoProxy,
+            'socks5': QNetworkProxy.Socks5Proxy,
+            'https': QNetworkProxy.HttpProxy,
+            'http': QNetworkProxy.HttpCachingProxy }
+        
+        if type is None: type='none'
+        type = type.lower()
+        if type in ['none','default'] :
+            self.manager.setProxy(QNetworkProxy(_types[type]))
+            return
+        elif type in _types:
+            proxy = QNetworkProxy( _types[type], hostName=host, port=port
+            , user=user, password=password )
+            self.manager.setProxy(proxy)
+        else:
+            raise ValueError, 'Unsupported proxy type:' + type \
+            + '\nsupported types are: none/socks5/http/https/default'
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
