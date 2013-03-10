@@ -13,7 +13,8 @@ try:
     sip.setapi('QVariant', 2)
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                QNetworkCookieJar, QNetworkDiskCache
+                                QNetworkCookieJar, QNetworkDiskCache,\
+                                QNetworkProxy
     from PyQt4 import QtCore
     from PyQt4.QtCore import QSize, QByteArray, QUrl
     from PyQt4.QtGui import QApplication, QImage, QPainter
@@ -21,7 +22,8 @@ except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                    QNetworkCookieJar, QNetworkDiskCache
+                                    QNetworkCookieJar, QNetworkDiskCache,\
+                                    QNetworkProxy
         from PySide import QtCore
         from PySide.QtCore import QSize, QByteArray, QUrl
         from PySide.QtGui import QApplication, QImage, QPainter
@@ -159,6 +161,7 @@ class Ghost(object):
     """Ghost manages a QWebPage.
 
     :param user_agent: The default User-Agent header.
+    :param proxy: A (host, port) pair to use as an HTTP proxy.
     :param wait_timeout: Maximum step duration in second.
     :param wait_callback: An optional callable that is periodically
         executed until Ghost stops waiting.
@@ -182,7 +185,7 @@ class Ghost(object):
             wait_callback=None, log_level=logging.WARNING, display=False,
             viewport_size=(800, 600), ignore_ssl_errors=True,
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
-            plugins_enabled=False, java_enabled=False,
+            plugins_enabled=False, java_enabled=False, proxy=None,
             plugin_path=['/usr/lib/mozilla/plugins',],
             download_images=True):
         self.http_resources = []
@@ -247,6 +250,15 @@ class Ghost(object):
             .connect(self._authenticate)
 
         self.main_frame = self.page.mainFrame()
+
+        # Wire up proxy
+        if proxy is not None:
+            proxy_host, proxy_port = proxy
+            qproxy = QNetworkProxy()
+            qproxy.setType(QNetworkProxy.HttpCachingProxy)
+            qproxy.setHostName(proxy_host)
+            qproxy.setPort(proxy_port)
+            self.manager.setProxy(qproxy)
 
         logger.setLevel(log_level)
 
