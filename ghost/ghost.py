@@ -572,12 +572,12 @@ class Ghost(object):
             self.manager.setProxy(QNetworkProxy(_types[type]))
             return
         elif type in _types:
-            type=_types[type]
+            proxy = QNetworkProxy( _types[type], hostName=host, port=port
+            , user=user, password=password )
+            self.manager.setProxy(proxy)
         else:
             raise ValueError, 'Unsupported proxy type:' + type \
             + '\nsupported types are: none/socks5/http/https/default'
-        proxy = QNetworkProxy( type, hostName=host, port=port, user=user, password=password )
-        self.manager.setProxy(proxy)
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
