@@ -287,10 +287,10 @@ class Ghost(object):
             painter.end()
             image = image.copy(x1, y1, w, h)
         else:
-            self.page.setViewportSize(self.main_frame.contentsSize())
-            image = QImage(self.page.viewportSize(), format)
             self.main_frame.setScrollBarPolicy(QtCore.Qt.Vertical, QtCore.Qt.ScrollBarAlwaysOff)
             self.main_frame.setScrollBarPolicy(QtCore.Qt.Horizontal, QtCore.Qt.ScrollBarAlwaysOff)
+            self.page.setViewportSize(self.main_frame.contentsSize())
+            image = QImage(self.page.viewportSize(), format)
             painter = QPainter(image)
             self.main_frame.render(painter)
             painter.end()
