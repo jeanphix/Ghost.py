@@ -17,7 +17,7 @@ try:
                                 QNetworkProxy
     from PyQt4 import QtCore
     from PyQt4.QtCore import QSize, QByteArray, QUrl
-    from PyQt4.QtGui import QApplication, QImage, QPainter
+    from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
 except ImportError:
     try:
         from PySide import QtWebKit
@@ -26,7 +26,7 @@ except ImportError:
                                     QNetworkProxy
         from PySide import QtCore
         from PySide.QtCore import QSize, QByteArray, QUrl
-        from PySide.QtGui import QApplication, QImage, QPainter
+        from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
     except ImportError:
         raise Exception("Ghost.py requires PySide or PyQt")
@@ -260,6 +260,8 @@ class Ghost(object):
                 self.webview.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, True)
             self.webview.setPage(self.page)
             self.webview.show()
+        else:
+            self.webview = None
 
     def __del__(self):
         self.exit()
@@ -302,6 +304,38 @@ class Ghost(object):
         """
         self.capture(region=region, format=format,
             selector=selector).save(path)
+
+    def print_to_pdf(self,
+                     path,
+                     paper_size    = (8.5, 11.0),
+                     paper_margins = (0, 0, 0, 0),
+                     paper_units   = QPrinter.Inch,
+                     zoom_factor   = 1.0,
+                     ):
+        """Saves page as a pdf file.
+
+        See qt4 QPrinter documentation for more detailed explanations
+        of options.
+
+        :param path: The destination path.
+        :param paper_size: A 2-tuple indicating size of page to print to.
+        :param paper_margins: A 4-tuple indicating size of each margin.
+        :param paper_units: Units for pager_size, pager_margins.
+        :param zoom_factor: Scale the output content.
+        """
+        assert len(paper_size) == 2
+        assert len(paper_margins) == 4
+        printer = QPrinter(mode = QPrinter.ScreenResolution)
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
+        printer.setPageMargins(*(paper_margins + (paper_units,)))
+        printer.setFullPage(True)
+        printer.setOutputFileName(path)
+        if self.webview is None:
+          self.webview = QtWebKit.QWebView()
+          self.webview.setPage(self.page)
+        self.webview.setZoomFactor(zoom_factor)
+        self.webview.print_(printer)
 
     @can_load_page
     def click(self, selector):
