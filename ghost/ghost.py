@@ -625,7 +625,11 @@ class Ghost(object):
             'Unable to load requested page')
         resources = self._release_last_resources()
         page = None
-        url = self.main_frame.url().toString()
+
+        if PYSIDE:
+            url = self.main_frame.url().toString()
+        else:
+            url = self.main_frame.url()
 
         for resource in resources:
             if url == resource.url:
