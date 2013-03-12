@@ -7,6 +7,7 @@ import logging
 import subprocess
 import tempfile
 from functools import wraps
+from cookielib import Cookie, LWPCookieJar
 PYSIDE = False
 try:
     import sip
@@ -14,18 +15,18 @@ try:
     from PyQt4 import QtWebKit
     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
                                 QNetworkCookieJar, QNetworkDiskCache, \
-                                QNetworkProxy
+                                QNetworkProxy, QNetworkCookie
     from PyQt4 import QtCore
-    from PyQt4.QtCore import QSize, QByteArray, QUrl
+    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime
     from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
 except ImportError:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-                                    QNetworkCookieJar, QNetworkDiskCache, \
-                                    QNetworkProxy
+                                     QNetworkCookieJar, QNetworkDiskCache, \
+                                     QNetworkProxy, QNetworkCookie
         from PySide import QtCore
-        from PySide.QtCore import QSize, QByteArray, QUrl
+        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime
         from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
     except ImportError:
@@ -372,7 +373,7 @@ class Ghost(object):
     @property
     def content(self, to_unicode=True):
         """Returns current frame HTML as a string.
-        
+
         :param to_unicode: Whether to convert html to unicode or not
         """
         if to_unicode:
@@ -467,6 +468,43 @@ class Ghost(object):
         except:
             raise Exception("no webview to close")
 
+    def load_cookies( self, cookie_storage, keep_old=False ):
+        """load from cookielib's CookieJar or Set-Cookie3 format text file.
+
+        :param cookie_storage: file location string on disk or CookieJar instance.
+        :param keep_old: Don't reset, keep cookies not overriden.
+        """
+        def toQtCookieJar( PyCookieJar, QtCookieJar ):
+            allCookies = QtCookieJar.cookies if keep_old else []
+            for pc in PyCookieJar:
+                qc = toQtCookie(pc)
+                allCookies.append(qc)
+            QtCookieJar.setAllCookies(allCookies)
+
+        def toQtCookie(PyCookie):
+            qc = QNetworkCookie( PyCookie.name, PyCookie.value )
+            qc.setSecure(PyCookie.secure)
+            if PyCookie.path_specified:
+                qc.setPath(PyCookie.path)
+            if PyCookie.domain != "" :
+                qc.setDomain(PyCookie.domain)
+            if PyCookie.expires != 0:
+                t = QDateTime()
+                t.setTime_t(PyCookie.expires)
+                qc.setExpirationDate(t)
+            # not yet handled(maybe less useful):
+            #   py cookie.rest / QNetworkCookie.setHttpOnly()
+            return qc
+
+        if cookie_storage.__class__.__name__ == 'str':
+            cj = LWPCookieJar(cookie_storage)
+            cj.load()
+            toQtCookieJar(cj, self.cookie_jar)
+        elif cookie_storage.__class__.__name__.endswith('CookieJar') :
+            toQtCookieJar(cookie_storage, self.cookie_jar)
+        else:
+            raise ValueError, 'unsupported cookie_storage type.'
+
     def open(self, address, method='get', headers={}, auth=None, body=None):
         """Opens a web page.
 
@@ -522,6 +560,46 @@ class Ghost(object):
         except:
             raise Exception("can't get region for selector '%s'" % selector)
         return region
+
+    def save_cookies(self, cookie_storage):
+        """Save to cookielib's CookieJar or Set-Cookie3 format text file.
+
+        :param cookie_storage: file location string or CookieJar instance.
+        """
+        def toPyCookieJar(QtCookieJar, PyCookieJar):
+            for c in QtCookieJar.allCookies():
+                PyCookieJar.set_cookie(toPyCookie(c))
+
+        def toPyCookie(QtCookie):
+            port=None
+            port_specified=False
+            secure=QtCookie.isSecure()
+            name=str(QtCookie.name())
+            value=str(QtCookie.value())
+            v = str(QtCookie.path())
+            path_specified = bool( v != "" )
+            path = v if path_specified else None
+            v = str(QtCookie.domain())
+            domain_specified = bool( v != "" )
+            domain = v
+            domain_initial_dot = v.startswith('.') if domain_specified else None
+            v = long(QtCookie.expirationDate().toTime_t())
+            # Long type boundary on 32bit platfroms; avoid ValueError
+            expires = 2147483647 if v > 2147483647 else v
+            rest={}
+            discard=False
+            return Cookie(0, name, value, port, port_specified, domain
+            , domain_specified, domain_initial_dot, path, path_specified
+            , secure, expires, discard, None, None, rest)
+
+        if cookie_storage.__class__.__name__ == 'str':
+            cj = LWPCookieJar(cookie_storage)
+            toPyCookieJar(self.cookie_jar,cj)
+            cj.save()
+        elif cookie_storage.__class__.__name__.endswith('CookieJar') :
+            toPyCookieJar(self.cookie_jar,cookie_storage)
+        else:
+            raise ValueError, 'unsupported cookie_storage type.'
 
     @can_load_page
     def set_field_value(self, selector, value, blur=True):
@@ -605,7 +683,7 @@ class Ghost(object):
             'socks5': QNetworkProxy.Socks5Proxy,
             'https': QNetworkProxy.HttpProxy,
             'http': QNetworkProxy.HttpCachingProxy }
-        
+
         if type is None: type='none'
         type = type.lower()
         if type in ['none','default'] :
