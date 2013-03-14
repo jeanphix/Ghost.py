@@ -52,15 +52,21 @@ class Logger(logging.Logger):
             raise Exception('invalid log level')
         getattr(logger, level)("%s: %s", sender, message)
 
-def qt_log_proxy(msgType, msg):
-    if msgType == QtDebugMsg:
-        Logger.log(msg, level='debug')
-    elif msgType == QtWarningMsg:
-        Logger.log(msg, level='warning')
-    elif msgType == QtCriticalMsg:
-        Logger.log(msg, level='critical')
-    elif msgType == QtFatalMsg:
-        Logger.log(msg, level='fatal')
+class QTMessageProxy(object):
+    def __init__(self, debug=False):
+        self.debug = debug
+
+    def __call__(self, msgType, msg):
+        if msgType == QtDebugMsg and self.debug:
+            Logger.log(msg, sender='QT', level='debug')
+        elif msgType == QtWarningMsg and self.debug:
+            Logger.log(msg, sender='QT', level='warning')
+        elif msgType == QtCriticalMsg:
+            Logger.log(msg, sender='QT', level='critical')
+        elif msgType == QtFatalMsg:
+            Logger.log(msg, sender='QT', level='fatal')
+        elif self.debug:
+            Logger.log(msg, sender='QT', level='info')
 
 class GhostWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
@@ -200,7 +206,7 @@ class Ghost(object):
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins',],
-            download_images=True):
+            download_images=True, qt_debug=False):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -222,7 +228,7 @@ class Ghost(object):
 
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
-            qInstallMsgHandler(qt_log_proxy)
+            qInstallMsgHandler(QTMessageProxy(qt_debug))
             if plugin_path:
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
