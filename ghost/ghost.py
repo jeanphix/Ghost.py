@@ -17,7 +17,9 @@ try:
                                 QNetworkCookieJar, QNetworkDiskCache, \
                                 QNetworkProxy, QNetworkCookie
     from PyQt4 import QtCore
-    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime
+    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime,\
+                             QtCriticalMsg, QtDebugMsg, QtFatalMsg, QtWarningMsg,\
+                             qInstallMsgHandler
     from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
 except ImportError:
     try:
@@ -26,7 +28,9 @@ except ImportError:
                                      QNetworkCookieJar, QNetworkDiskCache, \
                                      QNetworkProxy, QNetworkCookie
         from PySide import QtCore
-        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime
+        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime,\
+                                  QtCriticalMsg, QtDebugMsg, QtFatalMsg,\
+                                  QtWarningMsg, qInstallMsgHandler
         from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
     except ImportError:
@@ -48,6 +52,15 @@ class Logger(logging.Logger):
             raise Exception('invalid log level')
         getattr(logger, level)("%s: %s", sender, message)
 
+def qt_log_proxy(msgType, msg):
+    if msgType == QtDebugMsg:
+        Logger.log(msg, level='debug')
+    elif msgType == QtWarningMsg:
+        Logger.log(msg, level='warning')
+    elif msgType == QtCriticalMsg:
+        Logger.log(msg, level='critical')
+    elif msgType == QtFatalMsg:
+        Logger.log(msg, level='fatal')
 
 class GhostWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
@@ -209,6 +222,7 @@ class Ghost(object):
 
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
+            qInstallMsgHandler(qt_log_proxy)
             if plugin_path:
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
