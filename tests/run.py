@@ -184,6 +184,27 @@ class GhostTest(GhostTestCase):
         value, resources = self.ghost.evaluate('promptValue')
         self.assertEqual(value, 'another value')
 
+    def test_popup_messages_collection(self):
+        self.ghost.open("%salert" % base_url, default_popup_response=True)
+        self.ghost.click('#confirm-button')
+        self.assertIn('this is a confirm', self.ghost.popup_messages)
+        self.ghost.click('#prompt-button')
+        self.assertIn('Prompt ?', self.ghost.popup_messages)
+        self.ghost.click('#alert-button')
+        self.assertIn('this is an alert', self.ghost.popup_messages)
+
+    def test_prompt_default_value_true(self):
+        self.ghost.open("%salert" % base_url, default_popup_response=True)
+        self.ghost.click('#confirm-button')
+        msg, resources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'you confirmed!')
+
+    def test_prompt_default_value_false(self):
+        self.ghost.open("%salert" % base_url, default_popup_response=False)
+        self.ghost.click('#confirm-button')
+        msg, resources = self.ghost.wait_for_alert()
+        self.assertEqual(msg, 'you denied!')
+
     def test_capture_to(self):
         self.ghost.open(base_url)
         self.ghost.capture_to('test.png')
