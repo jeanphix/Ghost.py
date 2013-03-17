@@ -110,7 +110,7 @@ def send_file():
     h.add('Content-type', 'application/octet-stream', charset='utf8')
     h.add('Content-disposition', 'attachment', filename='name.tar.gz')
     return Response(open(os.path.join(os.path.dirname(__file__), 'static',
-        'foo.tar.gz'), 'r'), headers=h)
+                                      'foo.tar.gz'), 'r'), headers=h)
 
 
 if __name__ == '__main__':

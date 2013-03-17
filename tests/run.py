@@ -281,8 +281,8 @@ class GhostTest(GhostTestCase):
 
     def test_unsupported_content(self):
         page, resources = self.ghost.open("%ssend-file" % base_url)
-        foo = open(os.path.join(os.path.dirname(__file__), 'static',
-        'foo.tar.gz'), 'r').read(1024)
+        foo = open(os.path.join(os.path.dirname(__file__),
+                                'static', 'foo.tar.gz'), 'r').read(1024)
         self.assertEqual(resources[0].content, foo)
 
 
