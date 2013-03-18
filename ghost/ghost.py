@@ -202,7 +202,7 @@ class Ghost(object):
                 os.environ['DISPLAY'] = ':99'
                 Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
             except OSError:
-                raise Exception('Xvfb is required to a ghost run oustside ' +\
+                raise Exception('Xvfb is required to a ghost run outside ' +\
                     'an X instance')
 
         self.display = display
