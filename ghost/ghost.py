@@ -135,14 +135,14 @@ class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, reply, cache, content=None):
-        if PYSIDE:
-            self.url = reply.url().toString()
-        else:
-            self.url = reply.url()
+        self.url = reply.url().toString()
         self.content = content
         if self.content is None:
             # Tries to get back content from cache
-            buffer = cache.data(self.url)
+            if PYSIDE:
+                buffer = cache.data(reply.url().toString())
+            else:
+                buffer = cache.data(reply.url())
             if buffer is not None:
                 content = buffer.readAll()
                 try:
@@ -744,10 +744,7 @@ class Ghost(object):
         resources = self._release_last_resources()
         page = None
 
-        if PYSIDE:
-            url = self.main_frame.url().toString()
-        else:
-            url = self.main_frame.url()
+        url = self.main_frame.url().toString()
 
         for resource in resources:
             if url == resource.url:
