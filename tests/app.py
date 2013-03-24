@@ -17,6 +17,11 @@ app.config['SECRET_KEY'] = 'asecret'
 def home():
     return render_template('home.html')
 
+@app.route('/no-cache')
+def no_cahce():
+    response = make_response("No cache for me.", 200)
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+    return response
 
 @app.route('/alert')
 def alert():

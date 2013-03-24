@@ -135,20 +135,20 @@ class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, reply, cache, content=None):
-        if PYSIDE:
-            self.url = reply.url().toString()
-        else:
-            self.url = reply.url()
+        self.url = reply.url().toString()
         self.content = content
         if self.content is None:
             # Tries to get back content from cache
-            buffer = cache.data(self.url)
+            if PYSIDE:
+                buffer = cache.data(reply.url().toString())
+            else:
+                buffer = cache.data(reply.url())
             if buffer is not None:
                 content = buffer.readAll()
-                try:
-                    self.content = unicode(content)
-                except UnicodeDecodeError:
-                    self.content = content
+        try:
+            self.content = unicode(content)
+        except UnicodeDecodeError:
+            self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
@@ -744,10 +744,7 @@ class Ghost(object):
         resources = self._release_last_resources()
         page = None
 
-        if PYSIDE:
-            url = self.main_frame.url().toString()
-        else:
-            url = self.main_frame.url()
+        url = self.main_frame.url().toString()
 
         for resource in resources:
             if url == resource.url:
@@ -809,8 +806,24 @@ class Ghost(object):
 
         :param reply: The QNetworkReply object.
         """
+
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(reply, self.cache))
+            Logger.log("[%s] bytesAvailable()= %s" %(str(reply.url()), reply.bytesAvailable()), level="debug")
+
+            # Some web pages return cache headers that mandates not to cache the
+            # reply, which means we won't find this QNetworkReply in the cache
+            # object. In this case bytesAvailable will return > 0.
+            # Such pages are www.etsy.com
+            # This is a bit of a hack and due to the async nature of QT, might
+            # not work at times. We should move to using some proxied implementation
+            # of QNetworkManager and QNetworkReply in order to get the contents
+            # of the requests properly rather than relying on the cache.
+            if reply.bytesAvailable() > 0:
+                content = reply.peek(reply.bytesAvailable())
+            else:
+                content = None
+            self.http_resources.append(HttpResource(reply, self.cache,
+                                                    content=content))
 
     def _unsupported_content(self, reply):
         """Adds an HttpResource object to http_resources with unsupported
