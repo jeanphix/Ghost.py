@@ -187,7 +187,8 @@ class Ghost(object):
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins',],
-            download_images=True):
+            download_images=True,
+            show_scroolbars=True):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -223,6 +224,9 @@ class Ghost(object):
         self.page.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
         self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, java_enabled)
 
+        if not show_scroolbars:
+            self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical, QtCore.Qt.ScrollBarAlwaysOff)
+            self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal, QtCore.Qt.ScrollBarAlwaysOff)
 
         self.set_viewport_size(*viewport_size)
 
@@ -834,7 +838,7 @@ class Ghost(object):
         self.wait_for(lambda: reply.isFinished(), 'Download timeout.')
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.http_resources.append(HttpResource(reply, self.cache,
-                reply.readAll()))
+                                                    reply.readAll()))
 
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
