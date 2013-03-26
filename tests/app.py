@@ -117,6 +117,10 @@ def send_file():
     return Response(open(os.path.join(os.path.dirname(__file__), 'static',
         'foo.tar.gz'), 'r'), headers=h)
 
+@app.route('/url-hash')
+def url_hash():
+    return render_template('url_hash.html')
+
 
 if __name__ == '__main__':
     app.run()

@@ -291,6 +291,10 @@ class GhostTest(GhostTestCase):
         'foo.tar.gz'), 'r').read(1024)
         self.assertEqual(resources[0].content, foo)
 
+    def test_url_with_hash(self):
+        page, resources = self.ghost.open("%surl-hash" % base_url)
+        self.assertIsNotNone(page)
+        self.assertTrue("Test page" in self.ghost.content)
 
 if __name__ == '__main__':
     unittest.main()
