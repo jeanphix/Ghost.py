@@ -17,7 +17,9 @@ try:
                                 QNetworkCookieJar, QNetworkDiskCache, \
                                 QNetworkProxy, QNetworkCookie
     from PyQt4 import QtCore
-    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime
+    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime,\
+                             QtCriticalMsg, QtDebugMsg, QtFatalMsg, QtWarningMsg,\
+                             qInstallMsgHandler
     from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
 except ImportError:
     try:
@@ -26,7 +28,9 @@ except ImportError:
                                      QNetworkCookieJar, QNetworkDiskCache, \
                                      QNetworkProxy, QNetworkCookie
         from PySide import QtCore
-        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime
+        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime,\
+                                  QtCriticalMsg, QtDebugMsg, QtFatalMsg,\
+                                  QtWarningMsg, qInstallMsgHandler
         from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
     except ImportError:
@@ -48,6 +52,21 @@ class Logger(logging.Logger):
             raise Exception('invalid log level')
         getattr(logger, level)("%s: %s", sender, message)
 
+class QTMessageProxy(object):
+    def __init__(self, debug=False):
+        self.debug = debug
+
+    def __call__(self, msgType, msg):
+        if msgType == QtDebugMsg and self.debug:
+            Logger.log(msg, sender='QT', level='debug')
+        elif msgType == QtWarningMsg and self.debug:
+            Logger.log(msg, sender='QT', level='warning')
+        elif msgType == QtCriticalMsg:
+            Logger.log(msg, sender='QT', level='critical')
+        elif msgType == QtFatalMsg:
+            Logger.log(msg, sender='QT', level='fatal')
+        elif self.debug:
+            Logger.log(msg, sender='QT', level='info')
 
 class GhostWebPage(QtWebKit.QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
@@ -187,7 +206,7 @@ class Ghost(object):
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins',],
-            download_images=True):
+            download_images=True, qt_debug=False):
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -209,6 +228,7 @@ class Ghost(object):
 
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
+            qInstallMsgHandler(QTMessageProxy(qt_debug))
             if plugin_path:
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
