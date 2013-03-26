@@ -186,7 +186,7 @@ class Ghost(object):
         executed until Ghost stops waiting.
     :param log_level: The optional logging level.
     :param display: A boolean that tells ghost to displays UI.
-    :param viewport_size: A tupple that sets initial viewport size.
+    :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
     :param cache_dir: A directory path where to store cache datas.
     :param plugins_enabled: Enable plugins (like Flash).
@@ -294,7 +294,7 @@ class Ghost(object):
             format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
 
-        :param region: An optional tupple containing region as pixel
+        :param region: An optional tuple containing region as pixel
             coodinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
@@ -324,7 +324,7 @@ class Ghost(object):
         """Saves snapshot as image.
 
         :param path: The destination path.
-        :param region: An optional tupple containing region as pixel
+        :param region: An optional tuple containing region as pixel
             coodinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
@@ -383,7 +383,7 @@ class Ghost(object):
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
 
-        :param confirm: A bollean that confirm.
+        :param confirm: A boolean to set confirmation.
         :param callable: A callable that returns a boolean for confirmation.
         """
         def __init__(self, confirm=True, callback=None):
@@ -498,7 +498,7 @@ class Ghost(object):
         """load from cookielib's CookieJar or Set-Cookie3 format text file.
 
         :param cookie_storage: file location string on disk or CookieJar instance.
-        :param keep_old: Don't reset, keep cookies not overriden.
+        :param keep_old: Don't reset, keep cookies not overridden.
         """
         def toQtCookieJar( PyCookieJar, QtCookieJar ):
             allCookies = QtCookieJar.cookies if keep_old else []
@@ -537,7 +537,7 @@ class Ghost(object):
         :param address: The resource URL.
         :param method: The Http method.
         :param headers: An optional dict of extra request hearders.
-        :param auth: An optional tupple of HTTP auth (username, password).
+        :param auth: An optional tuple of HTTP auth (username, password).
         :param body: An optional string containing a payload.
         :return: Page resource, All loaded resources.
         """
@@ -576,7 +576,7 @@ class Ghost(object):
             Ghost._prompt_expected = None
 
     def region_for_selector(self, selector):
-        """Returns frame region for given selector as tupple.
+        """Returns frame region for given selector as tuple.
 
         :param selector: The targeted element.
         """
