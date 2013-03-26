@@ -274,7 +274,10 @@ class Ghost(object):
         logger.setLevel(log_level)
 
         if self.display:
-            self.webview = QtWebKit.QWebView()
+            class MyQWebView(QtWebKit.QWebView):
+                def sizeHint(self):
+                    return QSize(*viewport_size)
+            self.webview = MyQWebView()
             if plugins_enabled:
                 self.webview.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True)
             if java_enabled:
