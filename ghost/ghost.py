@@ -653,6 +653,11 @@ class Ghost(object):
             el.setFocus()
             el.setAttribute('value', value)
 
+        def _set_select_value(el, value):
+            el.setFocus()
+            self.evaluate('document.querySelector("%s").value = "%s";' %
+                (selector.replace('"', '\"'), value.replace('"', '\"')))
+
         def _set_textarea_value(el, value):
             el.setFocus()
             el.setPlainText(value)
@@ -662,7 +667,7 @@ class Ghost(object):
         if element.isNull():
             raise Exception('can\'t find element for %s"' % selector)
         if element.tagName() == "SELECT":
-            _set_text_value(element, value)
+            _set_select_value(element, value)
         elif element.tagName() == "TEXTAREA":
             _set_textarea_value(element, value)
         elif element.tagName() == "INPUT":

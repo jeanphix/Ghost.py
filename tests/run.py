@@ -82,10 +82,11 @@ class GhostTest(GhostTestCase):
             'email': 'my@awesome.email',
             'textarea': 'Here is a sample text.\nWith several lines.',
             'checkbox': True,
+            'selectbox': 'two',
             "radio": "first choice"
         }
         self.ghost.fill('#contact-form', values)
-        for field in ['text', 'email', 'textarea']:
+        for field in ['text', 'email', 'textarea', 'selectbox']:
             value, resssources = self.ghost\
                 .evaluate('document.getElementById("%s").value' % field)
             self.assertEqual(value, values[field])
