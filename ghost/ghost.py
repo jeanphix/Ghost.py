@@ -776,10 +776,10 @@ class Ghost(object):
         page = None
 
         url = self.main_frame.url().toString()
-        url = url.split("#")[0]
+        url_without_hash = url.split("#")[0]
 
         for resource in resources:
-            if url == resource.url:
+            if url == resource.url or url_without_hash == resource.url:
                 page = resource
         return page, resources
 

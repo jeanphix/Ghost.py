@@ -296,5 +296,10 @@ class GhostTest(GhostTestCase):
         self.assertIsNotNone(page)
         self.assertTrue("Test page" in self.ghost.content)
 
+    def test_url_with_hash_header(self):
+        page, resources = self.ghost.open("%surl-hash-header" % base_url)
+        self.assertIsNotNone(page)
+        self.assertTrue("Welcome" in self.ghost.content)
+
 if __name__ == '__main__':
     unittest.main()
