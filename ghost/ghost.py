@@ -743,6 +743,15 @@ class Ghost(object):
         self.webview.setPage(self.page)
         self.webview.show()
 
+    def sleep(self, value):
+        started_at = time.time()
+        while True:
+            if time.time() > (started_at + value):
+                break
+
+            time.sleep(0.01)
+            Ghost._app.processEvents()
+
     def wait_for(self, condition, timeout_message):
         """Waits until condition is True.
 

@@ -89,6 +89,11 @@ def mootools():
     return render_template('mootools.html')
 
 
+@app.route('/settimeout')
+def mootools():
+    return render_template('settimeout.html')
+
+
 @app.route('/items.json')
 def items():
     return jsonify(items=['second item', 'third item'])
