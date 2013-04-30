@@ -55,6 +55,7 @@ class BaseGhostTestCase(TestCase):
     def _post_teardown(self):
         """Deletes ghost cookies and hide UI if needed."""
         self.ghost.delete_cookies()
+        self.ghost.clear_alert_message()
         if self.display:
             self.ghost.hide()
 
