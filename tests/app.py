@@ -121,6 +121,17 @@ def send_file():
 def url_hash():
     return render_template('url_hash.html')
 
+@app.route('/url-hash-header')
+def url_hash_header():
+    response = make_response("Redirecting.", 302)
+    response.headers['Location'] = url_for('url_hash_header_redirect') + "#/"
+    return response
+
+@app.route('/url-hash-header-redirect/')
+def url_hash_header_redirect():
+    return "Welcome."
+
+
 
 if __name__ == '__main__':
     app.run()
