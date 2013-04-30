@@ -7,3 +7,4 @@ dist
 *.swp
 *.swo
 .tox
+.idea

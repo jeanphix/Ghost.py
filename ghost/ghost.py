@@ -73,6 +73,10 @@ class GhostWebPage(QtWebKit.QWebPage):
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
+    def __init__(self, app, ghost):
+        self.ghost = ghost
+        super(GhostWebPage, self).__init__(app)
+
     def chooseFile(self, frame, suggested_file=None):
         return Ghost._upload_file
 
@@ -87,6 +91,7 @@ class GhostWebPage(QtWebKit.QWebPage):
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
         Ghost._alert = message
+        self.ghost.append_popup_message(message)
         Logger.log("alert('%s')" % message, sender="Frame")
 
     def javaScriptConfirm(self, frame, message):
@@ -96,6 +101,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if Ghost._confirm_expected is None:
             raise Exception('You must specified a value to confirm "%s"' %
                 message)
+        self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
         Ghost._confirm_expected = None
         Logger.log("confirm('%s')" % message, sender="Frame")
@@ -110,6 +116,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if Ghost._prompt_expected is None:
             raise Exception('You must specified a value for prompt "%s"' %
                 message)
+        self.ghost.append_popup_message(message)
         result_value, callback = Ghost._prompt_expected
         Logger.log("prompt('%s')" % message, sender="Frame")
         if callback is not None:
@@ -233,7 +240,8 @@ class Ghost(object):
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
 
-        self.page = GhostWebPage(Ghost._app)
+        self.popup_messages = []
+        self.page = GhostWebPage(Ghost._app, self)
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(QtWebKit.QWebSettings.LocalStorageEnabled, True)
@@ -242,7 +250,6 @@ class Ghost(object):
         self.page.settings().setAttribute(QtWebKit.QWebSettings.AutoLoadImages, download_images)
         self.page.settings().setAttribute(QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
         self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled, java_enabled)
-
 
         self.set_viewport_size(*viewport_size)
 
@@ -416,6 +423,10 @@ class Ghost(object):
         """Deletes all cookies."""
         self.cookie_jar.setAllCookies([])
 
+    def clear_alert_message(self):
+        """Clears the alert message"""
+        self._alert = None
+
     @can_load_page
     def evaluate(self, script):
         """Evaluates script in page frame.
@@ -531,7 +542,8 @@ class Ghost(object):
         else:
             raise ValueError, 'unsupported cookie_storage type.'
 
-    def open(self, address, method='get', headers={}, auth=None, body=None):
+    def open(self, address, method='get', headers={}, auth=None, body=None,
+             default_popup_response=None):
         """Opens a web page.
 
         :param address: The resource URL.
@@ -539,12 +551,15 @@ class Ghost(object):
         :param headers: An optional dict of extra request hearders.
         :param auth: An optional tuple of HTTP auth (username, password).
         :param body: An optional string containing a payload.
+        :param default_popup_response: the default response for any confirm/
+        alert/prompt popup from the Javascript (replaces the need for the with
+        blocks)
         :return: Page resource, All loaded resources.
         """
         body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
-                "%sOperation" % method.capitalize())
+                             "%sOperation" % method.capitalize())
         except AttributeError:
             raise Exception("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
@@ -556,6 +571,8 @@ class Ghost(object):
 
         self.main_frame.load(request, method, body)
         self.loaded = False
+        Ghost._prompt_expected = (default_popup_response, None)
+        Ghost._confirm_expected = (default_popup_response, None)
 
         return self.wait_for_page_loaded()
 
@@ -735,6 +752,9 @@ class Ghost(object):
         :param height: An integer that sets height pixel count.
         """
         self.page.setViewportSize(QSize(width, height))
+
+    def append_popup_message(self, message):
+        self.popup_messages.append(str(message))
 
     def show(self):
         """Show current page inside a QWebView.
