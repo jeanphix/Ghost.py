@@ -102,7 +102,6 @@ class GhostWebPage(QtWebKit.QWebPage):
             raise Exception('You must specified a value to confirm "%s"' % message)
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
-        Ghost._confirm_expected = None
         Logger.log("confirm('%s')" % message, sender="Frame")
         if callback is not None:
             return callback()
@@ -123,7 +122,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if result_value == '':
             Logger.log("'%s' prompt filled with empty string" % message,
                 level='warning')
-        Ghost._prompt_expected = None
+
         if result is None:
             # PySide
             return True, result_value
