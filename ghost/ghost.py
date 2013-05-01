@@ -754,7 +754,7 @@ class Ghost(object):
         self.page.setViewportSize(QSize(width, height))
 
     def append_popup_message(self, message):
-        self.popup_messages.append(str(message))
+        self.popup_messages.append(unicode(message))
 
     def show(self):
         """Show current page inside a QWebView.
