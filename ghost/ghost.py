@@ -99,8 +99,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._confirm_expected is None:
-            raise Exception('You must specified a value to confirm "%s"' %
-                message)
+            raise Exception('You must specified a value to confirm "%s"' % message)
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
         Ghost._confirm_expected = None
@@ -128,7 +127,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if result is None:
             # PySide
             return True, result_value
-        result.append(result_value)
+        result.append(unicode(result_value))
         return True
 
     def setUserAgent(self, user_agent):
