@@ -570,8 +570,10 @@ class Ghost(object):
 
         self.main_frame.load(request, method, body)
         self.loaded = False
-        Ghost._prompt_expected = (default_popup_response, None)
-        Ghost._confirm_expected = (default_popup_response, None)
+
+        if default_popup_response is not None:
+            Ghost._prompt_expected = (default_popup_response, None)
+            Ghost._confirm_expected = (default_popup_response, None)
 
         return self.wait_for_page_loaded()
 
