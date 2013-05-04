@@ -45,11 +45,21 @@ logging.basicConfig()
 logger = logging.getLogger('ghost')
 
 
+class Error(Exception):
+    """Base class for Ghost exceptions."""
+    pass
+
+
+class TimeoutError(Error):
+    """Raised when a request time outs"""
+    pass
+
+
 class Logger(logging.Logger):
     @staticmethod
     def log(message, sender="Ghost", level="info"):
         if not hasattr(logger, level):
-            raise Exception('invalid log level')
+            raise Error('invalid log level')
         getattr(logger, level)("%s: %s", sender, message)
 
 class QTMessageProxy(object):
@@ -99,7 +109,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._confirm_expected is None:
-            raise Exception('You must specified a value to confirm "%s"' %
+            raise Error('You must specified a value to confirm "%s"' %
                 message)
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
@@ -114,7 +124,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._prompt_expected is None:
-            raise Exception('You must specified a value for prompt "%s"' %
+            raise Error('You must specified a value for prompt "%s"' %
                 message)
         self.ghost.append_popup_message(message)
         result_value, callback = Ghost._prompt_expected
@@ -228,8 +238,8 @@ class Ghost(object):
                 os.environ['DISPLAY'] = ':99'
                 Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
             except OSError:
-                raise Exception('Xvfb is required to a ghost run oustside ' +\
-                    'an X instance')
+                raise Error('Xvfb is required to a ghost run outside ' +
+                            'an X instance')
 
         self.display = display
 
@@ -337,7 +347,7 @@ class Ghost(object):
         :param format: The output image format.
         """
         self.capture(region=region, format=format,
-            selector=selector).save(path)
+                     selector=selector).save(path)
 
     def print_to_pdf(self,
                      path,
@@ -378,7 +388,7 @@ class Ghost(object):
         :param selector: A CSS3 selector to targeted element.
         """
         if not self.exists(selector):
-            raise Exception("Can't find element to click")
+            raise Error("Can't find element to click")
         return self.evaluate("""
             var element = document.querySelector("%s");
             var evt = document.createEvent("MouseEvents");
@@ -453,7 +463,7 @@ class Ghost(object):
         return not self.main_frame.findFirstElement(selector).isNull()
 
     def exit(self):
-        """Exits application and relateds."""
+        """Exits application and related."""
         if self.display:
             self.webview.close()
         Ghost._app.quit()
@@ -471,7 +481,7 @@ class Ghost(object):
         :param values: A dict containing the values.
         """
         if not self.exists(selector):
-            raise Exception("Can't find form")
+            raise Error("Can't find form")
         resources = []
         for field in values:
             r, res = self.set_field_value("%s [name=%s]" % (selector, field),
@@ -503,7 +513,7 @@ class Ghost(object):
         try:
             self.webview.close()
         except:
-            raise Exception("no webview to close")
+            raise Error("no webview to close")
 
     def load_cookies( self, cookie_storage, keep_old=False ):
         """load from cookielib's CookieJar or Set-Cookie3 format text file.
@@ -561,7 +571,7 @@ class Ghost(object):
             method = getattr(QNetworkAccessManager,
                              "%sOperation" % method.capitalize())
         except AttributeError:
-            raise Exception("Invalid http method %s" % method)
+            raise Error("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
         request.CacheLoadControl(0)
         for header in headers:
@@ -601,7 +611,7 @@ class Ghost(object):
         try:
             region = (geo.left(), geo.top(), geo.right(), geo.bottom())
         except:
-            raise Exception("can't get region for selector '%s'" % selector)
+            raise Error("can't get region for selector '%s'" % selector)
         return region
 
     def save_cookies(self, cookie_storage):
@@ -629,11 +639,11 @@ class Ghost(object):
             v = long(QtCookie.expirationDate().toTime_t())
             # Long type boundary on 32bit platfroms; avoid ValueError
             expires = 2147483647 if v > 2147483647 else v
-            rest={}
-            discard=False
+            rest = {}
+            discard = False
             return Cookie(0, name, value, port, port_specified, domain
-            , domain_specified, domain_initial_dot, path, path_specified
-            , secure, expires, discard, None, None, rest)
+                    , domain_specified, domain_initial_dot, path, path_specified
+                    , secure, expires, discard, None, None, rest)
 
         if cookie_storage.__class__.__name__ == 'str':
             cj = LWPCookieJar(cookie_storage)
@@ -688,7 +698,7 @@ class Ghost(object):
         res, ressources = None, []
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
-            raise Exception('can\'t find element for %s"' % selector)
+            raise Error('can\'t find element for %s"' % selector)
         if element.tagName() == "SELECT":
             _set_select_value(element, value)
         elif element.tagName() == "TEXTAREA":
@@ -713,7 +723,7 @@ class Ghost(object):
                 res, resources = self.click(selector)
                 Ghost._upload_file = None
         else:
-            raise Exception('unsuported field tag')
+            raise Error('unsuported field tag')
         if blur:
             self.fire_on(selector, 'blur')
         return res, ressources
@@ -738,8 +748,8 @@ class Ghost(object):
             self.manager.setProxy(QNetworkProxy(_types[type]))
             return
         elif type in _types:
-            proxy = QNetworkProxy( _types[type], hostName=host, port=port
-            , user=user, password=password )
+            proxy = QNetworkProxy(_types[type], hostName=host, port=port
+                                  , user=user, password=password )
             self.manager.setProxy(proxy)
         else:
             raise ValueError, 'Unsupported proxy type:' + type \
@@ -781,7 +791,7 @@ class Ghost(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + self.wait_timeout):
-                raise Exception(timeout_message)
+                raise TimeoutError(timeout_message)
             time.sleep(0.01)
             Ghost._app.processEvents()
             if self.wait_callback is not None:
@@ -791,7 +801,7 @@ class Ghost(object):
         """Waits for main frame alert().
         """
         self.wait_for(lambda: Ghost._alert is not None,
-            'User has not been alerted.')
+                      'User has not been alerted.')
         msg = Ghost._alert
         Ghost._alert = None
         return msg, self._release_last_resources()
@@ -800,7 +810,7 @@ class Ghost(object):
         """Waits until page is loaded, assumed that a page as been requested.
         """
         self.wait_for(lambda: self.loaded,
-            'Unable to load requested page')
+                      'Unable to load requested page')
         resources = self._release_last_resources()
         page = None
 
