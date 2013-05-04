@@ -51,7 +51,7 @@ class Error(Exception):
 
 
 class TimeoutError(Error):
-    """Raised when a request time outs"""
+    """Raised when a request times out"""
     pass
 
 
