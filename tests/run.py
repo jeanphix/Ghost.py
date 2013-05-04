@@ -65,6 +65,14 @@ class GhostTest(GhostTestCase):
             .wait_for_selector("#list li:nth-child(2)")
         self.assertEqual(resources[0].url, "%sitems.json" % base_url)
 
+    def test_settimeout(self):
+        page, resources = self.ghost.open("%ssettimeout" % base_url)
+        result, _ = self.ghost.evaluate("document.getElementById('result').innerHTML")
+        self.assertEqual(result, 'Bad')
+        self.ghost.sleep(4)
+        result, _ = self.ghost.evaluate("document.getElementById('result').innerHTML")
+        self.assertEqual(result, 'Good')
+
     def test_wait_for_text(self):
         page, resources = self.ghost.open("%smootools" % base_url)
         self.ghost.click("#button")

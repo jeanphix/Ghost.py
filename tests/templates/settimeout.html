@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Settimeout test page</h1>
+
+        <div id="result">Bad</div>
+
+        <script type="text/javascript">
+        window.setTimeout(
+            function() { 
+                document.getElementById('result').innerHTML = 'Good';
+            }, 
+            3000
+        );
+        </script>
+    </body>
+</html>
