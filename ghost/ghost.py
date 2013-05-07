@@ -431,6 +431,7 @@ class Ghost(object):
         """Evaluates script in page frame.
 
         :param script: The script to evaluate.
+        :returns: tuple (result, last_loaded_resources)
         """
         return (self.main_frame.evaluateJavaScript("%s" % script),
             self._release_last_resources())
