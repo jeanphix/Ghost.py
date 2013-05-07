@@ -822,6 +822,15 @@ class Ghost(object):
             'Can\'t find element matching "%s"' % selector)
         return True, self._release_last_resources()
 
+    def wait_while_selector(self, selector):
+        """Waits until the selector no longer matches an element on the frame.
+
+        :param selector: The selector to wait for.
+        """
+        self.wait_for(lambda: not self.exists(selector),
+            'Element matching "%s" is still available' % selector)
+        return True, self._release_last_resources()
+
     def wait_for_text(self, text):
         """Waits until given text appear on main frame.
 
