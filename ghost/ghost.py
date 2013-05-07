@@ -21,7 +21,7 @@ try:
                              QtCriticalMsg, QtDebugMsg, QtFatalMsg, QtWarningMsg,\
                              qInstallMsgHandler
     from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
-except ImportError:
+except ImportError as _ex1:
     try:
         from PySide import QtWebKit
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
@@ -33,8 +33,8 @@ except ImportError:
                                   QtWarningMsg, qInstallMsgHandler
         from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
-    except ImportError:
-        raise Exception("Ghost.py requires PySide or PyQt")
+    except ImportError as _ex2:
+        raise Exception("Ghost.py requires PySide (%s) or PyQt (%s)" % (str(_ex2), str(_ex1)))
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
