@@ -778,6 +778,16 @@ class Ghost(object):
             if self.wait_callback is not None:
                 self.wait_callback()
 
+    def wait(self, time_interval):
+        """Waits for an interval of time.
+
+        :param time_interval: Amount of time to wait, in seconds.
+        """
+        stop_at = time.time() + time_interval
+        while time.time() < stop_at:
+            Ghost._app.processEvents()
+            time.sleep(0.01)
+
     def wait_for_alert(self):
         """Waits for main frame alert().
         """
