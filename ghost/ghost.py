@@ -34,7 +34,7 @@ except ImportError as _ex1:
         from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
         PYSIDE = True
     except ImportError as _ex2:
-        raise Exception("Ghost.py requires PySide (%s) or PyQt (%s)" % (str(_ex2), str(_ex1)))
+        raise ImportError("Ghost.py requires PySide (%s) or PyQt (%s)" % (str(_ex2), str(_ex1)))
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -48,7 +48,7 @@ class Logger(logging.Logger):
     @staticmethod
     def log(message, sender="Ghost", level="info"):
         if not hasattr(logger, level):
-            raise Exception('invalid log level')
+            raise ValueError('invalid log level')
         getattr(logger, level)("%s: %s", sender, message)
 
 class QTMessageProxy(object):
@@ -98,7 +98,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._confirm_expected is None:
-            raise Exception('You must specified a value to confirm "%s"' %
+            raise ValueError('You must specified a value to confirm "%s"' %
                 message)
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
@@ -113,7 +113,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._prompt_expected is None:
-            raise Exception('You must specified a value for prompt "%s"' %
+            raise ValueError('You must specified a value for prompt "%s"' %
                 message)
         self.ghost.append_popup_message(message)
         result_value, callback = Ghost._prompt_expected
@@ -227,7 +227,7 @@ class Ghost(object):
                 os.environ['DISPLAY'] = ':99'
                 Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
             except OSError:
-                raise Exception('Xvfb is required to a ghost run oustside ' +\
+                raise RuntimeError('Xvfb is required to a ghost run oustside ' +\
                     'an X instance')
 
         self.display = display
@@ -377,7 +377,7 @@ class Ghost(object):
         :param selector: A CSS3 selector to targeted element.
         """
         if not self.exists(selector):
-            raise Exception("Can't find element to click")
+            raise RuntimeError("Can't find element to click")
         return self.evaluate("""
             var element = document.querySelector("%s");
             var evt = document.createEvent("MouseEvents");
@@ -471,7 +471,7 @@ class Ghost(object):
         :param values: A dict containing the values.
         """
         if not self.exists(selector):
-            raise Exception("Can't find form")
+            raise ValueError("Can't find form")
         resources = []
         for field in values:
             r, res = self.set_field_value("%s [name=%s]" % (selector, field),
@@ -561,7 +561,7 @@ class Ghost(object):
             method = getattr(QNetworkAccessManager,
                              "%sOperation" % method.capitalize())
         except AttributeError:
-            raise Exception("Invalid http method %s" % method)
+            raise ValueError("Invalid http method %s" % method)
         request = QNetworkRequest(QUrl(address))
         request.CacheLoadControl(0)
         for header in headers:
@@ -688,7 +688,7 @@ class Ghost(object):
         res, ressources = None, []
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
-            raise Exception('can\'t find element for %s"' % selector)
+            raise RuntimeError('can\'t find element for %s"' % selector)
         if element.tagName() == "SELECT":
             _set_select_value(element, value)
         elif element.tagName() == "TEXTAREA":
@@ -713,7 +713,7 @@ class Ghost(object):
                 res, resources = self.click(selector)
                 Ghost._upload_file = None
         else:
-            raise Exception('unsuported field tag')
+            raise ValueError('unsuported field tag')
         if blur:
             self.fire_on(selector, 'blur')
         return res, ressources
@@ -772,7 +772,7 @@ class Ghost(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + self.wait_timeout):
-                raise Exception(timeout_message)
+                raise RuntimeError(timeout_message)
             time.sleep(0.01)
             Ghost._app.processEvents()
             if self.wait_callback is not None:
