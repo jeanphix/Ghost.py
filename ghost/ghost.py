@@ -420,12 +420,12 @@ class Ghost(object):
         if not self.exists(selector):
             raise Error("Can't find element to click")
         return self.evaluate("""
-            var element = document.querySelector("%s");
+            var element = document.querySelector(%s);
             var evt = document.createEvent("MouseEvents");
             evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
                 false, false, false, false, 0, element);
             element.dispatchEvent(evt)
-        """ % selector)
+        """ % repr(selector))
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
@@ -515,7 +515,7 @@ class Ghost(object):
             raise Error("Can't find form")
         resources = []
         for field in values:
-            r, res = self.set_field_value("%s [name=%s]" % (selector, field),
+            r, res = self.set_field_value("%s [name=%s]" % (selector, repr(field)),
                 values[field])
             resources.extend(res)
         return True, resources
@@ -528,16 +528,16 @@ class Ghost(object):
         :param method: The name of the method to fire.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        return self.evaluate('document.querySelector("%s").%s();' % \
-            (selector, method))
+        return self.evaluate('document.querySelector(%s)[%s]();' % \
+            (repr(selector), repr(method)))
 
     def global_exists(self, global_name):
         """Checks if javascript global exists.
 
         :param global_name: The name of the global.
         """
-        return self.evaluate('!(typeof %s === "undefined");' %
-            global_name)[0]
+        return self.evaluate('!(typeof this[%s] === "undefined");' %
+            repr(global_name))[0]
 
     def hide(self):
         """Close the webview."""
@@ -725,8 +725,8 @@ class Ghost(object):
 
         def _set_select_value(el, value):
             el.setFocus()
-            self.evaluate('document.querySelector("%s").value = "%s";' %
-                (selector.replace('"', '\"'), value.replace('"', '\"')))
+            self.evaluate('document.querySelector(%s).value = %s;' %
+                (repr(selector), repr(value)))
 
         def _set_textarea_value(el, value):
             el.setFocus()
