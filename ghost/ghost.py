@@ -420,11 +420,13 @@ class Ghost(object):
         if not self.exists(selector):
             raise Error("Can't find element to click")
         return self.evaluate("""
-            var element = document.querySelector(%s);
-            var evt = document.createEvent("MouseEvents");
-            evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
-                false, false, false, false, 0, element);
-            element.dispatchEvent(evt)
+            (function () {
+                var element = document.querySelector(%s);
+                var evt = document.createEvent("MouseEvents");
+                evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
+                    false, false, false, false, 0, element);
+                return element.dispatchEvent(evt);
+            })();
         """ % repr(selector))
 
     class confirm:
