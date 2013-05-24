@@ -90,7 +90,7 @@ def mootools():
 
 
 @app.route('/settimeout')
-def mootools():
+def settimeout():
     return render_template('settimeout.html')
 
 
