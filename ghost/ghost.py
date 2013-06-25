@@ -307,14 +307,21 @@ class Ghost(object):
         self.exit()
 
     def capture(self, region=None, selector=None,
-            format=QImage.Format_ARGB32_Premultiplied):
+            format=QImage.Format_ARGB32_Premultiplied, zoom_factor=1.0):
         """Returns snapshot as QImage.
 
         :param region: An optional tuple containing region as pixel
             coodinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
+        :param zoom_factor: Scales the output image.
         """
+        
+        if self.webview is None:
+          self.webview = QtWebKit.QWebView()
+          self.webview.setPage(self.page)
+        self.webview.setZoomFactor(zoom_factor)    
+    
         if region is None and selector is not None:
             region = self.region_for_selector(selector)
         if region:
@@ -336,7 +343,7 @@ class Ghost(object):
         return image
 
     def capture_to(self, path, region=None, selector=None,
-        format=QImage.Format_ARGB32_Premultiplied):
+        format=QImage.Format_ARGB32_Premultiplied, zoom_factor=1.0):
         """Saves snapshot as image.
 
         :param path: The destination path.
@@ -344,9 +351,10 @@ class Ghost(object):
             coodinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
+        :param zoom_factor: Scales the output image.
         """
         self.capture(region=region, format=format,
-                     selector=selector).save(path)
+                     selector=selector, zoom_factor=zoom_factor).save(path)
 
     def print_to_pdf(self,
                      path,
