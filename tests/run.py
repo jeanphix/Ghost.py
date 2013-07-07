@@ -113,9 +113,6 @@ class GhostTest(GhostTestCase):
             'document.getElementById("radio-second").checked')
         self.assertEqual(value, False)
 
-    def test_fill_checkbox(self):
-        self.ghost.open("%sform" % base_url)
-
     def test_form_submission(self):
         self.ghost.open("%sform" % base_url)
         values = {
