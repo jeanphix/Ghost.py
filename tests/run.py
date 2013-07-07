@@ -153,7 +153,7 @@ class GhostTest(GhostTestCase):
         self.ghost.load_cookies('testcookie.txt')
         self.ghost.open("%sget/cookie" % base_url)
         self.assertTrue( 'OK' in self.ghost.content )
-        
+
     def test_wait_for_alert(self):
         self.ghost.open("%salert" % base_url)
         self.ghost.click('#alert-button')
