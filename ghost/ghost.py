@@ -10,29 +10,29 @@ from functools import wraps
 from cookielib import Cookie, LWPCookieJar
 PYSIDE = False
 try:
-    import sip
-    sip.setapi('QVariant', 2)
-    from PyQt4 import QtWebKit
-    from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                QNetworkCookieJar, QNetworkDiskCache,  \
-                                QNetworkProxy, QNetworkCookie
-    from PyQt4 import QtCore
-    from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                             QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                             QtWarningMsg, qInstallMsgHandler
-    from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
+    from PySide import QtWebKit
+    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
+                                 QNetworkCookieJar, QNetworkDiskCache, \
+                                 QNetworkProxy, QNetworkCookie
+    from PySide import QtCore
+    from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
+                              QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
+                              QtWarningMsg, qInstallMsgHandler
+    from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
+    PYSIDE = True
 except ImportError:
     try:
-        from PySide import QtWebKit
-        from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                     QNetworkCookieJar, QNetworkDiskCache, \
-                                     QNetworkProxy, QNetworkCookie
-        from PySide import QtCore
-        from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                                  QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                                  QtWarningMsg, qInstallMsgHandler
-        from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
-        PYSIDE = True
+        import sip
+        sip.setapi('QVariant', 2)
+        from PyQt4 import QtWebKit
+        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
+                                    QNetworkCookieJar, QNetworkDiskCache,  \
+                                    QNetworkProxy, QNetworkCookie
+        from PyQt4 import QtCore
+        from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
+                                 QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
+                                 QtWarningMsg, qInstallMsgHandler
+        from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
     except ImportError:
         raise Exception("Ghost.py requires PySide or PyQt")
 
