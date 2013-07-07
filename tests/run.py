@@ -305,7 +305,7 @@ class GhostTest(GhostTestCase):
             "document.querySelector('option[value=one]').selected;")
         self.assertFalse(value)
 
-    def test_set_simple_file_field(self):
+    def test_set_field_value_simple_file_field(self):
         self.ghost.open("%supload" % base_url)
         self.ghost.set_field_value('[name=simple-file]',
             os.path.join(os.path.dirname(__file__), 'static', 'blackhat.jpg'))
