@@ -34,7 +34,7 @@ except ImportError:
                                  QtWarningMsg, qInstallMsgHandler
         from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
     except ImportError:
-        raise Exception("Ghost.py requires PySide or PyQt")
+        raise Exception("Ghost.py requires PySide or PyQt4")
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
