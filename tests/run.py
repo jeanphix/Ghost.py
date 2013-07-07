@@ -96,13 +96,16 @@ class GhostTest(GhostTestCase):
             "radio": "first choice"
         }
         self.ghost.fill('#contact-form', values)
-        for field in ['text', 'email', 'textarea', 'selectbox']:
+        for field in ['text', 'email', 'textarea']:
             value, resssources = self.ghost\
                 .evaluate('document.getElementById("%s").value' % field)
             self.assertEqual(value, values[field])
         value, resources = self.ghost.evaluate(
             'document.getElementById("checkbox").checked')
         self.assertEqual(value, True)
+        value, resources = self.ghost.evaluate(
+            "document.querySelector('option[value=two]').selected;")
+        self.assertTrue(value)
         value, resources = self.ghost.evaluate(
             'document.getElementById("radio-first").checked')
         self.assertEqual(value, True)
