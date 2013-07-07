@@ -295,6 +295,16 @@ class GhostTest(GhostTestCase):
             .evaluate('document.getElementById("textarea").value')
         self.assertEqual(value, expected)
 
+    def test_set_field_value_select(self):
+        self.ghost.open("%sform" % base_url)
+        self.ghost.set_field_value('[name=selectbox]', 'two')
+        value, resources = self.ghost.evaluate(
+            "document.querySelector('option[value=two]').selected;")
+        self.assertTrue(value)
+        value, resources = self.ghost.evaluate(
+            "document.querySelector('option[value=one]').selected;")
+        self.assertFalse(value)
+
     def test_set_simple_file_field(self):
         self.ghost.open("%supload" % base_url)
         self.ghost.set_field_value('[name=simple-file]',
