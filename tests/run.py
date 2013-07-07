@@ -27,7 +27,7 @@ class GhostTest(GhostTestCase):
         self.assertEqual(page.url, base_url)
         self.assertTrue("Test page" in self.ghost.content)
 
-    def test_page_with_no_cache_headers(self):
+    def test_open_page_with_no_cache_headers(self):
         page, resources = self.ghost.open("%sno-cache" % base_url)
         self.assertIsNotNone(page.content)
         self.assertIn("cache for me", page.content)
