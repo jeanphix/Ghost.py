@@ -32,9 +32,11 @@ class GhostTest(GhostTestCase):
         self.assertIsNotNone(page.content)
         self.assertIn("cache for me", page.content)
 
-    def test_http_status(self):
+    def test_open_403(self):
         page, resources = self.ghost.open("%sprotected" % base_url)
         self.assertEqual(resources[0].http_status, 403)
+
+    def test_open_404(self):
         page, resources = self.ghost.open("%s404" % base_url)
         self.assertEqual(page.http_status, 404)
 
