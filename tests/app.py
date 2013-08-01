@@ -132,10 +132,29 @@ def url_hash_header():
     response.headers['Location'] = url_for('url_hash_header_redirect') + "#/"
     return response
 
+
 @app.route('/url-hash-header-redirect/')
 def url_hash_header_redirect():
     return "Welcome."
 
+
+@app.route('/many-assets')
+def many_assets():
+    return render_template(
+        'many_assets.html',
+        css=['css%s' % i for i in range(0, 5)],
+        js=['js%s' % i for i in range(0, 5)]
+    )
+
+
+@app.route('/js/<name>.js')
+def js_assets(name=None):
+    return 'var foo = "%s";' % name
+
+
+@app.route('/css/<name>.css')
+def css_assets(name=None):
+    return 'P.%s { color: red; };' % name
 
 
 if __name__ == '__main__':

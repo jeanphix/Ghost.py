@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        {% for f in js %}
+        <script src="/js/{{ f }}.js" type="text/javascript"></script>
+        {% endfor %}
+        {% for f in css %}
+        <link rel="stylesheet" href="/css/{{ f }}.css" type="text/css" media="screen" charset="utf-8"></link>
+        {% endfor %}
+    </head>
+    <body>
+        <h1>Many assets</h1>
+    </body>
+</html>
