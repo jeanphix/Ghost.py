@@ -579,7 +579,12 @@ class Ghost(object):
         blocks)
         :return: Page resource, All loaded resources.
         """
-        body = body or QByteArray()
+        self.open_nowait(address, method, headers, auth, body, default_popup_response)
+        return self.wait_for_page_loaded()
+
+    def open_nowait(self, address, method='get', headers={}, auth=None, body=None,
+             default_popup_response=None):
+        """Like Ghost.open(), but does not wait for the page to be loaded."""
         try:
             method = getattr(QNetworkAccessManager,
                              "%sOperation" % method.capitalize())
@@ -598,8 +603,6 @@ class Ghost(object):
         if default_popup_response is not None:
             Ghost._prompt_expected = (default_popup_response, None)
             Ghost._confirm_expected = (default_popup_response, None)
-
-        return self.wait_for_page_loaded()
 
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
