@@ -458,14 +458,15 @@ class Ghost(object):
         return (self.main_frame.evaluateJavaScript("%s" % script),
             self._release_last_resources())
 
-    def evaluate_js_file(self, path, encoding='utf-8'):
+    def evaluate_js_file(self, path, encoding='utf-8', **kwargs):
         """Evaluates javascript file at given path in current frame.
         Raises native IOException in case of invalid file.
 
         :param path: The path of the file.
         :param encoding: The file's encoding.
         """
-        self.evaluate(codecs.open(path, encoding=encoding).read())
+        with codecs.open(path, encoding=encoding) as f:
+            return self.evaluate(f.read(), **kwargs)
 
     def exists(self, selector):
         """Checks if element exists for given selector.
