@@ -321,13 +321,13 @@ class Ghost(object):
     def __del__(self):
         self.exit()
 
-    def ascendToRootFrame(self):
+    def ascend_to_root_frame(self):
         """ Set main frame as current main frame's parent.
         """
         # we can't ascend directly to parent frame because it might have been deleted
         self.main_frame = self.page.mainFrame()
 
-    def descendFrame(self, child_name):
+    def descend_frame(self, child_name):
         """ Set main frame as one of current main frame's children.
 
         :param child_name: The name of the child to descend to.
