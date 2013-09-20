@@ -321,6 +321,24 @@ class Ghost(object):
     def __del__(self):
         self.exit()
 
+    def ascendToRootFrame(self):
+        """ Set main frame as current main frame's parent.
+        """
+        # we can't ascend directly to parent frame because it might have been deleted
+        self.main_frame = self.page.mainFrame()
+
+    def descendFrame(self, child_name):
+        """ Set main frame as one of current main frame's children.
+
+        :param child_name: The name of the child to descend to.
+        """
+        for frame in self.main_frame.childFrames():
+            if frame.frameName() == child_name:
+                self.main_frame = frame
+                return
+        # frame not found so we throw an exception
+        raise LookupError("Child frame '%s' not found." % child_name)
+        
     def capture(self, region=None, selector=None,
             format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
