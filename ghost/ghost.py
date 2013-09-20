@@ -726,7 +726,7 @@ class Ghost(object):
             if element.attribute('type').lower() in ["color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
-                "url", "week"]:
+                "url", "week", ""]:
                 _set_text_value(element, value)
             elif element.attribute('type') == "checkbox":
                 els = self.main_frame.findAllElements(selector)
