@@ -723,7 +723,7 @@ class Ghost(object):
         elif element.tagName() == "TEXTAREA":
             _set_textarea_value(element, value)
         elif element.tagName() == "INPUT":
-            if element.attribute('type').lower() in ["color", "date", "datetime",
+            if str(element.attribute('type')).lower() in ["color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week"]:
