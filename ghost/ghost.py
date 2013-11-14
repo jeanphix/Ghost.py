@@ -587,7 +587,7 @@ class Ghost(object):
             raise ValueError('unsupported cookie_storage type.')
 
     def open(self, address, method='get', headers={}, auth=None, body=None,
-             default_popup_response=None):
+             default_popup_response=None, wait=True):
         """Opens a web page.
 
         :param address: The resource URL.
@@ -598,7 +598,13 @@ class Ghost(object):
         :param default_popup_response: the default response for any confirm/
         alert/prompt popup from the Javascript (replaces the need for the with
         blocks)
-        :return: Page resource, All loaded resources.
+        :param wait: If set to True (which is the default), this
+        method call waits for the page load to complete before
+        returning.  Otherwise, it just starts the page load task and
+        it is the caller's responsibilty to wait for the load to
+        finish by other means (e.g. by calling wait_for_page_loaded()).
+        :return: Page resource, and all loaded resources, unless wait
+        is False, in which case it returns None.
         """
         body = body or QByteArray()
         try:
@@ -620,7 +626,8 @@ class Ghost(object):
             Ghost._prompt_expected = (default_popup_response, None)
             Ghost._confirm_expected = (default_popup_response, None)
 
-        return self.wait_for_page_loaded()
+        if wait:
+            return self.wait_for_page_loaded()
 
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
