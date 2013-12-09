@@ -190,7 +190,11 @@ class HttpResource(object):
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
         self.headers = {}
         for header in reply.rawHeaderList():
-            self.headers[unicode(header)] = unicode(reply.rawHeader(header))
+	    try:
+            	self.headers[unicode(header)] = unicode(reply.rawHeader(header))
+	    except UnicodeDecodeError:
+	    	# it will lose the header value, but at least not crash the whole process
+	    	logger.error("Invalid characters in header {0}={1}".format(header,reply.rawHeader(header)))
         self._reply = reply
 
 
