@@ -176,9 +176,11 @@ class HttpResource(object):
         if self.content is None:
             # Tries to get back content from cache
             if PYSIDE:
-                buffer = cache.data(reply.url().toString())
+	    	if cache:
+                	buffer = cache.data(reply.url().toString())
             else:
-                buffer = cache.data(reply.url())
+	    	if cache:
+                	buffer = cache.data(reply.url())
             if buffer is not None:
                 content = buffer.readAll()
         try:
@@ -288,9 +290,12 @@ class Ghost(object):
         self.manager.finished.connect(self._request_ended)
         self.manager.sslErrors.connect(self._on_manager_ssl_errors)
         # Cache
-        self.cache = QNetworkDiskCache()
-        self.cache.setCacheDirectory(cache_dir)
-        self.manager.setCache(self.cache)
+	if cache_dir:
+        	self.cache = QNetworkDiskCache()
+        	self.cache.setCacheDirectory(cache_dir)
+        	self.manager.setCache(self.cache)
+	else:
+		self.cache = None
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
@@ -919,7 +924,8 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        self.cache.clear()
+	if self.cache:
+        	self.cache.clear()
 
     def _page_load_started(self):
         """Called back when page load started.
