@@ -173,14 +173,12 @@ class HttpResource(object):
     def __init__(self, reply, cache, content=None):
         self.url = reply.url().toString()
         self.content = content
-        if self.content is None:
+        if cache and self.content is None:
             # Tries to get back content from cache
             if PYSIDE:
-	    	if cache:
-                	buffer = cache.data(reply.url().toString())
+                buffer = cache.data(reply.url().toString())
             else:
-	    	if cache:
-                	buffer = cache.data(reply.url())
+                buffer = cache.data(reply.url())
             if buffer is not None:
                 content = buffer.readAll()
         try:
