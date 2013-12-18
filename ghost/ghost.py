@@ -175,6 +175,7 @@ class HttpResource(object):
         self.content = content
         if cache and self.content is None:
             # Tries to get back content from cache
+            buffer = None
             if PYSIDE:
                 buffer = cache.data(reply.url().toString())
             else:
