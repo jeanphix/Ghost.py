@@ -13,7 +13,7 @@ try:
     from PySide import QtWebKit
     from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
                                  QNetworkCookieJar, QNetworkDiskCache, \
-                                 QNetworkProxy, QNetworkCookie
+                                 QNetworkProxy, QNetworkCookie, QSslConfiguration, QSsl
     from PySide import QtCore
     from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
                               QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
@@ -27,7 +27,7 @@ except ImportError:
         from PyQt4 import QtWebKit
         from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
                                     QNetworkCookieJar, QNetworkDiskCache,  \
-                                    QNetworkProxy, QNetworkCookie
+                                    QNetworkProxy, QNetworkCookie, QSslConfiguration, QSsl
         from PyQt4 import QtCore
         from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
                                  QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
@@ -228,7 +228,7 @@ class Ghost(object):
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
             plugins_enabled=False, java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins', ],
-            download_images=True, qt_debug=False,
+            download_images=True, qt_debug=False, no_sslv3 = True,
             show_scroolbars=True):
         self.http_resources = []
 
@@ -255,6 +255,15 @@ class Ghost(object):
             if plugin_path:
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
+
+
+
+        if no_sslv3:
+            # enable tls1 only
+            old = QSslConfiguration.defaultConfiguration()
+            old.setProtocol(QSsl.TlsV1)
+            QSslConfiguration.setDefaultConfiguration(old)
+
 
         self.popup_messages = []
         self.page = GhostWebPage(Ghost._app, self)
