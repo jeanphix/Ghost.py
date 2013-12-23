@@ -357,7 +357,7 @@ class Ghost(object):
                 return
         # frame not found so we throw an exception
         raise LookupError("Child frame '%s' not found." % child_name)
-        
+
     def capture(self, region=None, selector=None,
             format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
