@@ -227,14 +227,22 @@ class Ghost(object):
     _upload_file = None
     _app = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), ignore_ssl_errors=True,
+    def __init__(self,
+            user_agent=default_user_agent,
+            wait_timeout=8,
+            wait_callback=None,
+            log_level=logging.WARNING,
+            display=False,
+            viewport_size=(800, 600),
+            ignore_ssl_errors=True,
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
-            plugins_enabled=False, java_enabled=False,
+            plugins_enabled=False,
+            java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins', ],
-            download_images=True, qt_debug=False,
+            download_images=True,
+            qt_debug=False,
             show_scroolbars=True):
+
         self.http_resources = []
 
         self.user_agent = user_agent
