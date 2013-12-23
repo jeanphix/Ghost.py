@@ -311,21 +311,23 @@ class Ghost(object):
 
         logger.setLevel(log_level)
 
+        class GhostQWebView(QtWebKit.QWebView):
+            def sizeHint(self):
+                return QSize(*viewport_size)
+
+        self.webview = GhostQWebView()
+
+        if plugins_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.PluginsEnabled, True)
+        if java_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.JavaEnabled, True)
+
+        self.webview.setPage(self.page)
+
         if self.display:
-            class MyQWebView(QtWebKit.QWebView):
-                def sizeHint(self):
-                    return QSize(*viewport_size)
-            self.webview = MyQWebView()
-            if plugins_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.PluginsEnabled, True)
-            if java_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.JavaEnabled, True)
-            self.webview.setPage(self.page)
             self.webview.show()
-        else:
-            self.webview = None
 
     def __del__(self):
         self.exit()
@@ -828,8 +830,6 @@ class Ghost(object):
     def show(self):
         """Show current page inside a QWebView.
         """
-        self.webview = QtWebKit.QWebView()
-        self.webview.setPage(self.page)
         self.webview.show()
 
     def sleep(self, value):
