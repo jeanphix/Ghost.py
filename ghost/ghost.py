@@ -798,11 +798,14 @@ class Ghost(object):
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Error('can\'t find element for %s"' % selector)
-        if element.tagName() == "SELECT":
+
+        tag_name = element.tagName().lower()
+
+        if tag_name == "select":
             _set_select_value(element, value)
-        elif element.tagName() == "TEXTAREA":
+        elif tag_name == "textarea":
             _set_textarea_value(element, value)
-        elif element.tagName() == "INPUT":
+        elif tag_name == "input":
             if str(element.attribute('type')).lower() in [
                 "color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
