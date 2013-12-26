@@ -225,9 +225,10 @@ class GhostTest(GhostTestCase):
     def test_region_for_selector(self):
         self.ghost.open(base_url)
         x1, y1, x2, y2 = self.ghost.region_for_selector('h1')
-        self.assertEqual(x1, 8)
-        self.assertEqual(y1, 21)
-        self.assertEqual(x2, 791)
+        self.assertEqual(x1, 0)
+        self.assertEqual(y1, 0)
+        self.assertEqual(x2, 599)
+        self.assertEqual(y2, 299)
 
     def test_capture_selector_to(self):
         self.ghost.open(base_url)
