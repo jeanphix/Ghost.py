@@ -331,12 +331,12 @@ class Ghost(object):
         self.manager.finished.connect(self._request_ended)
         self.manager.sslErrors.connect(self._on_manager_ssl_errors)
         # Cache
-	if cache_dir:
-        	self.cache = QNetworkDiskCache()
-        	self.cache.setCacheDirectory(cache_dir)
-        	self.manager.setCache(self.cache)
-	else:
-		self.cache = None
+        if cache_dir:
+            self.cache = QNetworkDiskCache()
+            self.cache.setCacheDirectory(cache_dir)
+            self.manager.setCache(self.cache)
+        else:
+            self.cache = None
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
@@ -376,7 +376,8 @@ class Ghost(object):
     def ascend_to_root_frame(self):
         """ Set main frame as current main frame's parent.
         """
-        # we can't ascend directly to parent frame because it might have been deleted
+        # we can't ascend directly to parent frame because it might have been
+        # deleted
         self.main_frame = self.page.mainFrame()
 
     def descend_frame(self, child_name):
@@ -569,8 +570,8 @@ class Ghost(object):
             raise Error("Can't find form")
         resources = []
         for field in values:
-            r, res = self.set_field_value("%s [name=%s]" % (selector, repr(field)),
-                values[field])
+            r, res = self.set_field_value(
+                "%s [name=%s]" % (selector, repr(field)), values[field])
             resources.extend(res)
         return True, resources
 
@@ -802,7 +803,8 @@ class Ghost(object):
         elif element.tagName() == "TEXTAREA":
             _set_textarea_value(element, value)
         elif element.tagName() == "INPUT":
-            if str(element.attribute('type')).lower() in ["color", "date", "datetime",
+            if str(element.attribute('type')).lower() in [
+                "color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week", ""]:
@@ -965,8 +967,8 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-	if self.cache:
-        	self.cache.clear()
+        if self.cache:
+            self.cache.clear()
 
     def _page_load_started(self):
         """Called back when page load started.
@@ -1009,7 +1011,8 @@ class Ghost(object):
                                                     content=content))
 
     def _unsupported_content(self, reply):
-        reply.readyRead.connect(lambda reply=reply: self._reply_download_content(reply))
+        reply.readyRead.connect(
+            lambda reply=reply: self._reply_download_content(reply))
 
     def _reply_download_content(self, reply):
         """Adds an HttpResource object to http_resources with unsupported
