@@ -8,33 +8,63 @@ import subprocess
 import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
-PYSIDE = False
-try:
-    from PySide import QtWebKit
-    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                 QNetworkCookieJar, QNetworkDiskCache, \
-                                 QNetworkProxy, QNetworkCookie
-    from PySide import QtCore
-    from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                              QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                              QtWarningMsg, qInstallMsgHandler
-    from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
-    PYSIDE = True
-except ImportError:
+
+
+bindings = ["PySide", "PyQt4"]
+
+for name in bindings:
     try:
-        import sip
-        sip.setapi('QVariant', 2)
-        from PyQt4 import QtWebKit
-        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                    QNetworkCookieJar, QNetworkDiskCache,  \
-                                    QNetworkProxy, QNetworkCookie
-        from PyQt4 import QtCore
-        from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                                 QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                                 QtWarningMsg, qInstallMsgHandler
-        from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
+        binding = __import__(name)
+        break
     except ImportError:
-        raise Exception("Ghost.py requires PySide or PyQt4")
+        continue
+
+
+if binding is None:
+    raise Exception("Ghost.py requires PySide or PyQt4")
+
+
+PYSIDE = binding.__name__ == 'PySide'
+
+if not PYSIDE:
+    import sip
+    sip.setapi('QVariant', 2)
+
+
+def _import(name):
+    name = "%s.%s" % (binding.__name__, name)
+    module = __import__(name)
+    for n in name.split(".")[1:]:
+        module = getattr(module, n)
+    return module
+
+
+QtCore = _import("QtCore")
+QSize = QtCore.QSize
+QByteArray = QtCore.QByteArray
+QUrl = QtCore.QUrl
+QDateTime = QtCore.QDateTime
+QtCriticalMsg = QtCore.QtCriticalMsg
+QtDebugMsg = QtCore.QtDebugMsg
+QtFatalMsg = QtCore.QtFatalMsg
+QtWarningMsg = QtCore.QtWarningMsg
+qInstallMsgHandler = QtCore.qInstallMsgHandler
+
+QtGui = _import("QtGui")
+QApplication = QtGui.QApplication
+QImage = QtGui.QImage
+QPainter = QtGui.QPainter
+QPrinter = QtGui.QPrinter
+
+QtNetwork = _import("QtNetwork")
+QNetworkRequest = QtNetwork.QNetworkRequest
+QNetworkAccessManager = QtNetwork.QNetworkAccessManager
+QNetworkCookieJar = QtNetwork.QNetworkCookieJar
+QNetworkDiskCache = QtNetwork.QNetworkDiskCache
+QNetworkProxy = QtNetwork.QNetworkProxy
+QNetworkCookie = QtNetwork.QNetworkCookie
+
+QtWebKit = _import('QtWebKit')
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
