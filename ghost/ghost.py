@@ -806,22 +806,23 @@ class Ghost(object):
         elif tag_name == "textarea":
             _set_textarea_value(element, value)
         elif tag_name == "input":
-            if str(element.attribute('type')).lower() in [
+            type_ = str(element.attribute('type')).lower()
+            if type_ in [
                 "color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week", ""]:
                 _set_text_value(element, value)
-            elif element.attribute('type') == "checkbox":
+            elif type_ == "checkbox":
                 els = self.main_frame.findAllElements(selector)
                 if els.count() > 1:
                     _set_checkboxes_value(els, value)
                 else:
                     _set_checkbox_value(element, value)
-            elif element.attribute('type') == "radio":
+            elif type_ == "radio":
                 _set_radio_value(self.main_frame.findAllElements(selector),
                     value)
-            elif element.attribute('type') == "file":
+            elif type_ == "file":
                 Ghost._upload_file = value
                 res, resources = self.click(selector)
                 Ghost._upload_file = None
