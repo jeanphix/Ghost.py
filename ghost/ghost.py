@@ -281,7 +281,7 @@ class Ghost(object):
         self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
 
-        if not sys.platform.startswith('win') and not 'DISPLAY' in os.environ\
+        if sys.platform.startswith('linux') and not 'DISPLAY' in os.environ\
                 and not hasattr(Ghost, 'xvfb'):
             try:
                 os.environ['DISPLAY'] = ':99'
