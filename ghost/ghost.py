@@ -8,33 +8,63 @@ import subprocess
 import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
-PYSIDE = False
-try:
-    from PySide import QtWebKit
-    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                 QNetworkCookieJar, QNetworkDiskCache, \
-                                 QNetworkProxy, QNetworkCookie
-    from PySide import QtCore
-    from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                              QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                              QtWarningMsg, qInstallMsgHandler
-    from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
-    PYSIDE = True
-except ImportError:
+
+
+bindings = ["PySide", "PyQt4"]
+
+for name in bindings:
     try:
-        import sip
-        sip.setapi('QVariant', 2)
-        from PyQt4 import QtWebKit
-        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                    QNetworkCookieJar, QNetworkDiskCache,  \
-                                    QNetworkProxy, QNetworkCookie
-        from PyQt4 import QtCore
-        from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                                 QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                                 QtWarningMsg, qInstallMsgHandler
-        from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
+        binding = __import__(name)
+        break
     except ImportError:
-        raise Exception("Ghost.py requires PySide or PyQt4")
+        continue
+
+
+if binding is None:
+    raise Exception("Ghost.py requires PySide or PyQt4")
+
+
+PYSIDE = binding.__name__ == 'PySide'
+
+if not PYSIDE:
+    import sip
+    sip.setapi('QVariant', 2)
+
+
+def _import(name):
+    name = "%s.%s" % (binding.__name__, name)
+    module = __import__(name)
+    for n in name.split(".")[1:]:
+        module = getattr(module, n)
+    return module
+
+
+QtCore = _import("QtCore")
+QSize = QtCore.QSize
+QByteArray = QtCore.QByteArray
+QUrl = QtCore.QUrl
+QDateTime = QtCore.QDateTime
+QtCriticalMsg = QtCore.QtCriticalMsg
+QtDebugMsg = QtCore.QtDebugMsg
+QtFatalMsg = QtCore.QtFatalMsg
+QtWarningMsg = QtCore.QtWarningMsg
+qInstallMsgHandler = QtCore.qInstallMsgHandler
+
+QtGui = _import("QtGui")
+QApplication = QtGui.QApplication
+QImage = QtGui.QImage
+QPainter = QtGui.QPainter
+QPrinter = QtGui.QPrinter
+
+QtNetwork = _import("QtNetwork")
+QNetworkRequest = QtNetwork.QNetworkRequest
+QNetworkAccessManager = QtNetwork.QNetworkAccessManager
+QNetworkCookieJar = QtNetwork.QNetworkCookieJar
+QNetworkDiskCache = QtNetwork.QNetworkDiskCache
+QNetworkProxy = QtNetwork.QNetworkProxy
+QNetworkCookie = QtNetwork.QNetworkCookie
+
+QtWebKit = _import('QtWebKit')
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -190,11 +220,16 @@ class HttpResource(object):
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
         self.headers = {}
         for header in reply.rawHeaderList():
-	    try:
-            	self.headers[unicode(header)] = unicode(reply.rawHeader(header))
-	    except UnicodeDecodeError:
-	    	# it will lose the header value, but at least not crash the whole process
-	    	logger.error("Invalid characters in header {0}={1}".format(header,reply.rawHeader(header)))
+            try:
+                self.headers[unicode(header)] = unicode(
+                    reply.rawHeader(header))
+            except UnicodeDecodeError:
+                # it will lose the header value,
+                # but at least not crash the whole process
+                logger.error(
+                    "Invalid characters in header {0}={1}"
+                    % (header, reply.rawHeader(header))
+                )
         self._reply = reply
 
 
@@ -222,14 +257,22 @@ class Ghost(object):
     _upload_file = None
     _app = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), ignore_ssl_errors=True,
+    def __init__(self,
+            user_agent=default_user_agent,
+            wait_timeout=8,
+            wait_callback=None,
+            log_level=logging.WARNING,
+            display=False,
+            viewport_size=(800, 600),
+            ignore_ssl_errors=True,
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
-            plugins_enabled=False, java_enabled=False,
+            plugins_enabled=False,
+            java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins', ],
-            download_images=True, qt_debug=False,
+            download_images=True,
+            qt_debug=False,
             show_scroolbars=True):
+
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -309,21 +352,23 @@ class Ghost(object):
 
         logger.setLevel(log_level)
 
+        class GhostQWebView(QtWebKit.QWebView):
+            def sizeHint(self):
+                return QSize(*viewport_size)
+
+        self.webview = GhostQWebView()
+
+        if plugins_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.PluginsEnabled, True)
+        if java_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.JavaEnabled, True)
+
+        self.webview.setPage(self.page)
+
         if self.display:
-            class MyQWebView(QtWebKit.QWebView):
-                def sizeHint(self):
-                    return QSize(*viewport_size)
-            self.webview = MyQWebView()
-            if plugins_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.PluginsEnabled, True)
-            if java_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.JavaEnabled, True)
-            self.webview.setPage(self.page)
             self.webview.show()
-        else:
-            self.webview = None
 
     def __del__(self):
         self.exit()
@@ -345,7 +390,7 @@ class Ghost(object):
                 return
         # frame not found so we throw an exception
         raise LookupError("Child frame '%s' not found." % child_name)
-        
+
     def capture(self, region=None, selector=None,
             format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
@@ -826,8 +871,6 @@ class Ghost(object):
     def show(self):
         """Show current page inside a QWebView.
         """
-        self.webview = QtWebKit.QWebView()
-        self.webview.setPage(self.page)
         self.webview.show()
 
     def sleep(self, value):
