@@ -799,7 +799,7 @@ class Ghost(object):
         if element.isNull():
             raise Error('can\'t find element for %s"' % selector)
 
-        tag_name = element.tagName().lower()
+        tag_name = str(element.tagName()).lower()
 
         if tag_name == "select":
             _set_select_value(element, value)
