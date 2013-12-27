@@ -185,14 +185,13 @@ def can_load_page(func):
     """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        expect_loading = False
-        if 'expect_loading' in kwargs:
-            expect_loading = kwargs['expect_loading']
-            del kwargs['expect_loading']
+        expect_loading = kwargs.pop('expect_loading', False)
+
         if expect_loading:
             self.loaded = False
             func(self, *args, **kwargs)
-            return self.wait_for_page_loaded()
+            return self.wait_for_page_loaded(
+                timeout=kwargs.pop('timeout', None))
         return func(self, *args, **kwargs)
     return wrapper
 
