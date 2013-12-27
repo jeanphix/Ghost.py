@@ -888,35 +888,41 @@ class Ghost(object):
             time.sleep(0.01)
             Ghost._app.processEvents()
 
-    def wait_for(self, condition, timeout_message):
+    def wait_for(self, condition, timeout_message, timeout=None):
         """Waits until condition is True.
 
         :param condition: A callable that returns the condition.
         :param timeout_message: The exception message on timeout.
+        :param timeout: An optional timeout.
         """
+        timeout = self.wait_timeout if timeout is None else timeout
         started_at = time.time()
         while not condition():
-            if time.time() > (started_at + self.wait_timeout):
+            if time.time() > (started_at + timeout):
                 raise TimeoutError(timeout_message)
             time.sleep(0.01)
             Ghost._app.processEvents()
             if self.wait_callback is not None:
                 self.wait_callback()
 
-    def wait_for_alert(self):
+    def wait_for_alert(self, timeout=None):
         """Waits for main frame alert().
+
+        :param timeout: An optional timeout.
         """
         self.wait_for(lambda: Ghost._alert is not None,
-                      'User has not been alerted.')
+                      'User has not been alerted.', timeout)
         msg = Ghost._alert
         Ghost._alert = None
         return msg, self._release_last_resources()
 
-    def wait_for_page_loaded(self):
+    def wait_for_page_loaded(self, timeout=None):
         """Waits until page is loaded, assumed that a page as been requested.
+
+        :param timeout: An optional timeout.
         """
         self.wait_for(lambda: self.loaded,
-                      'Unable to load requested page')
+                      'Unable to load requested page', timeout)
         resources = self._release_last_resources()
         page = None
 
@@ -928,31 +934,34 @@ class Ghost(object):
                 page = resource
         return page, resources
 
-    def wait_for_selector(self, selector):
+    def wait_for_selector(self, selector, timeout=None):
         """Waits until selector match an element on the frame.
 
         :param selector: The selector to wait for.
+        :param timeout: An optional timeout.
         """
         self.wait_for(lambda: self.exists(selector),
-            'Can\'t find element matching "%s"' % selector)
+            'Can\'t find element matching "%s"' % selector, timeout)
         return True, self._release_last_resources()
 
-    def wait_while_selector(self, selector):
+    def wait_while_selector(self, selector, timeout=None):
         """Waits until the selector no longer matches an element on the frame.
 
         :param selector: The selector to wait for.
+        :param timeout: An optional timeout.
         """
         self.wait_for(lambda: not self.exists(selector),
-            'Element matching "%s" is still available' % selector)
+            'Element matching "%s" is still available' % selector, timeout)
         return True, self._release_last_resources()
 
-    def wait_for_text(self, text):
+    def wait_for_text(self, text, timeout=None):
         """Waits until given text appear on main frame.
 
         :param text: The text to wait for.
+        :param timeout: An optional timeout.
         """
         self.wait_for(lambda: text in self.content,
-            'Can\'t find "%s" in current frame' % text)
+            'Can\'t find "%s" in current frame' % text, timeout)
         return True, self._release_last_resources()
 
     def _authenticate(self, mix, authenticator):
