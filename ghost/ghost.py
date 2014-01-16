@@ -609,7 +609,6 @@ class Ghost(object):
         :param keep_old: Don't reset, keep cookies not overridden.
         """
         def toQtCookieJar(PyCookieJar, QtCookieJar):
-            #allCookies = QtCookieJar.cookies if keep_old else []
             allCookies = QtCookieJar.allCookies() if keep_old else []
             for pc in PyCookieJar:
                 qc = toQtCookie(pc)
