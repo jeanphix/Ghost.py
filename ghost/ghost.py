@@ -71,8 +71,6 @@ default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
 
 logger = logging.getLogger('ghost')
-logger.addHandler(logging.StreamHandler(sys.stderr))
-
 
 class Error(Exception):
     """Base class for Ghost exceptions."""
@@ -195,14 +193,12 @@ def can_load_page(func):
         return func(self, *args, **kwargs)
     return wrapper
 
-
 class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, reply, cache, content=None):
         self.url = reply.url().toString()
-        self.content = content
-        if cache and self.content is None:
+        if cache and content is None:
             # Tries to get back content from cache
             if PYSIDE:
                 buffer = cache.data(reply.url().toString())
@@ -210,10 +206,7 @@ class HttpResource(object):
                 buffer = cache.data(reply.url())
             if buffer is not None:
                 content = buffer.readAll()
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
+        self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
@@ -230,6 +223,15 @@ class HttpResource(object):
                     % (header, reply.rawHeader(header))
                 )
         self._reply = reply
+        # decode content if text
+        if u'Content-Type' in self.headers:
+            contentType = self.headers[u'Content-Type']
+            Logger.log('Content-Type: %s' % contentType)
+            if contentType.startswith(u'text/'):
+                try:
+                    self.content = unicode(content)
+                except UnicodeDecodeError:
+                    self.content = content
 
 
 class Ghost(object):
@@ -240,6 +242,7 @@ class Ghost(object):
     :param wait_callback: An optional callable that is periodically
         executed until Ghost stops waiting.
     :param log_level: The optional logging level.
+    :param log_handler: Option logging.LogHandler. Default is stderr.
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
@@ -261,6 +264,7 @@ class Ghost(object):
             wait_timeout=8,
             wait_callback=None,
             log_level=logging.WARNING,
+            log_handler=None,
             display=False,
             viewport_size=(800, 600),
             ignore_ssl_errors=True,
@@ -350,6 +354,9 @@ class Ghost(object):
         self.main_frame = self.page.mainFrame()
 
         logger.setLevel(log_level)
+        if not log_handler:
+            log_handler = logging.StreamHandler(sys.stderr)
+        logger.addHandler(log_handler)
 
         class GhostQWebView(QtWebKit.QWebView):
             def sizeHint(self):
@@ -377,6 +384,7 @@ class Ghost(object):
         """
         # we can't ascend directly to parent frame because it might have been
         # deleted
+        Logger.log("ascending to root frame")
         self.main_frame = self.page.mainFrame()
 
     def descend_frame(self, child_name):
@@ -386,6 +394,7 @@ class Ghost(object):
         """
         for frame in self.main_frame.childFrames():
             if frame.frameName() == child_name:
+                Logger.log("descending to frame %s" % child_name)
                 self.main_frame = frame
                 return
         # frame not found so we throw an exception
@@ -469,6 +478,7 @@ class Ghost(object):
 
         :param selector: A CSS3 selector to targeted element.
         """
+        Logger.log("clicking %s" % selector)
         if not self.exists(selector):
             raise Error("Can't find element to click")
         return self.evaluate("""
@@ -480,6 +490,28 @@ class Ghost(object):
                 return element.dispatchEvent(evt);
             })();
         """ % repr(selector))
+
+    # click label
+    @can_load_page
+    def clickLabel(self, tag, label):
+        # Qt doesn't support XPath selection "//%s[text()='%s')" % (aTag, aLabel))
+        # CSS doesn't support selecting by text content
+        # so... select all tags, and match for aLabel
+        elems = self.main_frame.findAllElements(tag)
+        found = None
+        for elem in elems.toList():
+            if elem.toPlainText().indexOf(label) >= 0:
+                found = elem
+                break
+        if found:
+            self.clickObj(found)
+        else:
+            raise Error("Cannot find label to click ( %s : %s )" % (tag, label))
+
+    @can_load_page
+    def clickObj(self, obj):
+        Logger.log("clicking: %s" % obj.toOuterXml())
+        obj.evaluateJavaScript("var clickEv = document.createEvent('MouseEvents'); clickEv.initEvent('click', true, true); this.dispatchEvent(clickEv);")
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
@@ -899,6 +931,7 @@ class Ghost(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + timeout):
+                Logger.log("timeout")
                 raise TimeoutError(timeout_message)
             time.sleep(0.01)
             Ghost._app.processEvents()
@@ -979,6 +1012,7 @@ class Ghost(object):
     def _page_loaded(self):
         """Called back when page is loaded.
         """
+        Logger.log("page loaded")
         self.loaded = True
         if self.cache:
             self.cache.clear()
@@ -1033,7 +1067,9 @@ class Ghost(object):
 
         :param reply: The QNetworkReply object.
         """
-        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
+        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute) == 200 and \
+           reply.isFinished() :
+            Logger.log("unsupported content resource ready")
             self.http_resources.append(HttpResource(reply, self.cache,
                                                     reply.readAll()))
 
