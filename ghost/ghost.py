@@ -961,7 +961,7 @@ class Ghost(object):
         :param mix: The QNetworkReply or QNetworkProxy object.
         :param authenticator: The QAuthenticator object.
         """
-        if self._auth_attempt == 0:
+        if self._auth is not None and self._auth_attempt == 0:
             username, password = self._auth
             authenticator.setUser(username)
             authenticator.setPassword(password)
