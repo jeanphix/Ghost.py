@@ -881,10 +881,10 @@ class Ghost(object):
 
     def sleep(self, value):
         started_at = time.time()
-        while True:
-            if time.time() > (started_at + value):
-                break
 
+        time.sleep(0)
+        Ghost._app.processEvents()
+        while time.time() <= (started_at + value):
             time.sleep(0.01)
             Ghost._app.processEvents()
 
@@ -961,7 +961,7 @@ class Ghost(object):
         :param mix: The QNetworkReply or QNetworkProxy object.
         :param authenticator: The QAuthenticator object.
         """
-        if self._auth_attempt == 0:
+        if self._auth is not None and self._auth_attempt == 0:
             username, password = self._auth
             authenticator.setUser(username)
             authenticator.setPassword(password)
