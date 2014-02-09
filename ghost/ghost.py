@@ -478,10 +478,10 @@ class Ghost(object):
                 var element = document.querySelector(%s);
                 var evt = document.createEvent("MouseEvents");
                 evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
-                    false, false, false, false, btn, element);
+                    false, false, false, false, %s, element);
                 return element.dispatchEvent(evt);
             })();
-        """ % repr(selector))
+        """ % (repr(selector), str(btn)))
 
     class confirm:
         """Statement that tells Ghost how to deal with javascript confirm().
