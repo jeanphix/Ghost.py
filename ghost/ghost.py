@@ -12,6 +12,7 @@ from cookielib import Cookie, LWPCookieJar
 
 bindings = ["PySide", "PyQt4"]
 
+binding = None
 for name in bindings:
     try:
         binding = __import__(name)
@@ -20,7 +21,7 @@ for name in bindings:
         continue
 
 
-if binding is None:
+if not binding:
     raise Exception("Ghost.py requires PySide or PyQt4")
 
 
