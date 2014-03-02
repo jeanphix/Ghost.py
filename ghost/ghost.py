@@ -272,7 +272,8 @@ class Ghost(object):
             plugin_path=['/usr/lib/mozilla/plugins', ],
             download_images=True,
             qt_debug=False,
-            show_scroolbars=True):
+            show_scroolbars=True,
+            network_access_manager_class=None):
 
         self.http_resources = []
 
@@ -302,6 +303,10 @@ class Ghost(object):
 
         self.popup_messages = []
         self.page = GhostWebPage(Ghost._app, self)
+
+        if network_access_manager_class is not None:
+            self.page.setNetworkAccessManager(network_access_manager_class())
+
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(
