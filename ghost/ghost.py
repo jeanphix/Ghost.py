@@ -623,7 +623,7 @@ class Ghost(object):
                 qc.setPath(PyCookie.path)
             if PyCookie.domain != "":
                 qc.setDomain(PyCookie.domain)
-            if PyCookie.expires != 0:
+            if PyCookie.expires and PyCookie.expires != 0:
                 t = QDateTime()
                 t.setTime_t(PyCookie.expires)
                 qc.setExpirationDate(t)
