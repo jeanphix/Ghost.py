@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
-import unittest
-import logging
 
-from ghost import GhostTestCase, Ghost
+
+import os
+import logging
+import unittest
+import cookielib
+
 from app import app
+from ghost import GhostTestCase, Ghost
 
 
 PORT = 5000
@@ -154,6 +157,21 @@ class GhostTest(GhostTestCase):
         self.ghost.open("%sget/cookie" % base_url)
         self.assertTrue( 'OK' in self.ghost.content )
 
+    def test_load_cookies_expire_is_none(self):
+        self.ghost.delete_cookies()
+        jar = cookielib.CookieJar()
+        cookie = cookielib.Cookie(version=0, name='Name', value='1', port=None,
+                                  port_specified=False,
+                                  domain='www.example.com',
+                                  domain_specified=False,
+                                  domain_initial_dot=False, path='/',
+                                  path_specified=True, secure=False,
+                                  expires=None, discard=True, comment=None,
+                                  comment_url=None, rest={'HttpOnly': None},
+                                  rfc2109=False)
+        jar.set_cookie(cookie)
+        self.ghost.load_cookies(jar)
+
     def test_wait_for_alert(self):
         self.ghost.open("%salert" % base_url)
         self.ghost.click('#alert-button')
@@ -225,9 +243,10 @@ class GhostTest(GhostTestCase):
     def test_region_for_selector(self):
         self.ghost.open(base_url)
         x1, y1, x2, y2 = self.ghost.region_for_selector('h1')
-        self.assertEqual(x1, 8)
-        self.assertEqual(y1, 21)
-        self.assertEqual(x2, 791)
+        self.assertEqual(x1, 0)
+        self.assertEqual(y1, 0)
+        self.assertEqual(x2, 599)
+        self.assertEqual(y2, 299)
 
     def test_capture_selector_to(self):
         self.ghost.open(base_url)

@@ -8,33 +8,64 @@ import subprocess
 import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
-PYSIDE = False
-try:
-    from PySide import QtWebKit
-    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                 QNetworkCookieJar, QNetworkDiskCache, \
-                                 QNetworkProxy, QNetworkCookie
-    from PySide import QtCore
-    from PySide.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                              QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                              QtWarningMsg, qInstallMsgHandler
-    from PySide.QtGui import QApplication, QImage, QPainter, QPrinter
-    PYSIDE = True
-except ImportError:
+
+
+bindings = ["PySide", "PyQt4"]
+
+binding = None
+for name in bindings:
     try:
-        import sip
-        sip.setapi('QVariant', 2)
-        from PyQt4 import QtWebKit
-        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, \
-                                    QNetworkCookieJar, QNetworkDiskCache,  \
-                                    QNetworkProxy, QNetworkCookie
-        from PyQt4 import QtCore
-        from PyQt4.QtCore import QSize, QByteArray, QUrl, QDateTime, \
-                                 QtCriticalMsg, QtDebugMsg, QtFatalMsg, \
-                                 QtWarningMsg, qInstallMsgHandler
-        from PyQt4.QtGui import QApplication, QImage, QPainter, QPrinter
+        binding = __import__(name)
+        break
     except ImportError:
-        raise Exception("Ghost.py requires PySide or PyQt4")
+        continue
+
+
+if not binding:
+    raise Exception("Ghost.py requires PySide or PyQt4")
+
+
+PYSIDE = binding.__name__ == 'PySide'
+
+if not PYSIDE:
+    import sip
+    sip.setapi('QVariant', 2)
+
+
+def _import(name):
+    name = "%s.%s" % (binding.__name__, name)
+    module = __import__(name)
+    for n in name.split(".")[1:]:
+        module = getattr(module, n)
+    return module
+
+
+QtCore = _import("QtCore")
+QSize = QtCore.QSize
+QByteArray = QtCore.QByteArray
+QUrl = QtCore.QUrl
+QDateTime = QtCore.QDateTime
+QtCriticalMsg = QtCore.QtCriticalMsg
+QtDebugMsg = QtCore.QtDebugMsg
+QtFatalMsg = QtCore.QtFatalMsg
+QtWarningMsg = QtCore.QtWarningMsg
+qInstallMsgHandler = QtCore.qInstallMsgHandler
+
+QtGui = _import("QtGui")
+QApplication = QtGui.QApplication
+QImage = QtGui.QImage
+QPainter = QtGui.QPainter
+QPrinter = QtGui.QPrinter
+
+QtNetwork = _import("QtNetwork")
+QNetworkRequest = QtNetwork.QNetworkRequest
+QNetworkAccessManager = QtNetwork.QNetworkAccessManager
+QNetworkCookieJar = QtNetwork.QNetworkCookieJar
+QNetworkDiskCache = QtNetwork.QNetworkDiskCache
+QNetworkProxy = QtNetwork.QNetworkProxy
+QNetworkCookie = QtNetwork.QNetworkCookie
+
+QtWebKit = _import('QtWebKit')
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -191,11 +222,16 @@ class HttpResource(object):
         Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
         self.headers = {}
         for header in reply.rawHeaderList():
-	    try:
-            	self.headers[unicode(header)] = unicode(reply.rawHeader(header))
-	    except UnicodeDecodeError:
-	    	# it will lose the header value, but at least not crash the whole process
-	    	logger.error("Invalid characters in header {0}={1}".format(header,reply.rawHeader(header)))
+            try:
+                self.headers[unicode(header)] = unicode(
+                    reply.rawHeader(header))
+            except UnicodeDecodeError:
+                # it will lose the header value,
+                # but at least not crash the whole process
+                logger.error(
+                    "Invalid characters in header {0}={1}"
+                    % (header, reply.rawHeader(header))
+                )
         self._reply = reply
 
 
@@ -223,14 +259,23 @@ class Ghost(object):
     _upload_file = None
     _app = None
 
-    def __init__(self, user_agent=default_user_agent, wait_timeout=8,
-            wait_callback=None, log_level=logging.WARNING, display=False,
-            viewport_size=(800, 600), ignore_ssl_errors=True,
+    def __init__(self,
+            user_agent=default_user_agent,
+            wait_timeout=8,
+            wait_callback=None,
+            log_level=logging.WARNING,
+            display=False,
+            viewport_size=(800, 600),
+            ignore_ssl_errors=True,
             cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
-            plugins_enabled=False, java_enabled=False,
+            plugins_enabled=False,
+            java_enabled=False,
             plugin_path=['/usr/lib/mozilla/plugins', ],
-            download_images=True, qt_debug=False,
-            show_scroolbars=True):
+            download_images=True,
+            qt_debug=False,
+            show_scroolbars=True,
+            network_access_manager_class=None):
+
         self.http_resources = []
 
         self.user_agent = user_agent
@@ -239,7 +284,7 @@ class Ghost(object):
         self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
 
-        if not sys.platform.startswith('win') and not 'DISPLAY' in os.environ\
+        if sys.platform.startswith('linux') and not 'DISPLAY' in os.environ\
                 and not hasattr(Ghost, 'xvfb'):
             try:
                 os.environ['DISPLAY'] = ':99'
@@ -259,6 +304,10 @@ class Ghost(object):
 
         self.popup_messages = []
         self.page = GhostWebPage(Ghost._app, self)
+
+        if network_access_manager_class is not None:
+            self.page.setNetworkAccessManager(network_access_manager_class())
+
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(
@@ -289,12 +338,12 @@ class Ghost(object):
         self.manager.finished.connect(self._request_ended)
         self.manager.sslErrors.connect(self._on_manager_ssl_errors)
         # Cache
-	if cache_dir:
-        	self.cache = QNetworkDiskCache()
-        	self.cache.setCacheDirectory(cache_dir)
-        	self.manager.setCache(self.cache)
-	else:
-		self.cache = None
+        if cache_dir:
+            self.cache = QNetworkDiskCache()
+            self.cache.setCacheDirectory(cache_dir)
+            self.manager.setCache(self.cache)
+        else:
+            self.cache = None
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
@@ -310,21 +359,23 @@ class Ghost(object):
 
         logger.setLevel(log_level)
 
+        class GhostQWebView(QtWebKit.QWebView):
+            def sizeHint(self):
+                return QSize(*viewport_size)
+
+        self.webview = GhostQWebView()
+
+        if plugins_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.PluginsEnabled, True)
+        if java_enabled:
+            self.webview.settings().setAttribute(
+                QtWebKit.QWebSettings.JavaEnabled, True)
+
+        self.webview.setPage(self.page)
+
         if self.display:
-            class MyQWebView(QtWebKit.QWebView):
-                def sizeHint(self):
-                    return QSize(*viewport_size)
-            self.webview = MyQWebView()
-            if plugins_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.PluginsEnabled, True)
-            if java_enabled:
-                self.webview.settings().setAttribute(
-                    QtWebKit.QWebSettings.JavaEnabled, True)
-            self.webview.setPage(self.page)
             self.webview.show()
-        else:
-            self.webview = None
 
     def __del__(self):
         self.exit()
@@ -332,7 +383,8 @@ class Ghost(object):
     def ascend_to_root_frame(self):
         """ Set main frame as current main frame's parent.
         """
-        # we can't ascend directly to parent frame because it might have been deleted
+        # we can't ascend directly to parent frame because it might have been
+        # deleted
         self.main_frame = self.page.mainFrame()
 
     def descend_frame(self, child_name):
@@ -346,7 +398,7 @@ class Ghost(object):
                 return
         # frame not found so we throw an exception
         raise LookupError("Child frame '%s' not found." % child_name)
-        
+
     def capture(self, region=None, selector=None,
             format=QImage.Format_ARGB32_Premultiplied):
         """Returns snapshot as QImage.
@@ -525,8 +577,8 @@ class Ghost(object):
             raise Error("Can't find form")
         resources = []
         for field in values:
-            r, res = self.set_field_value("%s [name=%s]" % (selector, repr(field)),
-                values[field])
+            r, res = self.set_field_value(
+                "%s [name=%s]" % (selector, repr(field)), values[field])
             resources.extend(res)
         return True, resources
 
@@ -564,7 +616,7 @@ class Ghost(object):
         :param keep_old: Don't reset, keep cookies not overridden.
         """
         def toQtCookieJar(PyCookieJar, QtCookieJar):
-            allCookies = QtCookieJar.cookies if keep_old else []
+            allCookies = QtCookieJar.allCookies() if keep_old else []
             for pc in PyCookieJar:
                 qc = toQtCookie(pc)
                 allCookies.append(qc)
@@ -577,7 +629,7 @@ class Ghost(object):
                 qc.setPath(PyCookie.path)
             if PyCookie.domain != "":
                 qc.setDomain(PyCookie.domain)
-            if PyCookie.expires != 0:
+            if PyCookie.expires and PyCookie.expires != 0:
                 t = QDateTime()
                 t.setTime_t(PyCookie.expires)
                 qc.setExpirationDate(t)
@@ -753,26 +805,31 @@ class Ghost(object):
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Error('can\'t find element for %s"' % selector)
-        if element.tagName() == "SELECT":
+
+        tag_name = str(element.tagName()).lower()
+
+        if tag_name == "select":
             _set_select_value(element, value)
-        elif element.tagName() == "TEXTAREA":
+        elif tag_name == "textarea":
             _set_textarea_value(element, value)
-        elif element.tagName() == "INPUT":
-            if str(element.attribute('type')).lower() in ["color", "date", "datetime",
+        elif tag_name == "input":
+            type_ = str(element.attribute('type')).lower()
+            if type_ in [
+                "color", "date", "datetime",
                 "datetime-local", "email", "hidden", "month", "number",
                 "password", "range", "search", "tel", "text", "time",
                 "url", "week", ""]:
                 _set_text_value(element, value)
-            elif element.attribute('type') == "checkbox":
+            elif type_ == "checkbox":
                 els = self.main_frame.findAllElements(selector)
                 if els.count() > 1:
                     _set_checkboxes_value(els, value)
                 else:
                     _set_checkbox_value(element, value)
-            elif element.attribute('type') == "radio":
+            elif type_ == "radio":
                 _set_radio_value(self.main_frame.findAllElements(selector),
                     value)
-            elif element.attribute('type') == "file":
+            elif type_ == "file":
                 Ghost._upload_file = value
                 res, resources = self.click(selector)
                 Ghost._upload_file = None
@@ -827,16 +884,14 @@ class Ghost(object):
     def show(self):
         """Show current page inside a QWebView.
         """
-        self.webview = QtWebKit.QWebView()
-        self.webview.setPage(self.page)
         self.webview.show()
 
     def sleep(self, value):
         started_at = time.time()
-        while True:
-            if time.time() > (started_at + value):
-                break
 
+        time.sleep(0)
+        Ghost._app.processEvents()
+        while time.time() <= (started_at + value):
             time.sleep(0.01)
             Ghost._app.processEvents()
 
@@ -913,7 +968,7 @@ class Ghost(object):
         :param mix: The QNetworkReply or QNetworkProxy object.
         :param authenticator: The QAuthenticator object.
         """
-        if self._auth_attempt == 0:
+        if self._auth is not None and self._auth_attempt == 0:
             username, password = self._auth
             authenticator.setUser(username)
             authenticator.setPassword(password)
@@ -923,8 +978,8 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-	if self.cache:
-        	self.cache.clear()
+        if self.cache:
+            self.cache.clear()
 
     def _page_load_started(self):
         """Called back when page load started.
@@ -967,7 +1022,8 @@ class Ghost(object):
                                                     content=content))
 
     def _unsupported_content(self, reply):
-        reply.readyRead.connect(lambda reply=reply: self._reply_download_content(reply))
+        reply.readyRead.connect(
+            lambda reply=reply: self._reply_download_content(reply))
 
     def _reply_download_content(self, reply):
         """Adds an HttpResource object to http_resources with unsupported
