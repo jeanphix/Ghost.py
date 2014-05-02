@@ -206,6 +206,7 @@ class HttpResource(object):
         self.content = content
         if cache and self.content is None:
             # Tries to get back content from cache
+            buffer = None
             if PYSIDE:
                 buffer = cache.data(reply.url().toString())
             else:
@@ -228,8 +229,7 @@ class HttpResource(object):
                 # it will lose the header value,
                 # but at least not crash the whole process
                 logger.error(
-                    "Invalid characters in header {0}={1}"
-                    % (header, reply.rawHeader(header))
+                    "Invalid characters in header {0}={1}".format(header, reply.rawHeader(header))
                 )
         self._reply = reply
 
