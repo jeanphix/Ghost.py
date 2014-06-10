@@ -12,6 +12,7 @@ from cookielib import Cookie, LWPCookieJar
 
 bindings = ["PySide", "PyQt4"]
 
+binding = None
 for name in bindings:
     try:
         binding = __import__(name)
@@ -20,7 +21,7 @@ for name in bindings:
         continue
 
 
-if binding is None:
+if not binding:
     raise Exception("Ghost.py requires PySide or PyQt4")
 
 
@@ -204,6 +205,7 @@ class HttpResource(object):
         self.content = content
         if cache and self.content is None:
             # Tries to get back content from cache
+            buffer = None
             if PYSIDE:
                 buffer = cache.data(reply.url().toString())
             else:
@@ -226,8 +228,7 @@ class HttpResource(object):
                 # it will lose the header value,
                 # but at least not crash the whole process
                 logger.error(
-                    "Invalid characters in header {0}={1}"
-                    % (header, reply.rawHeader(header))
+                    "Invalid characters in header {0}={1}".format(header, reply.rawHeader(header))
                 )
         self._reply = reply
 
@@ -270,7 +271,8 @@ class Ghost(object):
             plugin_path=['/usr/lib/mozilla/plugins', ],
             download_images=True,
             qt_debug=False,
-            show_scroolbars=True):
+            show_scroolbars=True,
+            network_access_manager_class=None):
 
         self.http_resources = []
 
@@ -300,6 +302,10 @@ class Ghost(object):
 
         self.popup_messages = []
         self.page = GhostWebPage(Ghost._app, self)
+
+        if network_access_manager_class is not None:
+            self.page.setNetworkAccessManager(network_access_manager_class())
+
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(
@@ -608,7 +614,7 @@ class Ghost(object):
         :param keep_old: Don't reset, keep cookies not overridden.
         """
         def toQtCookieJar(PyCookieJar, QtCookieJar):
-            allCookies = QtCookieJar.cookies if keep_old else []
+            allCookies = QtCookieJar.allCookies() if keep_old else []
             for pc in PyCookieJar:
                 qc = toQtCookie(pc)
                 allCookies.append(qc)
@@ -621,7 +627,7 @@ class Ghost(object):
                 qc.setPath(PyCookie.path)
             if PyCookie.domain != "":
                 qc.setDomain(PyCookie.domain)
-            if PyCookie.expires != 0:
+            if PyCookie.expires and PyCookie.expires != 0:
                 t = QDateTime()
                 t.setTime_t(PyCookie.expires)
                 qc.setExpirationDate(t)
@@ -681,6 +687,9 @@ class Ghost(object):
 
         if wait:
             return self.wait_for_page_loaded(timeout=timeout)
+
+    def scroll_to_anchor(self, anchor):
+        self.main_frame.scrollToAnchor(anchor)
 
     class prompt:
         """Statement that tells Ghost how to deal with javascript prompt().
@@ -881,10 +890,10 @@ class Ghost(object):
 
     def sleep(self, value):
         started_at = time.time()
-        while True:
-            if time.time() > (started_at + value):
-                break
 
+        time.sleep(0)
+        Ghost._app.processEvents()
+        while time.time() <= (started_at + value):
             time.sleep(0.01)
             Ghost._app.processEvents()
 
@@ -970,7 +979,7 @@ class Ghost(object):
         :param mix: The QNetworkReply or QNetworkProxy object.
         :param authenticator: The QAuthenticator object.
         """
-        if self._auth_attempt == 0:
+        if self._auth is not None and self._auth_attempt == 0:
             username, password = self._auth
             authenticator.setUser(username)
             authenticator.setPassword(password)

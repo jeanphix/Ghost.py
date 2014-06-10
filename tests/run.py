@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
-import unittest
-import logging
 
-from ghost import GhostTestCase, Ghost
+
+import os
+import logging
+import unittest
+import cookielib
+
 from app import app
+from ghost import GhostTestCase, Ghost
 
 
 PORT = 5000
@@ -153,6 +156,21 @@ class GhostTest(GhostTestCase):
         self.ghost.load_cookies('testcookie.txt')
         self.ghost.open("%sget/cookie" % base_url)
         self.assertTrue( 'OK' in self.ghost.content )
+
+    def test_load_cookies_expire_is_none(self):
+        self.ghost.delete_cookies()
+        jar = cookielib.CookieJar()
+        cookie = cookielib.Cookie(version=0, name='Name', value='1', port=None,
+                                  port_specified=False,
+                                  domain='www.example.com',
+                                  domain_specified=False,
+                                  domain_initial_dot=False, path='/',
+                                  path_specified=True, secure=False,
+                                  expires=None, discard=True, comment=None,
+                                  comment_url=None, rest={'HttpOnly': None},
+                                  rfc2109=False)
+        jar.set_cookie(cookie)
+        self.ghost.load_cookies(jar)
 
     def test_wait_for_alert(self):
         self.ghost.open("%salert" % base_url)
