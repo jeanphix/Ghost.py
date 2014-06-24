@@ -272,7 +272,7 @@ class Ghost(object):
             plugin_path=['/usr/lib/mozilla/plugins', ],
             download_images=True,
             qt_debug=False,
-            show_scroolbars=True,
+            show_scrollbars=True,
             network_access_manager_class=None):
 
         self.http_resources = []
@@ -320,7 +320,7 @@ class Ghost(object):
         self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled,
             java_enabled)
 
-        if not show_scroolbars:
+        if not show_scrollbars:
             self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical,
                 QtCore.Qt.ScrollBarAlwaysOff)
             self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal,
