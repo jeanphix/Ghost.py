@@ -412,7 +412,6 @@ class Ghost(object):
             QtCore.Qt.ScrollBarAlwaysOff)
         self.main_frame.setScrollBarPolicy(QtCore.Qt.Horizontal,
             QtCore.Qt.ScrollBarAlwaysOff)
-        print(self.main_frame.contentsSize())
         self.page.setViewportSize(self.main_frame.contentsSize())
         image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
@@ -421,7 +420,6 @@ class Ghost(object):
         
         if region is None and selector is not None:
             region = self.region_for_selector(selector)
-            print(region)
         
         if region:
             x1, y1, x2, y2 = region
