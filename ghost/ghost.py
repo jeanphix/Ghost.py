@@ -407,26 +407,27 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
+        
+        self.main_frame.setScrollBarPolicy(QtCore.Qt.Vertical,
+            QtCore.Qt.ScrollBarAlwaysOff)
+        self.main_frame.setScrollBarPolicy(QtCore.Qt.Horizontal,
+            QtCore.Qt.ScrollBarAlwaysOff)
+        print(self.main_frame.contentsSize())
+        self.page.setViewportSize(self.main_frame.contentsSize())
+        image = QImage(self.page.viewportSize(), format)
+        painter = QPainter(image)
+        self.main_frame.render(painter)
+        painter.end()
+        
         if region is None and selector is not None:
             region = self.region_for_selector(selector)
+            print(region)
+        
         if region:
             x1, y1, x2, y2 = region
             w, h = (x2 - x1), (y2 - y1)
-            image = QImage(QSize(x2, y2), format)
-            painter = QPainter(image)
-            self.main_frame.render(painter)
-            painter.end()
             image = image.copy(x1, y1, w, h)
-        else:
-            self.main_frame.setScrollBarPolicy(QtCore.Qt.Vertical,
-                QtCore.Qt.ScrollBarAlwaysOff)
-            self.main_frame.setScrollBarPolicy(QtCore.Qt.Horizontal,
-                QtCore.Qt.ScrollBarAlwaysOff)
-            self.page.setViewportSize(self.main_frame.contentsSize())
-            image = QImage(self.page.viewportSize(), format)
-            painter = QPainter(image)
-            self.main_frame.render(painter)
-            painter.end()
+            
         return image
 
     def capture_to(self, path, region=None, selector=None,
