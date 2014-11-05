@@ -361,5 +361,10 @@ class GhostTest(GhostTestCase):
         self.assertIsNotNone(page)
         self.assertTrue("Welcome" in self.ghost.content)
 
+    @unittest.skip("This test fail")
+    def test_many_assets(self):
+        page, resources = self.ghost.open("%smany-assets" % base_url)
+        page, resources = self.ghost.open("%smany-assets" % base_url)
+
 if __name__ == '__main__':
     unittest.main()
