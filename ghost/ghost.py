@@ -9,6 +9,7 @@ import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
 
+__version__ = "0.1b3"
 
 bindings = ["PySide", "PyQt4"]
 
