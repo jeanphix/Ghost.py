@@ -315,6 +315,7 @@ class Ghost(object):
         self.display = display
 
         if not Ghost._app:
+            self.logger.info('Initializing QT application')
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
             qInstallMsgHandler(QTMessageProxy(
                 configure(
@@ -720,6 +721,7 @@ class Ghost(object):
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
+        self.logger.info('Opening %s' % address)
         body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
@@ -1042,6 +1044,9 @@ class Ghost(object):
         for resource in resources:
             if url == resource.url or url_without_hash == resource.url:
                 page = resource
+
+        self.logger.info('Page loaded %s' % url)
+
         return page, resources
 
     def wait_for_selector(self, selector, timeout=None):
