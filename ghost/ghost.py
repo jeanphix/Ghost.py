@@ -282,7 +282,7 @@ class Ghost(object):
         display=False,
         viewport_size=(800, 600),
         ignore_ssl_errors=True,
-        cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
+        cache_dir=os.path.join(tempfile.mkdtemp()),
         plugins_enabled=False,
         java_enabled=False,
         plugin_path=['/usr/lib/mozilla/plugins', ],
