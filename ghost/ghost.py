@@ -125,11 +125,17 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def javaScriptConsoleMessage(self, message, line, source):
         """Prints client console message in current output stream."""
-        super(GhostWebPage, self).javaScriptConsoleMessage(message, line,
-            source)
+        super(GhostWebPage, self).javaScriptConsoleMessage(
+            message,
+            line,
+            source,
+        )
         log_type = "error" if "Error" in message else "info"
-        Logger.log("%s(%d): %s" % (source or '<unknown>', line, message),
-        sender="Frame", level=log_type)
+        Logger.log(
+            "%s(%d): %s" % (source or '<unknown>', line, message),
+            sender="Frame",
+            level=log_type,
+        )
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
@@ -142,8 +148,10 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._confirm_expected is None:
-            raise Error('You must specified a value to confirm "%s"' %
-                message)
+            raise Error(
+                'You must specified a value to confirm "%s"' %
+                message,
+            )
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
         Logger.log("confirm('%s')" % message, sender="Frame")
@@ -156,16 +164,20 @@ class GhostWebPage(QtWebKit.QWebPage):
         value.
         """
         if Ghost._prompt_expected is None:
-            raise Error('You must specified a value for prompt "%s"' %
-                message)
+            raise Error(
+                'You must specified a value for prompt "%s"' %
+                message,
+            )
         self.ghost.append_popup_message(message)
         result_value, callback = Ghost._prompt_expected
         Logger.log("prompt('%s')" % message, sender="Frame")
         if callback is not None:
             result_value = callback()
         if result_value == '':
-            Logger.log("'%s' prompt filled with empty string" % message,
-                level='warning')
+            Logger.log(
+                "'%s' prompt filled with empty string" % message,
+                level='warning',
+            )
 
         if result is None:
             # PySide
@@ -229,7 +241,10 @@ class HttpResource(object):
                 # it will lose the header value,
                 # but at least not crash the whole process
                 logger.error(
-                    "Invalid characters in header {0}={1}".format(header, reply.rawHeader(header))
+                    "Invalid characters in header {0}={1}".format(
+                        header,
+                        reply.rawHeader(header),
+                    )
                 )
         self._reply = reply
 
@@ -258,22 +273,24 @@ class Ghost(object):
     _upload_file = None
     _app = None
 
-    def __init__(self,
-            user_agent=default_user_agent,
-            wait_timeout=8,
-            wait_callback=None,
-            log_level=logging.WARNING,
-            display=False,
-            viewport_size=(800, 600),
-            ignore_ssl_errors=True,
-            cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
-            plugins_enabled=False,
-            java_enabled=False,
-            plugin_path=['/usr/lib/mozilla/plugins', ],
-            download_images=True,
-            qt_debug=False,
-            show_scrollbars=True,
-            network_access_manager_class=None):
+    def __init__(
+        self,
+        user_agent=default_user_agent,
+        wait_timeout=8,
+        wait_callback=None,
+        log_level=logging.WARNING,
+        display=False,
+        viewport_size=(800, 600),
+        ignore_ssl_errors=True,
+        cache_dir=os.path.join(tempfile.gettempdir(), "ghost.py"),
+        plugins_enabled=False,
+        java_enabled=False,
+        plugin_path=['/usr/lib/mozilla/plugins', ],
+        download_images=True,
+        qt_debug=False,
+        show_scrollbars=True,
+        network_access_manager_class=None,
+    ):
 
         self.http_resources = []
 
@@ -283,8 +300,11 @@ class Ghost(object):
         self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
 
-        if sys.platform.startswith('linux') and not 'DISPLAY' in os.environ\
-                and not hasattr(Ghost, 'xvfb'):
+        if (
+            sys.platform.startswith('linux')
+            and 'DISPLAY' not in os.environ
+            and not hasattr(Ghost, 'xvfb')
+        ):
             try:
                 os.environ['DISPLAY'] = ':99'
                 Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
@@ -317,14 +337,20 @@ class Ghost(object):
             QtWebKit.QWebSettings.AutoLoadImages, download_images)
         self.page.settings().setAttribute(
             QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
-        self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled,
-            java_enabled)
+        self.page.settings().setAttribute(
+            QtWebKit.QWebSettings.JavaEnabled,
+            java_enabled,
+        )
 
         if not show_scrollbars:
-            self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical,
-                QtCore.Qt.ScrollBarAlwaysOff)
-            self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal,
-                QtCore.Qt.ScrollBarAlwaysOff)
+            self.page.mainFrame().setScrollBarPolicy(
+                QtCore.Qt.Vertical,
+                QtCore.Qt.ScrollBarAlwaysOff,
+            )
+            self.page.mainFrame().setScrollBarPolicy(
+                QtCore.Qt.Horizontal,
+                QtCore.Qt.ScrollBarAlwaysOff,
+            )
 
         self.set_viewport_size(*viewport_size)
 
@@ -398,8 +424,12 @@ class Ghost(object):
         # frame not found so we throw an exception
         raise LookupError("Child frame '%s' not found." % child_name)
 
-    def capture(self, region=None, selector=None,
-            format=QImage.Format_ARGB32_Premultiplied):
+    def capture(
+        self,
+        region=None,
+        selector=None,
+        format=QImage.Format_ARGB32_Premultiplied,
+    ):
         """Returns snapshot as QImage.
 
         :param region: An optional tuple containing region as pixel
@@ -407,29 +437,38 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
-        
-        self.main_frame.setScrollBarPolicy(QtCore.Qt.Vertical,
-            QtCore.Qt.ScrollBarAlwaysOff)
-        self.main_frame.setScrollBarPolicy(QtCore.Qt.Horizontal,
-            QtCore.Qt.ScrollBarAlwaysOff)
+
+        self.main_frame.setScrollBarPolicy(
+            QtCore.Qt.Vertical,
+            QtCore.Qt.ScrollBarAlwaysOff,
+        )
+        self.main_frame.setScrollBarPolicy(
+            QtCore.Qt.Horizontal,
+            QtCore.Qt.ScrollBarAlwaysOff,
+        )
         self.page.setViewportSize(self.main_frame.contentsSize())
         image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
         self.main_frame.render(painter)
         painter.end()
-        
+
         if region is None and selector is not None:
             region = self.region_for_selector(selector)
-        
+
         if region:
             x1, y1, x2, y2 = region
             w, h = (x2 - x1), (y2 - y1)
             image = image.copy(x1, y1, w, h)
-            
+
         return image
 
-    def capture_to(self, path, region=None, selector=None,
-        format=QImage.Format_ARGB32_Premultiplied):
+    def capture_to(
+        self,
+        path,
+        region=None,
+        selector=None,
+        format=QImage.Format_ARGB32_Premultiplied,
+    ):
         """Saves snapshot as image.
 
         :param path: The destination path.
@@ -441,9 +480,14 @@ class Ghost(object):
         self.capture(region=region, format=format,
                      selector=selector).save(path)
 
-    def print_to_pdf(self, path, paper_size=(8.5, 11.0),
-            paper_margins=(0, 0, 0, 0), paper_units=QPrinter.Inch,
-            zoom_factor=1.0):
+    def print_to_pdf(
+        self,
+        path,
+        paper_size=(8.5, 11.0),
+        paper_margins=(0, 0, 0, 0),
+        paper_units=QPrinter.Inch,
+        zoom_factor=1.0,
+    ):
         """Saves page as a pdf file.
 
         See qt4 QPrinter documentation for more detailed explanations
@@ -533,8 +577,10 @@ class Ghost(object):
 
         :param script: The script to evaluate.
         """
-        return (self.main_frame.evaluateJavaScript("%s" % script),
-            self._release_last_resources())
+        return (
+            self.main_frame.evaluateJavaScript("%s" % script),
+            self._release_last_resources(),
+        )
 
     def evaluate_js_file(self, path, encoding='utf-8', **kwargs):
         """Evaluates javascript file at given path in current frame.
@@ -588,16 +634,20 @@ class Ghost(object):
         :param method: The name of the method to fire.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        return self.evaluate('document.querySelector(%s)[%s]();' % \
-            (repr(selector), repr(method)))
+        return self.evaluate(
+            'document.querySelector(%s)[%s]();'
+            % (repr(selector), repr(method))
+        )
 
     def global_exists(self, global_name):
         """Checks if javascript global exists.
 
         :param global_name: The name of the global.
         """
-        return self.evaluate('!(typeof this[%s] === "undefined");' %
-            repr(global_name))[0]
+        return self.evaluate(
+            '!(typeof this[%s] === "undefined");'
+            % repr(global_name)
+        )[0]
 
     def hide(self):
         """Close the webview."""
@@ -749,9 +799,24 @@ class Ghost(object):
             expires = 2147483647 if v > 2147483647 else v
             rest = {}
             discard = False
-            return Cookie(0, name, value, port, port_specified, domain,
-                    domain_specified, domain_initial_dot, path, path_specified,
-                    secure, expires, discard, None, None, rest)
+            return Cookie(
+                0,
+                name,
+                value,
+                port,
+                port_specified,
+                domain,
+                domain_specified,
+                domain_initial_dot,
+                path,
+                path_specified,
+                secure,
+                expires,
+                discard,
+                None,
+                None,
+                rest,
+            )
 
         if cookie_storage.__class__.__name__ == 'str':
             cj = LWPCookieJar(cookie_storage)
@@ -796,8 +861,10 @@ class Ghost(object):
 
         def _set_select_value(el, value):
             el.setFocus()
-            self.evaluate('document.querySelector(%s).value = %s;' %
-                (repr(selector), repr(value)))
+            self.evaluate(
+                'document.querySelector(%s).value = %s;'
+                % (repr(selector), repr(value))
+            )
 
         def _set_textarea_value(el, value):
             el.setFocus()
@@ -817,10 +884,24 @@ class Ghost(object):
         elif tag_name == "input":
             type_ = str(element.attribute('type')).lower()
             if type_ in [
-                "color", "date", "datetime",
-                "datetime-local", "email", "hidden", "month", "number",
-                "password", "range", "search", "tel", "text", "time",
-                "url", "week", ""]:
+                "color",
+                "date",
+                "datetime",
+                "datetime-local",
+                "email",
+                "hidden",
+                "month",
+                "number",
+                "password",
+                "range",
+                "search",
+                "tel",
+                "text",
+                "time",
+                "url",
+                "week",
+                "",
+            ]:
                 _set_text_value(element, value)
             elif type_ == "checkbox":
                 els = self.main_frame.findAllElements(selector)
@@ -829,8 +910,10 @@ class Ghost(object):
                 else:
                     _set_checkbox_value(element, value)
             elif type_ == "radio":
-                _set_radio_value(self.main_frame.findAllElements(selector),
-                    value)
+                _set_radio_value(
+                    self.main_frame.findAllElements(selector),
+                    value,
+                )
             elif type_ == "file":
                 Ghost._upload_file = value
                 res, resources = self.click(selector)
@@ -841,8 +924,14 @@ class Ghost(object):
             self.fire_on(selector, 'blur')
         return res, ressources
 
-    def set_proxy(self, type_, host='localhost', port=8888, user='',
-            password=''):
+    def set_proxy(
+        self,
+        type_,
+        host='localhost',
+        port=8888,
+        user='',
+        password='',
+    ):
         """Set up proxy for FURTHER connections.
 
         :param type_: proxy type to use: \
@@ -865,12 +954,19 @@ class Ghost(object):
             self.manager.setProxy(QNetworkProxy(_types[type_]))
             return
         elif type_ in _types:
-            proxy = QNetworkProxy(_types[type_], hostName=host, port=port,
-                user=user, password=password)
+            proxy = QNetworkProxy(
+                _types[type_],
+                hostName=host,
+                port=port,
+                user=user,
+                password=password,
+            )
             self.manager.setProxy(proxy)
         else:
-            raise ValueError('Unsupported proxy type:' + type_ \
-            + '\nsupported types are: none/socks5/http/https/default')
+            raise ValueError(
+                'Unsupported proxy type:' + type_
+                + '\nsupported types are: none/socks5/http/https/default',
+            )
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
@@ -949,8 +1045,11 @@ class Ghost(object):
         :param selector: The selector to wait for.
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: self.exists(selector),
-            'Can\'t find element matching "%s"' % selector, timeout)
+        self.wait_for(
+            lambda: self.exists(selector),
+            'Can\'t find element matching "%s"' % selector,
+            timeout,
+        )
         return True, self._release_last_resources()
 
     def wait_while_selector(self, selector, timeout=None):
@@ -959,8 +1058,11 @@ class Ghost(object):
         :param selector: The selector to wait for.
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: not self.exists(selector),
-            'Element matching "%s" is still available' % selector, timeout)
+        self.wait_for(
+            lambda: not self.exists(selector),
+            'Element matching "%s" is still available' % selector,
+            timeout,
+        )
         return True, self._release_last_resources()
 
     def wait_for_text(self, text, timeout=None):
@@ -969,8 +1071,11 @@ class Ghost(object):
         :param text: The text to wait for.
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: text in self.content,
-            'Can\'t find "%s" in current frame' % text, timeout)
+        self.wait_for(
+            lambda: text in self.content,
+            'Can\'t find "%s" in current frame' % text,
+            timeout,
+        )
         return True, self._release_last_resources()
 
     def _authenticate(self, mix, authenticator):
@@ -1013,8 +1118,10 @@ class Ghost(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            Logger.log("[%s] bytesAvailable()= %s" % (str(reply.url()),
-                reply.bytesAvailable()), level="debug")
+            Logger.log("[%s] bytesAvailable()= %s" % (
+                str(reply.url()),
+                reply.bytesAvailable()
+            ), level="debug")
 
             # Some web pages return cache headers that mandates not to cache
             # the reply, which means we won't find this QNetworkReply in
@@ -1058,4 +1165,3 @@ class Ghost(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
-
