@@ -32,7 +32,7 @@ class BaseGhostTestCase(TestCase):
     display = False
     wait_timeout = 5
     viewport_size = (800, 600)
-    log_level = logging.INFO
+    log_level = logging.DEBUG
 
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
@@ -40,7 +40,7 @@ class BaseGhostTestCase(TestCase):
             cls.ghost = Ghost(display=cls.display,
                 wait_timeout=cls.wait_timeout,
                 viewport_size=cls.viewport_size,
-                log_level=cls.log_level)
+                log_level=cls.log_level, )
         return super(BaseGhostTestCase, cls).__new__(cls, *args, **kwargs)
 
     def __call__(self, result=None):

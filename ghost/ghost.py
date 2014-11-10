@@ -10,6 +10,9 @@ import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
 
+from logger import configure
+
+
 __version__ = "0.1b3"
 
 bindings = ["PySide", "PyQt4"]
@@ -73,9 +76,6 @@ QtWebKit = _import('QtWebKit')
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
 
-logger = logging.getLogger('ghost')
-logger.addHandler(logging.StreamHandler(sys.stderr))
-
 
 class Error(Exception):
     """Base class for Ghost exceptions."""
@@ -87,29 +87,18 @@ class TimeoutError(Error):
     pass
 
 
-class Logger(logging.Logger):
-    @staticmethod
-    def log(message, sender="Ghost", level="info"):
-        if not hasattr(logger, level):
-            raise Error('invalid log level')
-        getattr(logger, level)("%s: %s", sender, message)
-
-
 class QTMessageProxy(object):
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self, logger):
+        self.logger = logger
 
     def __call__(self, msgType, msg):
-        if msgType == QtDebugMsg and self.debug:
-            Logger.log(msg, sender='QT', level='debug')
-        elif msgType == QtWarningMsg and self.debug:
-            Logger.log(msg, sender='QT', level='warning')
-        elif msgType == QtCriticalMsg:
-            Logger.log(msg, sender='QT', level='critical')
-        elif msgType == QtFatalMsg:
-            Logger.log(msg, sender='QT', level='fatal')
-        elif self.debug:
-            Logger.log(msg, sender='QT', level='info')
+        levels = {
+            QtDebugMsg: 'debug',
+            QtWarningMsg: 'warn',
+            QtCriticalMsg: 'critical',
+            QtFatalMsg: 'fatal',
+        }
+        getattr(self.logger, levels[msgType])(msg)
 
 
 class GhostWebPage(QtWebKit.QWebPage):
@@ -131,18 +120,16 @@ class GhostWebPage(QtWebKit.QWebPage):
             line,
             source,
         )
-        log_type = "error" if "Error" in message else "info"
-        Logger.log(
+        log_type = "warn" if "Error" in message else "info"
+        getattr(self.ghost.logger, log_type)(
             "%s(%d): %s" % (source or '<unknown>', line, message),
-            sender="Frame",
-            level=log_type,
         )
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
         Ghost._alert = message
         self.ghost.append_popup_message(message)
-        Logger.log("alert('%s')" % message, sender="Frame")
+        self.ghost.logger.info("alert('%s')" % message)
 
     def javaScriptConfirm(self, frame, message):
         """Checks if ghost is waiting for confirm, then returns the right
@@ -155,7 +142,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         confirmation, callback = Ghost._confirm_expected
-        Logger.log("confirm('%s')" % message, sender="Frame")
+        self.ghost.logger.info("confirm('%s')" % message)
         if callback is not None:
             return callback()
         return confirmation
@@ -171,13 +158,12 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         result_value, callback = Ghost._prompt_expected
-        Logger.log("prompt('%s')" % message, sender="Frame")
+        self.ghost.logger.info("prompt('%s')" % message)
         if callback is not None:
             result_value = callback()
         if result_value == '':
-            Logger.log(
+            self.ghost.logger.warn(
                 "'%s' prompt filled with empty string" % message,
-                level='warning',
             )
 
         if result is None:
@@ -214,7 +200,8 @@ def can_load_page(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
-    def __init__(self, reply, cache, content=None):
+    def __init__(self, ghost, reply, cache, content=None):
+        self.ghost = ghost
         self.url = reply.url().toString()
         self.content = content
         if cache and self.content is None:
@@ -232,7 +219,9 @@ class HttpResource(object):
             self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
-        Logger.log("Resource loaded: %s %s" % (self.url, self.http_status))
+        self.ghost.logger.info(
+            "Resource loaded: %s %s" % (self.url, self.http_status)
+        )
         self.headers = {}
         for header in reply.rawHeaderList():
             try:
@@ -241,7 +230,7 @@ class HttpResource(object):
             except UnicodeDecodeError:
                 # it will lose the header value,
                 # but at least not crash the whole process
-                logger.error(
+                self.ghost.logger.error(
                     "Invalid characters in header {0}={1}".format(
                         header,
                         reply.rawHeader(header),
@@ -258,6 +247,7 @@ class Ghost(object):
     :param wait_callback: An optional callable that is periodically
         executed until Ghost stops waiting.
     :param log_level: The optional logging level.
+    :param log_handler: The optional logging handler.
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
@@ -280,6 +270,7 @@ class Ghost(object):
         wait_timeout=8,
         wait_callback=None,
         log_level=logging.WARNING,
+        log_handler=logging.StreamHandler(sys.stderr),
         display=False,
         viewport_size=(800, 600),
         ignore_ssl_errors=True,
@@ -288,12 +279,18 @@ class Ghost(object):
         java_enabled=False,
         plugin_path=['/usr/lib/mozilla/plugins', ],
         download_images=True,
-        qt_debug=False,
         show_scrollbars=True,
         network_access_manager_class=None,
     ):
 
         self.id = str(uuid.uuid4())
+
+        self.logger = configure(
+            'ghost',
+            "Ghost(<%s>)" % self.id,
+            log_level,
+            log_handler,
+        )
 
         self.http_resources = []
 
@@ -319,7 +316,14 @@ class Ghost(object):
 
         if not Ghost._app:
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
-            qInstallMsgHandler(QTMessageProxy(qt_debug))
+            qInstallMsgHandler(QTMessageProxy(
+                configure(
+                    'qt',
+                    'QT',
+                    log_level,
+                    log_handler,
+                )
+            ))
             if plugin_path:
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
@@ -384,8 +388,6 @@ class Ghost(object):
             .connect(self._authenticate)
 
         self.main_frame = self.page.mainFrame()
-
-        logger.setLevel(log_level)
 
         class GhostQWebView(QtWebKit.QWebView):
             def sizeHint(self):
@@ -1121,10 +1123,10 @@ class Ghost(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            Logger.log("[%s] bytesAvailable()= %s" % (
+            self.logger.debug("[%s] bytesAvailable()= %s" % (
                 str(reply.url()),
                 reply.bytesAvailable()
-            ), level="debug")
+            ))
 
             # Some web pages return cache headers that mandates not to cache
             # the reply, which means we won't find this QNetworkReply in
@@ -1139,8 +1141,12 @@ class Ghost(object):
                 content = reply.peek(reply.bytesAvailable())
             else:
                 content = None
-            self.http_resources.append(HttpResource(reply, self.cache,
-                                                    content=content))
+            self.http_resources.append(HttpResource(
+                self,
+                reply,
+                self.cache,
+                content=content,
+            ))
 
     def _unsupported_content(self, reply):
         reply.readyRead.connect(
@@ -1153,15 +1159,19 @@ class Ghost(object):
         :param reply: The QNetworkReply object.
         """
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(reply, self.cache,
-                                                    reply.readAll()))
+            self.http_resources.append(HttpResource(
+                self,
+                reply,
+                self.cache,
+                reply.readAll(),
+            ))
 
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
-            Logger.log('SSL certificate error: %s' % url, level='warning')
+            self.warn('SSL certificate error: %s' % url)
 
     def __enter__(self):
         return self
