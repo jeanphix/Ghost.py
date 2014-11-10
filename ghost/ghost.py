@@ -2,6 +2,7 @@
 import sys
 import os
 import time
+import uuid
 import codecs
 import logging
 import subprocess
@@ -291,6 +292,8 @@ class Ghost(object):
         show_scrollbars=True,
         network_access_manager_class=None,
     ):
+
+        self.id = str(uuid.uuid4())
 
         self.http_resources = []
 
