@@ -989,6 +989,7 @@ class Ghost(object):
     def show(self):
         """Show current page inside a QWebView.
         """
+        self.logger.debug('Showing webview')
         self.webview.show()
         self.sleep()
 
