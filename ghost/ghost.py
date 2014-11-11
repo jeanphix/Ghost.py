@@ -994,8 +994,6 @@ class Ghost(object):
     def sleep(self, value):
         started_at = time.time()
 
-        time.sleep(0)
-        Ghost._app.processEvents()
         while time.time() <= (started_at + value):
             time.sleep(0.01)
             Ghost._app.processEvents()
@@ -1012,8 +1010,7 @@ class Ghost(object):
         while not condition():
             if time.time() > (started_at + timeout):
                 raise TimeoutError(timeout_message)
-            time.sleep(0.01)
-            Ghost._app.processEvents()
+            self.sleep(0.1)
             if self.wait_callback is not None:
                 self.wait_callback()
 
