@@ -6,7 +6,6 @@ import uuid
 import codecs
 import logging
 import subprocess
-import tempfile
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
 
@@ -66,7 +65,6 @@ QtNetwork = _import("QtNetwork")
 QNetworkRequest = QtNetwork.QNetworkRequest
 QNetworkAccessManager = QtNetwork.QNetworkAccessManager
 QNetworkCookieJar = QtNetwork.QNetworkCookieJar
-QNetworkDiskCache = QtNetwork.QNetworkDiskCache
 QNetworkProxy = QtNetwork.QNetworkProxy
 QNetworkCookie = QtNetwork.QNetworkCookie
 
@@ -202,19 +200,10 @@ def can_load_page(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
-    def __init__(self, ghost, reply, cache, content=None):
+    def __init__(self, ghost, reply, content):
         self.ghost = ghost
         self.url = reply.url().toString()
         self.content = content
-        if cache and self.content is None:
-            # Tries to get back content from cache
-            buffer = None
-            if PYSIDE:
-                buffer = cache.data(reply.url().toString())
-            else:
-                buffer = cache.data(reply.url())
-            if buffer is not None:
-                content = buffer.readAll()
         try:
             self.content = unicode(content)
         except UnicodeDecodeError:
@@ -241,6 +230,30 @@ class HttpResource(object):
         self._reply = reply
 
 
+def replyReadyRead(reply):
+    if not hasattr(reply, 'data'):
+        reply.data = ''
+
+    reply.data += reply.peek(reply.bytesAvailable())
+
+
+class NetworkAccessManager(QNetworkAccessManager):
+    """Subclass QNetworkAccessManager to always cache the reply content
+    """
+    def createRequest(self, operation, request, data):
+        reply = QNetworkAccessManager.createRequest(
+            self,
+            operation,
+            request,
+            data
+        )
+        # if I'm not sleeping here, readyRead will start
+        # before the attribute was set - don't know why
+        time.sleep(0.01)
+        reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+        return reply
+
+
 class Ghost(object):
     """Ghost manages a QWebPage.
 
@@ -253,7 +266,6 @@ class Ghost(object):
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
-    :param cache_dir: A directory path where to store cache datas.
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param plugin_path: Array with paths to plugin directories
@@ -276,13 +288,12 @@ class Ghost(object):
         display=False,
         viewport_size=(800, 600),
         ignore_ssl_errors=True,
-        cache_dir=os.path.join(tempfile.mkdtemp()),
         plugins_enabled=False,
         java_enabled=False,
         plugin_path=['/usr/lib/mozilla/plugins', ],
         download_images=True,
         show_scrollbars=True,
-        network_access_manager_class=None,
+        network_access_manager_class=NetworkAccessManager,
     ):
 
         self.id = str(uuid.uuid4())
@@ -372,13 +383,6 @@ class Ghost(object):
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
         self.manager.sslErrors.connect(self._on_manager_ssl_errors)
-        # Cache
-        if cache_dir:
-            self.cache = QNetworkDiskCache()
-            self.cache.setCacheDirectory(cache_dir)
-            self.manager.setCache(self.cache)
-        else:
-            self.cache = None
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
@@ -1103,8 +1107,6 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        if self.cache:
-            self.cache.clear()
 
     def _page_load_started(self):
         """Called back when page load started.
@@ -1132,24 +1134,10 @@ class Ghost(object):
                 reply.bytesAvailable()
             ))
 
-            # Some web pages return cache headers that mandates not to cache
-            # the reply, which means we won't find this QNetworkReply in
-            # the cache object. In this case bytesAvailable will return > 0.
-            # Such pages are www.etsy.com
-            # This is a bit of a hack and due to the async nature of QT, might
-            # not work at times. We should move to using some proxied
-            # implementation of QNetworkManager and QNetworkReply in order to
-            # get the contents of the requests properly rather than relying
-            # on the cache.
-            if reply.bytesAvailable() > 0:
-                content = reply.peek(reply.bytesAvailable())
-            else:
-                content = None
             self.http_resources.append(HttpResource(
                 self,
                 reply,
-                self.cache,
-                content=content,
+                content=reply.data,
             ))
 
     def _unsupported_content(self, reply):
@@ -1166,7 +1154,6 @@ class Ghost(object):
             self.http_resources.append(HttpResource(
                 self,
                 reply,
-                self.cache,
                 reply.readAll(),
             ))
 
