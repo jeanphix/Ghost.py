@@ -12,7 +12,8 @@ from cookielib import Cookie, LWPCookieJar
 from logger import configure
 
 
-__version__ = "0.1b3"
+__version__ = "0.1b4"
+
 
 bindings = ["PySide", "PyQt4"]
 

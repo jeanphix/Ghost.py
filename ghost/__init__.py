@@ -1,2 +1,2 @@
-from .ghost import Ghost, Error, TimeoutError
+from .ghost import Ghost, Error, TimeoutError, __version__
 from .test import GhostTestCase
