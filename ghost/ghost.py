@@ -111,7 +111,9 @@ class GhostWebPage(QtWebKit.QWebPage):
         super(GhostWebPage, self).__init__(app)
 
     def chooseFile(self, frame, suggested_file=None):
-        return Ghost._upload_file
+        filename = Ghost._upload_file
+        self.ghost.logger.debug('Choosing file %s' % filename)
+        return filename
 
     def javaScriptConsoleMessage(self, message, line, source):
         """Prints client console message in current output stream."""
