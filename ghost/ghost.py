@@ -408,7 +408,7 @@ class Ghost(object):
         self.webview.setPage(self.page)
 
         if self.display:
-            self.webview.show()
+            self.show()
 
     def __del__(self):
         self.exit()
