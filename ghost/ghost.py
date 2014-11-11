@@ -990,6 +990,7 @@ class Ghost(object):
         """Show current page inside a QWebView.
         """
         self.webview.show()
+        self.sleep()
 
     def sleep(self, value=0.1):
         started_at = time.time()
