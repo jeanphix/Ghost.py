@@ -1107,6 +1107,7 @@ class Ghost(object):
         """Called back when page is loaded.
         """
         self.loaded = True
+        self.sleep()
 
     def _page_load_started(self):
         """Called back when page load started.
