@@ -991,7 +991,7 @@ class Ghost(object):
         """
         self.webview.show()
 
-    def sleep(self, value):
+    def sleep(self, value=0.1):
         started_at = time.time()
 
         while time.time() <= (started_at + value):
@@ -1010,7 +1010,7 @@ class Ghost(object):
         while not condition():
             if time.time() > (started_at + timeout):
                 raise TimeoutError(timeout_message)
-            self.sleep(0.1)
+            self.sleep()
             if self.wait_callback is not None:
                 self.wait_callback()
 
