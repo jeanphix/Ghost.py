@@ -411,24 +411,22 @@ class Ghost(object):
     def __del__(self):
         self.exit()
 
-    def ascend_to_root_frame(self):
+    def frame(self, name=None):
         """ Set main frame as current main frame's parent.
+
+        :param name: An optional name of the child to descend to.
         """
+        if name is not None:
+            for frame in self.main_frame.childFrames():
+                if frame.frameName() == name:
+                    self.main_frame = frame
+                    return
+            # frame not found so we throw an exception
+            raise LookupError("Child frame '%s' not found." % name)
+
         # we can't ascend directly to parent frame because it might have been
         # deleted
         self.main_frame = self.page.mainFrame()
-
-    def descend_frame(self, child_name):
-        """ Set main frame as one of current main frame's children.
-
-        :param child_name: The name of the child to descend to.
-        """
-        for frame in self.main_frame.childFrames():
-            if frame.frameName() == child_name:
-                self.main_frame = frame
-                return
-        # frame not found so we throw an exception
-        raise LookupError("Child frame '%s' not found." % child_name)
 
     def capture(
         self,
