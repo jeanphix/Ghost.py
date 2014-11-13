@@ -416,11 +416,18 @@ class Ghost(object):
         self.page.setViewportSize(self.main_frame.contentsSize())
         image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
-        self.main_frame.render(painter)
-        painter.end()
         
         if region is None and selector is not None:
             region = self.region_for_selector(selector)
+
+        if region:
+            x1, y1, x2, y2 = region
+            w, h = (x2 - x1), (y2 - y1)
+            reg = QRegion(x1, y1, w, h)
+            self.main_frame.render(painter, reg)
+        else:
+            self.main_frame.render(painter)
+        painter.end()
         
         if region:
             x1, y1, x2, y2 = region
