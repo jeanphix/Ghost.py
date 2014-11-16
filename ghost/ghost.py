@@ -8,6 +8,7 @@ import logging
 import subprocess
 from functools import wraps
 from cookielib import Cookie, LWPCookieJar
+from contextlib import contextmanager
 
 from logger import configure
 
@@ -137,13 +138,13 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Checks if ghost is waiting for confirm, then returns the right
         value.
         """
-        if Ghost._confirm_expected is None:
+        if self.ghost._confirm_expected is None:
             raise Error(
                 'You must specified a value to confirm "%s"' %
                 message,
             )
         self.ghost.append_popup_message(message)
-        confirmation, callback = Ghost._confirm_expected
+        confirmation, callback = self.ghost._confirm_expected
         self.ghost.logger.info("confirm('%s')" % message)
         if callback is not None:
             return callback()
@@ -551,21 +552,16 @@ class Ghost(object):
             })();
         """ % repr(selector))
 
-    class confirm:
+    @contextmanager
+    def confirm(self, confirm=True, callback=None):
         """Statement that tells Ghost how to deal with javascript confirm().
 
         :param confirm: A boolean to set confirmation.
         :param callable: A callable that returns a boolean for confirmation.
         """
-        def __init__(self, confirm=True, callback=None):
-            self.confirm = confirm
-            self.callback = callback
-
-        def __enter__(self):
-            Ghost._confirm_expected = (self.confirm, self.callback)
-
-        def __exit__(self, type, value, traceback):
-            Ghost._confirm_expected = None
+        self._confirm_expected = (confirm, callback)
+        yield
+        self._confirm_expected = None
 
     @property
     def content(self, to_unicode=True):
@@ -754,7 +750,7 @@ class Ghost(object):
 
         if default_popup_response is not None:
             Ghost._prompt_expected = (default_popup_response, None)
-            Ghost._confirm_expected = (default_popup_response, None)
+            self._confirm_expected = (default_popup_response, None)
 
         if wait:
             return self.wait_for_page_loaded(timeout=timeout)

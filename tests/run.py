@@ -180,21 +180,21 @@ class GhostTest(GhostTestCase):
 
     def test_confirm(self):
         self.ghost.open("%salert" % base_url)
-        with Ghost.confirm():
+        with self.ghost.confirm():
             self.ghost.click('#confirm-button')
         msg, resources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'you confirmed!')
 
     def test_no_confirm(self):
         self.ghost.open("%salert" % base_url)
-        with Ghost.confirm(False):
+        with self.ghost.confirm(False):
             self.ghost.click('#confirm-button')
         msg, resources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'you denied!')
 
     def test_confirm_callback(self):
         self.ghost.open("%salert" % base_url)
-        with Ghost.confirm(callback=lambda: False):
+        with self.ghost.confirm(callback=lambda: False):
             self.ghost.click('#confirm-button')
         msg, resources = self.ghost.wait_for_alert()
         self.assertEqual(msg, 'you denied!')
