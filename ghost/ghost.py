@@ -154,13 +154,13 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Checks if ghost is waiting for prompt, then enters the right
         value.
         """
-        if Ghost._prompt_expected is None:
+        if self.ghost._prompt_expected is None:
             raise Error(
                 'You must specified a value for prompt "%s"' %
                 message,
             )
         self.ghost.append_popup_message(message)
-        result_value, callback = Ghost._prompt_expected
+        result_value, callback = self.ghost._prompt_expected
         self.ghost.logger.info("prompt('%s')" % message)
         if callback is not None:
             result_value = callback()
@@ -749,7 +749,7 @@ class Ghost(object):
         self.loaded = False
 
         if default_popup_response is not None:
-            Ghost._prompt_expected = (default_popup_response, None)
+            self._prompt_expected = (default_popup_response, None)
             self._confirm_expected = (default_popup_response, None)
 
         if wait:
@@ -758,21 +758,16 @@ class Ghost(object):
     def scroll_to_anchor(self, anchor):
         self.main_frame.scrollToAnchor(anchor)
 
-    class prompt:
+    @contextmanager
+    def prompt(self, value='', callback=None):
         """Statement that tells Ghost how to deal with javascript prompt().
 
         :param value: A string value to fill in prompt.
         :param callback: A callable that returns the value to fill in.
         """
-        def __init__(self, value='', callback=None):
-            self.value = value
-            self.callback = callback
-
-        def __enter__(self):
-            Ghost._prompt_expected = (self.value, self.callback)
-
-        def __exit__(self, type, value, traceback):
-            Ghost._prompt_expected = None
+        self._prompt_expected = (value, callback)
+        yield
+        self._prompt_expected = None
 
     def region_for_selector(self, selector):
         """Returns frame region for given selector as tuple.

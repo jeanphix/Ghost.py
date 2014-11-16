@@ -201,14 +201,14 @@ class GhostTest(GhostTestCase):
 
     def test_prompt(self):
         self.ghost.open("%salert" % base_url)
-        with Ghost.prompt('my value'):
+        with self.ghost.prompt('my value'):
             self.ghost.click('#prompt-button')
         value, resources = self.ghost.evaluate('promptValue')
         self.assertEqual(value, 'my value')
 
     def test_prompt_callback(self):
         self.ghost.open("%salert" % base_url)
-        with Ghost.prompt(callback=lambda: 'another value'):
+        with self.ghost.prompt(callback=lambda: 'another value'):
             self.ghost.click('#prompt-button')
         value, resources = self.ghost.evaluate('promptValue')
         self.assertEqual(value, 'another value')
