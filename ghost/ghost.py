@@ -134,6 +134,12 @@ class GhostWebPage(QtWebKit.QWebPage):
         self.ghost.append_popup_message(message)
         self.ghost.logger.info("alert('%s')" % message)
 
+    def _get_value(self, value):
+        if callable(value):
+            return value()
+
+        return value
+
     def javaScriptConfirm(self, frame, message):
         """Checks if ghost is waiting for confirm, then returns the right
         value.
@@ -144,11 +150,9 @@ class GhostWebPage(QtWebKit.QWebPage):
                 message,
             )
         self.ghost.append_popup_message(message)
-        confirmation, callback = self.ghost._confirm_expected
+        value =  self.ghost._confirm_expected
         self.ghost.logger.info("confirm('%s')" % message)
-        if callback is not None:
-            return callback()
-        return confirmation
+        return self._get_value(value)
 
     def javaScriptPrompt(self, frame, message, defaultValue, result=None):
         """Checks if ghost is waiting for prompt, then enters the right
@@ -160,19 +164,19 @@ class GhostWebPage(QtWebKit.QWebPage):
                 message,
             )
         self.ghost.append_popup_message(message)
-        result_value, callback = self.ghost._prompt_expected
+        value = self.ghost._prompt_expected
         self.ghost.logger.info("prompt('%s')" % message)
-        if callback is not None:
-            result_value = callback()
-        if result_value == '':
+        value = self._get_value(value)
+        if value == '':
             self.ghost.logger.warn(
                 "'%s' prompt filled with empty string" % message,
             )
 
         if result is None:
             # PySide
-            return True, result_value
-        result.append(unicode(result_value))
+            return True, value
+
+        result.append(unicode(value))
         return True
 
     def setUserAgent(self, user_agent):
@@ -553,13 +557,12 @@ class Ghost(object):
         """ % repr(selector))
 
     @contextmanager
-    def confirm(self, confirm=True, callback=None):
+    def confirm(self, confirm=True):
         """Statement that tells Ghost how to deal with javascript confirm().
 
-        :param confirm: A boolean to set confirmation.
-        :param callable: A callable that returns a boolean for confirmation.
+        :param confirm: A boolean or a callable to set confirmation.
         """
-        self._confirm_expected = (confirm, callback)
+        self._confirm_expected = confirm
         yield
         self._confirm_expected = None
 
@@ -749,8 +752,8 @@ class Ghost(object):
         self.loaded = False
 
         if default_popup_response is not None:
-            self._prompt_expected = (default_popup_response, None)
-            self._confirm_expected = (default_popup_response, None)
+            self._prompt_expected = default_popup_response
+            self._confirm_expected = default_popup_response
 
         if wait:
             return self.wait_for_page_loaded(timeout=timeout)
@@ -759,13 +762,12 @@ class Ghost(object):
         self.main_frame.scrollToAnchor(anchor)
 
     @contextmanager
-    def prompt(self, value='', callback=None):
+    def prompt(self, value=''):
         """Statement that tells Ghost how to deal with javascript prompt().
 
-        :param value: A string value to fill in prompt.
-        :param callback: A callable that returns the value to fill in.
+        :param value: A string or a callable value to fill in prompt.
         """
-        self._prompt_expected = (value, callback)
+        self._prompt_expected = value
         yield
         self._prompt_expected = None
 
