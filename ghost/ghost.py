@@ -129,7 +129,7 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
-        Ghost._alert = message
+        self.ghost._alert = message
         self.ghost.append_popup_message(message)
         self.ghost.logger.info("alert('%s')" % message)
 
@@ -1035,10 +1035,10 @@ class Ghost(object):
 
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: Ghost._alert is not None,
+        self.wait_for(lambda: self._alert is not None,
                       'User has not been alerted.', timeout)
-        msg = Ghost._alert
-        Ghost._alert = None
+        msg = self._alert
+        self._alert = None
         return msg, self._release_last_resources()
 
     def wait_for_page_loaded(self, timeout=None):
