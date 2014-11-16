@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from logger import configure
 
 
-__version__ = "0.1b4"
+__version__ = "0.1b5"
 
 
 bindings = ["PySide", "PyQt4"]
