@@ -1138,10 +1138,15 @@ class Ghost(object):
                 reply.bytesAvailable()
             ))
 
+            try:
+                content = reply.data
+            except AttributeError:
+                content = reply.readAll()
+
             self.http_resources.append(HttpResource(
                 self,
                 reply,
-                content=reply.data,
+                content=content,
             ))
 
     def _unsupported_content(self, reply):
