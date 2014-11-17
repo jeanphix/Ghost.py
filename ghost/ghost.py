@@ -254,10 +254,8 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        # if I'm not sleeping here, readyRead will start
-        # before the attribute was set - don't know why
-        time.sleep(0.01)
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+        time.sleep(0.01)
         return reply
 
 
