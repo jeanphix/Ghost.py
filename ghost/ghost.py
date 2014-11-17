@@ -1150,6 +1150,10 @@ class Ghost(object):
             ))
 
     def _unsupported_content(self, reply):
+        self.logger.info("Unsupported content %s" % (
+            str(reply.url()),
+        ))
+
         reply.readyRead.connect(
             lambda reply=reply: self._reply_download_content(reply))
 
