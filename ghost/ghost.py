@@ -349,7 +349,6 @@ class Ghost(object):
                 for p in plugin_path:
                     Ghost._app.addLibraryPath(p)
 
-       
         self.popup_messages = []
         self.page = GhostWebPage(Ghost._app, self)
 
