@@ -759,7 +759,7 @@ class Ghost(object):
                 ssl_conf.setLocalCertificate(certificate)
 
             if "key_path" in client_certificate:
-                private_path = QtNetwork.QSslKey(
+                private_key = QtNetwork.QSslKey(
                                     open(client_certificate["key_path"]).read(), 
                                     QSsl.Rsa) 
                 ssl_conf.setPrivateKey(private_key)
