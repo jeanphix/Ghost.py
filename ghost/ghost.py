@@ -152,7 +152,7 @@ class GhostWebPage(QtWebKit.QWebPage):
                 message,
             )
         self.ghost.append_popup_message(message)
-        value =  self.ghost._confirm_expected
+        value = self.ghost._confirm_expected
         self.ghost.logger.info("confirm('%s')" % message)
         return self._get_value(value)
 
@@ -716,8 +716,18 @@ class Ghost(object):
         else:
             raise ValueError('unsupported cookie_storage type.')
 
-    def open(self, address, method='get', headers={}, auth=None, body=None,
-             default_popup_response=None, wait=True, timeout=None, client_certificate=None):
+    def open(
+        self,
+        address,
+        method='get',
+        headers={},
+        auth=None,
+        body=None,
+        default_popup_response=None,
+        wait=True,
+        timeout=None,
+        client_certificate=None,
+    ):
         """Opens a web page.
 
         :param address: The resource URL.
@@ -735,7 +745,7 @@ class Ghost(object):
         finish by other means (e.g. by calling wait_for_page_loaded()).
         :param timeout: An optional timeout.
         :param client_certificate An optional dict with "certificate_path" and
-        "key_path" both paths corresponding to the certificate and key files 
+        "key_path" both paths corresponding to the certificate and key files
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
@@ -753,18 +763,22 @@ class Ghost(object):
             if "certificate_path" in client_certificate:
                 try:
                     certificate = QtNetwork.QSslCertificate.fromPath(
-                                        client_certificate["certificate_path"],
-                                        QSsl.Pem)[0]
+                        client_certificate["certificate_path"],
+                        QSsl.Pem,
+                    )[0]
                 except IndexError:
-                    raise Error("Can't find certicate in %s" %  \
-                                client_certificate["certificate_path"])
+                    raise Error(
+                        "Can't find certicate in %s"
+                        % client_certificate["certificate_path"]
+                    )
 
                 ssl_conf.setLocalCertificate(certificate)
 
             if "key_path" in client_certificate:
                 private_key = QtNetwork.QSslKey(
-                                    open(client_certificate["key_path"]).read(), 
-                                    QSsl.Rsa) 
+                    open(client_certificate["key_path"]).read(),
+                    QSsl.Rsa,
+                )
                 ssl_conf.setPrivateKey(private_key)
 
             QSslConfiguration.setDefaultConfiguration(ssl_conf)
