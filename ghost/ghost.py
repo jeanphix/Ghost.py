@@ -17,28 +17,33 @@ __version__ = "0.1b5"
 
 
 bindings = ["PySide", "PyQt4"]
-
 binding = None
+
+
 for name in bindings:
     try:
         binding = __import__(name)
-        break
+        if name == 'PyQt4':
+            import sip
+            sip.setapi('QVariant', 2)
+
     except ImportError:
         continue
 
 
-if not binding:
-    raise Exception("Ghost.py requires PySide or PyQt4")
+class LazyBinding(object):
+    class __metaclass__(type):
+        def __getattr__(self, name):
+            return self.__class__
 
-
-PYSIDE = binding.__name__ == 'PySide'
-
-if not PYSIDE:
-    import sip
-    sip.setapi('QVariant', 2)
+    def __getattr__(self, name):
+        return self.__class__
 
 
 def _import(name):
+    if binding is None:
+        return LazyBinding()
+
     name = "%s.%s" % (binding.__name__, name)
     module = __import__(name)
     for n in name.split(".")[1:]:
@@ -303,6 +308,8 @@ class Ghost(object):
         show_scrollbars=True,
         network_access_manager_class=NetworkAccessManager,
     ):
+        if not binding:
+            raise Exception("Ghost.py requires PySide or PyQt4")
 
         self.id = str(uuid.uuid4())
 
