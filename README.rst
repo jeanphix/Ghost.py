@@ -18,7 +18,8 @@ Installation
 
 ghost.py requires either PySide_ (prefered) or PyQt_ Qt_ bindings::
 
-    pip install pyside ghost.py
+    pip install pyside
+    pip install ghost.py --pre
 
 
 .. _PySide: https://pyside.github.io/
