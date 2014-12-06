@@ -1002,8 +1002,13 @@ class Ghost(object):
                 Ghost._upload_file = None
         else:
             raise Error('unsuported field tag')
+
+        for event in ['input', 'change']:
+            self.fire(selector, event);
+
         if blur:
             self.call(selector, 'blur')
+
         return res, ressources
 
     def set_proxy(
