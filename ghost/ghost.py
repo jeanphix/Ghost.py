@@ -667,6 +667,21 @@ class Ghost(object):
             resources.extend(res)
         return True, resources
 
+    @can_load_page
+    def fire(self, selector, event):
+        """Fire `event` on element at `selector`
+
+        :param selector: A selector to target the element.
+        :param event: The name of the event to trigger.
+        """
+        self.logger.debug('Fire `%s` on `%s`' % (event, selector))
+        element = self.main_frame.findFirstElement(selector)
+        return element.evaluateJavaScript("""
+            var event = document.createEvent("HTMLEvents");
+            event.initEvent('%s', true, true);
+            this.dispatchEvent(event);
+        """ % event)
+
     def global_exists(self, global_name):
         """Checks if javascript global exists.
 
