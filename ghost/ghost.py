@@ -663,6 +663,7 @@ class Ghost(object):
         :param method: The name of the method to fire.
         :param expect_loading: Specifies if a page loading is expected.
         """
+        self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
         element = self.main_frame.findFirstElement(selector)
         return element.evaluateJavaScript('this[%s]();' % repr(method))
 
