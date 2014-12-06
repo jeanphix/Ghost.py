@@ -663,10 +663,8 @@ class Ghost(object):
         :param method: The name of the method to fire.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        return self.evaluate(
-            'document.querySelector(%s)[%s]();'
-            % (repr(selector), repr(method))
-        )
+        element = self.main_frame.findFirstElement(selector)
+        return element.evaluateJavaScript('this[%s]();' % repr(method))
 
     def global_exists(self, global_name):
         """Checks if javascript global exists.
