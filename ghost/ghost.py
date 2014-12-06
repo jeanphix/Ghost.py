@@ -940,10 +940,13 @@ class Ghost(object):
 
         def _set_select_value(el, value):
             el.setFocus()
-            self.evaluate(
-                'document.querySelector(%s).value = %s;'
-                % (repr(selector), repr(value))
-            )
+            index = 0
+            for option in el.findAll('option'):
+                if option.attribute('value') == value:
+                    option.evaluateJavaScript('this.selected = true;')
+                    el.evaluateJavaScript('this.selectedIndex = %d;' % index)
+                    break
+                index += 1
 
         def _set_textarea_value(el, value):
             el.setFocus()
