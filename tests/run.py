@@ -122,7 +122,7 @@ class GhostTest(GhostTestCase):
             'text': 'Here is a sample text.',
         }
         self.ghost.fill('#contact-form', values)
-        page, resources = self.ghost.fire_on('#contact-form', 'submit',
+        page, resources = self.ghost.call('#contact-form', 'submit',
             expect_loading=True)
         self.assertIn('form successfully posted', self.ghost.content)
 
@@ -328,7 +328,7 @@ class GhostTest(GhostTestCase):
         self.ghost.open("%supload" % base_url)
         self.ghost.set_field_value('[name=simple-file]',
             os.path.join(os.path.dirname(__file__), 'static', 'blackhat.jpg'))
-        page, resources = self.ghost.fire_on('form', 'submit',
+        page, resources = self.ghost.call('form', 'submit',
             expect_loading=True)
         file_path = os.path.join(
             os.path.dirname(__file__), 'uploaded_blackhat.jpg')

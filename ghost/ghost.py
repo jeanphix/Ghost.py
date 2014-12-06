@@ -451,6 +451,18 @@ class Ghost(object):
         # deleted
         self.main_frame = self.page.mainFrame()
 
+    @can_load_page
+    def call(self, selector, method):
+        """Call method on element matching given selector.
+
+        :param selector: A CSS selector to the target element.
+        :param method: The name of the method to call.
+        :param expect_loading: Specifies if a page loading is expected.
+        """
+        self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
+        element = self.main_frame.findFirstElement(selector)
+        return element.evaluateJavaScript('this[%s]();' % repr(method))
+
     def capture(
         self,
         region=None,
@@ -654,18 +666,6 @@ class Ghost(object):
                 "%s [name=%s]" % (selector, repr(field)), values[field])
             resources.extend(res)
         return True, resources
-
-    @can_load_page
-    def fire_on(self, selector, method):
-        """Call method on element matching given selector.
-
-        :param selector: A CSS selector to the target element.
-        :param method: The name of the method to fire.
-        :param expect_loading: Specifies if a page loading is expected.
-        """
-        self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
-        element = self.main_frame.findFirstElement(selector)
-        return element.evaluateJavaScript('this[%s]();' % repr(method))
 
     def global_exists(self, global_name):
         """Checks if javascript global exists.
@@ -983,7 +983,7 @@ class Ghost(object):
         else:
             raise Error('unsuported field tag')
         if blur:
-            self.fire_on(selector, 'blur')
+            self.call(selector, 'blur')
         return res, ressources
 
     def set_proxy(
