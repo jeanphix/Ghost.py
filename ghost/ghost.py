@@ -912,6 +912,8 @@ class Ghost(object):
         :param value: The value to fill in.
         :param blur: An optional boolean that force blur when filled in.
         """
+        self.logger.debug('Setting value "%s" for "%s"' % (value, selector))
+
         def _set_checkbox_value(el, value):
             el.setFocus()
             if value is True:
