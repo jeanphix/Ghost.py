@@ -41,7 +41,7 @@ class BaseGhostTestCase(TestCase):
                 wait_timeout=cls.wait_timeout,
                 viewport_size=cls.viewport_size,
                 log_level=cls.log_level, )
-        return super(BaseGhostTestCase, cls).__new__(cls, *args, **kwargs)
+        return super(BaseGhostTestCase, cls).__new__(cls)
 
     def __call__(self, result=None):
         """Does the required setup, doing it here

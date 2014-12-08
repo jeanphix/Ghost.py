@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+PY3 = sys.version > '3'
 import os
 import time
 import uuid
@@ -7,13 +8,18 @@ import codecs
 import logging
 import subprocess
 from functools import wraps
-from cookielib import Cookie, LWPCookieJar
+try:
+    from cookielib import Cookie, LWPCookieJar
+except ImportError:
+    from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-
-from logger import configure
-
+from .logger import configure
 
 __version__ = "0.1b6"
+
+if PY3:
+    unicode = str
+    long = int
 
 
 bindings = ["PySide", "PyQt4"]
@@ -467,7 +473,7 @@ class Ghost(object):
         self,
         region=None,
         selector=None,
-        format=QImage.Format_ARGB32_Premultiplied,
+        format=None,
     ):
         """Returns snapshot as QImage.
 
@@ -486,7 +492,7 @@ class Ghost(object):
             QtCore.Qt.ScrollBarAlwaysOff,
         )
         self.page.setViewportSize(self.main_frame.contentsSize())
-        image = QImage(self.page.viewportSize(), format)
+        image = QImage(self.page.viewportSize(), format if format is not None else QImage.Format_ARGB32_Premultiplied)
         painter = QPainter(image)
 
         if region is None and selector is not None:
@@ -514,7 +520,7 @@ class Ghost(object):
         path,
         region=None,
         selector=None,
-        format=QImage.Format_ARGB32_Premultiplied,
+        format=None,
     ):
         """Saves snapshot as image.
 
@@ -524,7 +530,7 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
-        self.capture(region=region, format=format,
+        self.capture(region=region, format=format if format is not None else QImage.Format_ARGB32_Premultiplied,
                      selector=selector).save(path)
 
     def print_to_pdf(
@@ -532,7 +538,7 @@ class Ghost(object):
         path,
         paper_size=(8.5, 11.0),
         paper_margins=(0, 0, 0, 0),
-        paper_units=QPrinter.Inch,
+        paper_units=None,
         zoom_factor=1.0,
     ):
         """Saves page as a pdf file.
@@ -550,7 +556,7 @@ class Ghost(object):
         assert len(paper_margins) == 4
         printer = QPrinter(mode=QPrinter.ScreenResolution)
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
+        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units if paper_units is not None else QPrinter.Inch)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
         printer.setFullPage(True)
         printer.setOutputFileName(path)
