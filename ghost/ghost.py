@@ -483,6 +483,9 @@ class Ghost(object):
         :param format: The output image format.
         """
 
+        if format is None:
+            format = QImage.Format_ARGB32_Premultiplied
+
         self.main_frame.setScrollBarPolicy(
             QtCore.Qt.Vertical,
             QtCore.Qt.ScrollBarAlwaysOff,
@@ -492,7 +495,7 @@ class Ghost(object):
             QtCore.Qt.ScrollBarAlwaysOff,
         )
         self.page.setViewportSize(self.main_frame.contentsSize())
-        image = QImage(self.page.viewportSize(), format if format is not None else QImage.Format_ARGB32_Premultiplied)
+        image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
 
         if region is None and selector is not None:
@@ -530,7 +533,11 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
-        self.capture(region=region, format=format if format is not None else QImage.Format_ARGB32_Premultiplied,
+
+        if format is None:
+            format = QImage.Format_ARGB32_Premultiplied
+
+        self.capture(region=region, format=format,
                      selector=selector).save(path)
 
     def print_to_pdf(
@@ -554,9 +561,13 @@ class Ghost(object):
         """
         assert len(paper_size) == 2
         assert len(paper_margins) == 4
+
+        if paper_units is None:
+            paper_units = QPrinter.Inch
+
         printer = QPrinter(mode=QPrinter.ScreenResolution)
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units if paper_units is not None else QPrinter.Inch)
+        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
         printer.setFullPage(True)
         printer.setOutputFileName(path)
