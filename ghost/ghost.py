@@ -252,6 +252,7 @@ class Ghost(object):
     :param plugin_path: Array with paths to plugin directories
         (default ['/usr/lib/mozilla/plugins'])
     :param download_images: Indicate if the browser should download images
+    :param follow_redirects: Follow HTTP redirects
     """
     _alert = None
     _confirm_expected = None
@@ -274,6 +275,7 @@ class Ghost(object):
             download_images=True,
             qt_debug=False,
             show_scrollbars=True,
+            follow_redirects=True,
             network_access_manager_class=None):
 
         self.http_resources = []
@@ -320,6 +322,9 @@ class Ghost(object):
             QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
         self.page.settings().setAttribute(QtWebKit.QWebSettings.JavaEnabled,
             java_enabled)
+        
+        if follow_redirects:
+            self.page.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
 
         if not show_scrollbars:
             self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical,
