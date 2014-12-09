@@ -324,7 +324,7 @@ class Ghost(object):
             java_enabled)
         
         if follow_redirects:
-            self.page.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+            self.page.setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
 
         if not show_scrollbars:
             self.page.mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical,
