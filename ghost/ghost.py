@@ -151,7 +151,8 @@ class GhostWebPage(QWebPage):
     """
     def __init__(self, app, ghost):
         self.ghost = ghost
-        super(GhostWebPage, self).__init__(app)
+        # super(GhostWebPage, self).__init__(app)
+        super(GhostWebPage, self).__init__()
 
     def chooseFile(self, frame, suggested_file=None):
         filename = Ghost._upload_file
