@@ -22,14 +22,14 @@ if PY3:
     long = int
 
 
-bindings = ["PySide", "PyQt4"]
+bindings = ["PySide", "PyQt4", "PyQt5"]
 binding = None
 
 
 for name in bindings:
     try:
         binding = __import__(name)
-        if name == 'PyQt4':
+        if name.startswith('PyQt'):
             import sip
             sip.setapi('QVariant', 2)
 
@@ -66,14 +66,33 @@ QtCriticalMsg = QtCore.QtCriticalMsg
 QtDebugMsg = QtCore.QtDebugMsg
 QtFatalMsg = QtCore.QtFatalMsg
 QtWarningMsg = QtCore.QtWarningMsg
-qInstallMsgHandler = QtCore.qInstallMsgHandler
+if name == "PyQt5":
+
+    qInstallMsgHandler = QtCore.qInstallMessageHandler
+
+else:
+
+    qInstallMsgHandler = QtCore.qInstallMsgHandler
 
 QtGui = _import("QtGui")
-QApplication = QtGui.QApplication
-QImage = QtGui.QImage
-QPainter = QtGui.QPainter
-QPrinter = QtGui.QPrinter
-QRegion = QtGui.QRegion
+if name == "PyQt5":
+
+    QtWidgets = _import("QtWidgets")
+    QtPrintSupport = _import("QtPrintSupport")
+
+    QApplication = QtWidgets.QApplication
+    QImage = QtGui.QImage
+    QPainter = QtGui.QPainter
+    QPrinter = QtPrintSupport.QPrinter
+    QRegion = QtGui.QRegion
+
+else:
+
+    QApplication = QtGui.QApplication
+    QImage = QtGui.QImage
+    QPainter = QtGui.QPainter
+    QPrinter = QtGui.QPrinter
+    QRegion = QtGui.QRegion
 
 QtNetwork = _import("QtNetwork")
 QNetworkRequest = QtNetwork.QNetworkRequest
@@ -85,7 +104,16 @@ QSslConfiguration = QtNetwork.QSslConfiguration
 QSsl = QtNetwork.QSsl
 
 QtWebKit = _import('QtWebKit')
+if name == "PyQt5":
 
+    QtWebKitWidgets = _import("QtWebKitWidgets")
+    QWebPage = QtWebKitWidgets.QWebPage
+    QWebView = QtWebKitWidgets.QWebView
+
+else:
+
+    QWebPage = QtWebKit.QWebPage
+    QWebView = QtWebKit.QWebView
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
@@ -105,7 +133,8 @@ class QTMessageProxy(object):
     def __init__(self, logger):
         self.logger = logger
 
-    def __call__(self, msgType, msg):
+    def __call__(self, *args):
+        msgType, msg = args[0], args[-1]
         levels = {
             QtDebugMsg: 'debug',
             QtWarningMsg: 'warn',
@@ -115,14 +144,15 @@ class QTMessageProxy(object):
         getattr(self.logger, levels[msgType])(msg)
 
 
-class GhostWebPage(QtWebKit.QWebPage):
+class GhostWebPage(QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
     def __init__(self, app, ghost):
         self.ghost = ghost
-        super(GhostWebPage, self).__init__(app)
+        # super(GhostWebPage, self).__init__(app)
+        super(GhostWebPage, self).__init__()
 
     def chooseFile(self, frame, suggested_file=None):
         filename = Ghost._upload_file
@@ -315,7 +345,7 @@ class Ghost(object):
         network_access_manager_class=NetworkAccessManager,
     ):
         if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
+            raise Exception("Ghost.py requires PySide, PyQt4 or PyQt5")
 
         self.id = str(uuid.uuid4())
 
@@ -419,7 +449,7 @@ class Ghost(object):
 
         self.main_frame = self.page.mainFrame()
 
-        class GhostQWebView(QtWebKit.QWebView):
+        class GhostQWebView(QWebView):
             def sizeHint(self):
                 return QSize(*viewport_size)
 
@@ -572,7 +602,7 @@ class Ghost(object):
         printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
-            self.webview = QtWebKit.QWebView()
+            self.webview = QWebView()
             self.webview.setPage(self.page)
         self.webview.setZoomFactor(zoom_factor)
         self.webview.print_(printer)
