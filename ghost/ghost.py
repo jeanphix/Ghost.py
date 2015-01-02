@@ -345,7 +345,7 @@ class Ghost(object):
         network_access_manager_class=NetworkAccessManager,
     ):
         if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
+            raise Exception("Ghost.py requires PySide, PyQt4 or PyQt5")
 
         self.id = str(uuid.uuid4())
 
