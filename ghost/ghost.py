@@ -133,7 +133,8 @@ class QTMessageProxy(object):
     def __init__(self, logger):
         self.logger = logger
 
-    def __call__(self, msgType, msg):
+    def __call__(self, *args):
+        msgType, msg = args[0], args[-1]
         levels = {
             QtDebugMsg: 'debug',
             QtWarningMsg: 'warn',
