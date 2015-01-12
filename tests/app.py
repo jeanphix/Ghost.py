@@ -33,7 +33,7 @@ def echo(arg):
 
 
 @app.route('/no-cache')
-def no_cahce():
+def no_cache():
     response = make_response("No cache for me.", 200)
     response.headers['Cache-Control'] = (
         'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
