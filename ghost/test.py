@@ -56,6 +56,7 @@ class BaseGhostTestCase(TestCase):
         """Deletes ghost cookies and hide UI if needed."""
         self.ghost.delete_cookies()
         self.ghost.clear_alert_message()
+        self.ghost.frame()
         if self.display:
             self.ghost.hide()
 

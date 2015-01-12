@@ -374,6 +374,28 @@ class GhostTest(GhostTestCase):
         page, resources = self.ghost.open("%smany-assets" % base_url)
         page, resources = self.ghost.open("%smany-assets" % base_url)
 
+    def test_frame_ascend(self):
+        ghost = self.ghost
+        ghost.open(base_url)
+        ghost.frame('first-frame')
+        self.assertIn('frame 1', ghost.content)
+        self.assertNotIn('Ghost.py', ghost.content)
+        ghost.frame()
+        self.assertNotIn('frame 1', ghost.content)
+        self.assertIn('Ghost.py', ghost.content)
+
+    def test_frame_descend_by_name(self):
+        ghost = self.ghost
+        ghost.open(base_url)
+        self.assertNotIn('frame 1', ghost.content)
+        ghost.frame('first-frame')
+        self.assertIn('frame 1', ghost.content)
+
+    def test_frame_descend_by_name_invalid(self):
+        ghost = self.ghost
+        ghost.open(base_url)
+        self.assertRaises(LookupError, ghost.frame, 'third-frame')
+
 
 if __name__ == '__main__':
     unittest.main()
