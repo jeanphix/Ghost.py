@@ -396,6 +396,18 @@ class GhostTest(GhostTestCase):
         ghost.open(base_url)
         self.assertRaises(LookupError, ghost.frame, 'third-frame')
 
+    def test_frame_descend_by_index(self):
+        ghost = self.ghost
+        ghost.open(base_url)
+        self.assertNotIn('frame 2', ghost.content)
+        ghost.frame(1)
+        self.assertIn('frame 2', ghost.content)
+
+    def test_frame_descend_by_index_invalid(self):
+        ghost = self.ghost
+        ghost.open(base_url)
+        self.assertRaises(LookupError, ghost.frame, 10)
+
 
 if __name__ == '__main__':
     unittest.main()

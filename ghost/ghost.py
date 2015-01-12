@@ -434,18 +434,29 @@ class Ghost(object):
     def __del__(self):
         self.exit()
 
-    def frame(self, name=None):
+    def frame(self, selector=None):
         """ Set main frame as current main frame's parent.
 
-        :param name: An optional name of the child to descend to.
+        :param frame: An optional name or index of the child to descend to.
         """
-        if name is not None:
+        if isinstance(selector, basestring):
             for frame in self.main_frame.childFrames():
-                if frame.frameName() == name:
+                if frame.frameName() == selector:
                     self.main_frame = frame
                     return
             # frame not found so we throw an exception
-            raise LookupError("Child frame '%s' not found." % name)
+            raise LookupError(
+                "Child frame for name '%s' not found." % selector,
+            )
+
+        if isinstance(selector, int):
+            try:
+                self.main_frame = self.main_frame.childFrames()[selector]
+                return
+            except IndexError:
+                raise LookupError(
+                    "Child frame at index '%s' not found." % selector,
+                )
 
         # we can't ascend directly to parent frame because it might have been
         # deleted
