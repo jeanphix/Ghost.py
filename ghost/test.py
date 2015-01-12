@@ -8,7 +8,7 @@ from ghost import Ghost
 
 
 class ServerThread(threading.Thread):
-    """Starts a Tornado HTTPServer from given WSGI application.
+    """Starts given WSGI application.
 
     :param app: The WSGI application to run.
     :param port: The port to run on.
