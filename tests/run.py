@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
+PY3 = sys.version > '3'
 import os
 import logging
 import unittest
-import cookielib
+try:
+    import cookielib
+except ImportError:
+    from http import cookiejar as cookielib
 
 from app import app
 from ghost import GhostTestCase
@@ -355,8 +360,14 @@ class GhostTest(GhostTestCase):
 
     def test_unsupported_content(self):
         page, resources = self.ghost.open("%ssend-file" % base_url)
-        foo = open(os.path.join(os.path.dirname(__file__),
-                                'static', 'foo.tar.gz'), 'r').read(1024)
+        file_path = os.path.join(os.path.dirname(__file__), 'static', 'foo.tar.gz')
+        if PY3:
+            f = open(file_path, 'r', encoding='latin-1')
+        else:
+            f = open(file_path, 'r')
+        foo = f.read(1024)
+        f.close()
+
         self.assertEqual(resources[0].content, foo)
 
     def test_url_with_hash(self):

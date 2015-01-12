@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+PY3 = sys.version > '3'
 import os
 import time
 import uuid
@@ -7,13 +8,18 @@ import codecs
 import logging
 import subprocess
 from functools import wraps
-from cookielib import Cookie, LWPCookieJar
+try:
+    from cookielib import Cookie, LWPCookieJar
+except ImportError:
+    from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-
-from logger import configure
-
+from .logger import configure
 
 __version__ = "0.1"
+
+if PY3:
+    unicode = str
+    long = int
 
 
 bindings = ["PySide", "PyQt4"]
@@ -478,7 +484,7 @@ class Ghost(object):
         self,
         region=None,
         selector=None,
-        format=QImage.Format_ARGB32_Premultiplied,
+        format=None,
     ):
         """Returns snapshot as QImage.
 
@@ -487,6 +493,9 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
+
+        if format is None:
+            format = QImage.Format_ARGB32_Premultiplied
 
         self.main_frame.setScrollBarPolicy(
             QtCore.Qt.Vertical,
@@ -525,7 +534,7 @@ class Ghost(object):
         path,
         region=None,
         selector=None,
-        format=QImage.Format_ARGB32_Premultiplied,
+        format=None,
     ):
         """Saves snapshot as image.
 
@@ -535,6 +544,10 @@ class Ghost(object):
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
+
+        if format is None:
+            format = QImage.Format_ARGB32_Premultiplied
+
         self.capture(region=region, format=format,
                      selector=selector).save(path)
 
@@ -543,7 +556,7 @@ class Ghost(object):
         path,
         paper_size=(8.5, 11.0),
         paper_margins=(0, 0, 0, 0),
-        paper_units=QPrinter.Inch,
+        paper_units=None,
         zoom_factor=1.0,
     ):
         """Saves page as a pdf file.
@@ -559,6 +572,10 @@ class Ghost(object):
         """
         assert len(paper_size) == 2
         assert len(paper_margins) == 4
+
+        if paper_units is None:
+            paper_units = QPrinter.Inch
+
         printer = QPrinter(mode=QPrinter.ScreenResolution)
         printer.setOutputFormat(QPrinter.PdfFormat)
         printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
