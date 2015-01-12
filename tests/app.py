@@ -13,19 +13,30 @@ app.config['CSRF_ENABLED'] = False
 app.config['SECRET_KEY'] = 'asecret'
 
 
-@app.route('/')
+@app.route('/', methods=['get', 'post'])
 def home():
+    if request.method == 'POST':
+        flash('Form successfully sent.')
+        file = request.files.get('simple-file')
+        if file is not None:
+            file.save(os.path.join(
+                os.path.dirname(__file__),
+                "uploaded_%s" % file.filename
+            ))
+        return redirect(url_for('home'))
     return render_template('home.html')
+
+
+@app.route('/echo/<arg>')
+def echo(arg):
+    return render_template('echo.html', arg=arg)
+
 
 @app.route('/no-cache')
 def no_cahce():
     response = make_response("No cache for me.", 200)
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
     return response
-
-@app.route('/alert')
-def alert():
-    return render_template('alert.html')
 
 
 @app.route('/cookie')
@@ -56,37 +67,10 @@ def get_cookie():
     else:
         return make_response('OK')
 
-@app.route('/form', methods=['get', 'post'])
-def form():
-    if request.method == 'POST':
-        flash('form successfully posted')
-        return redirect(url_for('form'))
-    return render_template('form.html')
-
-
-@app.route('/image')
-def image():
-    return render_template('image.html')
-
-
-@app.route('/upload', methods=['get', 'post'])
-def upload():
-    if request.method == 'POST':
-        file = request.files['simple-file']
-        file.save(os.path.join(os.path.dirname(__file__),
-            "uploaded_%s" % file.filename))
-        return redirect(url_for('upload'))
-    return render_template('upload.html')
-
 
 @app.route('/protected')
 def protected():
     return abort(403)
-
-
-@app.route('/mootools')
-def mootools():
-    return render_template('mootools.html')
 
 
 @app.route('/settimeout')
@@ -129,13 +113,8 @@ def url_hash():
 @app.route('/url-hash-header')
 def url_hash_header():
     response = make_response("Redirecting.", 302)
-    response.headers['Location'] = url_for('url_hash_header_redirect') + "#/"
+    response.headers['Location'] = url_for('echo', arg='Welcome') + "#/"
     return response
-
-
-@app.route('/url-hash-header-redirect/')
-def url_hash_header_redirect():
-    return "Welcome."
 
 
 @app.route('/many-assets')
