@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
 import os
 import logging
 import unittest
 import cookielib
 
 from app import app
-from ghost import GhostTestCase, Ghost
+from ghost import GhostTestCase
 
 
 PORT = 5000
@@ -49,13 +47,14 @@ class GhostTest(GhostTestCase):
 
     def test_extra_resource_content(self):
         page, resources = self.ghost.open(base_url)
-        self.assertIn('globals alert',
-            resources[4].content)
+        self.assertIn('globals alert', resources[4].content)
 
     def test_extra_resource_binaries(self):
         page, resources = self.ghost.open(base_url)
-        self.assertEqual(resources[5].content.__class__.__name__,
-            'QByteArray')
+        self.assertEqual(
+            resources[5].content.__class__.__name__,
+            'QByteArray',
+        )
 
     def test_wait_for_selector(self):
         page, resources = self.ghost.open(base_url)
@@ -128,7 +127,10 @@ class GhostTest(GhostTestCase):
 
     def test_resource_headers(self):
         page, resources = self.ghost.open(base_url)
-        self.assertEqual(page.headers['Content-Type'], 'text/html; charset=utf-8')
+        self.assertEqual(
+            page.headers['Content-Type'],
+            'text/html; charset=utf-8',
+        )
 
     def test_click_link(self):
         page, resources = self.ghost.open(base_url)
@@ -151,7 +153,7 @@ class GhostTest(GhostTestCase):
         self.ghost.delete_cookies()
         self.ghost.load_cookies('testcookie.txt')
         self.ghost.open("%sget/cookie" % base_url)
-        self.assertTrue( 'OK' in self.ghost.content )
+        self.assertTrue('OK' in self.ghost.content)
 
     def test_load_cookies_expire_is_none(self):
         self.ghost.delete_cookies()
@@ -266,8 +268,10 @@ class GhostTest(GhostTestCase):
 
     def test_set_field_value_checkbox_multiple(self):
         self.ghost.open(base_url)
-        self.ghost.set_field_value('[name=multiple-checkbox]',
-            'second choice')
+        self.ghost.set_field_value(
+            '[name=multiple-checkbox]',
+            'second choice',
+        )
         value, resources = self.ghost.evaluate(
             'document.getElementById("multiple-checkbox-first").checked')
         self.assertEqual(value, False)
@@ -277,7 +281,7 @@ class GhostTest(GhostTestCase):
 
     def test_set_field_value_email(self):
         expected = 'my@awesome.email'
-        self.ghost.open( base_url)
+        self.ghost.open(base_url)
         self.ghost.set_field_value('[name=email]', expected)
         value, resssources = self.ghost\
             .evaluate('document.getElementById("email").value')
@@ -293,8 +297,7 @@ class GhostTest(GhostTestCase):
 
     def test_set_field_value_radio(self):
         self.ghost.open(base_url)
-        self.ghost.set_field_value('[name=radio]',
-            'first choice')
+        self.ghost.set_field_value('[name=radio]', 'first choice')
         value, resources = self.ghost.evaluate(
             'document.getElementById("radio-first").checked')
         self.assertEqual(value, True)
@@ -322,23 +325,32 @@ class GhostTest(GhostTestCase):
 
     def test_set_field_value_simple_file_field(self):
         self.ghost.open(base_url)
-        self.ghost.set_field_value('[name=simple-file]',
-            os.path.join(os.path.dirname(__file__), 'static', 'blackhat.jpg'))
-        page, resources = self.ghost.call('form', 'submit',
-            expect_loading=True)
+        self.ghost.set_field_value(
+            '[name=simple-file]',
+            os.path.join(os.path.dirname(__file__), 'static', 'blackhat.jpg'),
+        )
+        page, resources = self.ghost.call(
+            'form',
+            'submit',
+            expect_loading=True,
+        )
         file_path = os.path.join(
             os.path.dirname(__file__), 'uploaded_blackhat.jpg')
         self.assertTrue(os.path.isfile(file_path))
         os.remove(file_path)
 
     def test_basic_http_auth_success(self):
-        page, resources = self.ghost.open("%sbasic-auth" % base_url,
-            auth=('admin', 'secret'))
+        page, resources = self.ghost.open(
+            "%sbasic-auth" % base_url,
+            auth=('admin', 'secret'),
+        )
         self.assertEqual(page.http_status, 200)
 
     def test_basic_http_auth_error(self):
-        page, resources = self.ghost.open("%sbasic-auth" % base_url,
-            auth=('admin', 'wrongsecret'))
+        page, resources = self.ghost.open(
+            "%sbasic-auth" % base_url,
+            auth=('admin', 'wrongsecret'),
+        )
         self.assertEqual(page.http_status, 401)
 
     def test_unsupported_content(self):

@@ -35,7 +35,9 @@ def echo(arg):
 @app.route('/no-cache')
 def no_cahce():
     response = make_response("No cache for me.", 200)
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+    response.headers['Cache-Control'] = (
+        'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+    )
     return response
 
 
@@ -45,21 +47,25 @@ def cookie():
     resp.set_cookie('mycookies', 'mycookie value')
     return resp
 
+
 @app.route('/set/cookie')
 def set_cookie():
     resp = make_response('Response text')
     resp.set_cookie('_path', value='/get/', path='/get/')
-    resp.set_cookie('_path_fail', value='/set/', path='/set/' )
-    resp.set_cookie('_domain', value='127.0.0.1' )
+    resp.set_cookie('_path_fail', value='/set/', path='/set/')
+    resp.set_cookie('_domain', value='127.0.0.1')
     resp.set_cookie('_secure_fail', value='sslonly', secure=True)
     resp.set_cookie('_expires', value='2147483647', expires=2147483647)
     return resp
 
+
 @app.route('/get/cookie')
 def get_cookie():
-    cookies = { '_expires': '2147483647' \
-    , '_domain': '127.0.0.1' \
-    , '_path': '/get/'}
+    cookies = {
+        '_expires': '2147483647',
+        '_domain': '127.0.0.1',
+        '_path': '/get/',
+    }
     # make sure only what we expect is received.
     if cookies != request.cookies:
         return make_response('FAIL')
@@ -106,9 +112,11 @@ def send_file():
     return Response(open(os.path.join(os.path.dirname(__file__), 'static',
                                       'foo.tar.gz'), 'r'), headers=h)
 
+
 @app.route('/url-hash')
 def url_hash():
     return render_template('url_hash.html')
+
 
 @app.route('/url-hash-header')
 def url_hash_header():
