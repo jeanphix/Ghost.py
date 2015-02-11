@@ -127,7 +127,7 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def chooseFile(self, frame, suggested_file=None):
         filename = Ghost._upload_file
-        self.ghost.logger.debug('Choosing file %s' % filename)
+        #self.ghost.logger.debug('Choosing file %s' % filename)
         return filename
 
     def javaScriptConsoleMessage(self, message, line, source):
@@ -138,15 +138,14 @@ class GhostWebPage(QtWebKit.QWebPage):
             source,
         )
         log_type = "warn" if "Error" in message else "info"
-        getattr(self.ghost.logger, log_type)(
-            "%s(%d): %s" % (source or '<unknown>', line, message),
-        )
+        #getattr(self.ghost.logger, log_type)(
+        #    "%s(%d): %s" % (source or '<unknown>', line, message)
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
         self.ghost._alert = message
         self.ghost.append_popup_message(message)
-        self.ghost.logger.info("alert('%s')" % message)
+        #self.ghost.logger.info("alert('%s')" % message)
 
     def _get_value(self, value):
         if callable(value):
@@ -165,7 +164,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         value = self.ghost._confirm_expected
-        self.ghost.logger.info("confirm('%s')" % message)
+        #self.ghost.logger.info("confirm('%s')" % message)
         return self._get_value(value)
 
     def javaScriptPrompt(self, frame, message, defaultValue, result=None):
@@ -179,12 +178,10 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         value = self.ghost._prompt_expected
-        self.ghost.logger.info("prompt('%s')" % message)
+        #self.ghost.logger.info("prompt('%s')" % message)
         value = self._get_value(value)
         if value == '':
-            self.ghost.logger.warn(
-                "'%s' prompt filled with empty string" % message,
-            )
+            pass
 
         if result is None:
             # PySide
@@ -231,9 +228,6 @@ class HttpResource(object):
             self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
-        self.ghost.logger.info(
-            "Resource loaded: %s %s" % (self.url, self.http_status)
-        )
         self.headers = {}
         for header in reply.rawHeaderList():
             try:
@@ -242,12 +236,7 @@ class HttpResource(object):
             except UnicodeDecodeError:
                 # it will lose the header value,
                 # but at least not crash the whole process
-                self.ghost.logger.error(
-                    "Invalid characters in header {0}={1}".format(
-                        header,
-                        reply.rawHeader(header),
-                    )
-                )
+                pass
         self._reply = reply
 
 
@@ -352,7 +341,7 @@ class Ghost(object):
         self.display = display
 
         if not Ghost._app:
-            self.logger.info('Initializing QT application')
+            #self.logger.info('Initializing QT application')
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
             qInstallMsgHandler(QTMessageProxy(
                 configure(
@@ -479,7 +468,7 @@ class Ghost(object):
         :param method: The name of the method to call.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
+        #self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
         element = self.main_frame.findFirstElement(selector)
         return element.evaluateJavaScript('this[%s]();' % repr(method))
 
@@ -705,7 +694,7 @@ class Ghost(object):
         :param selector: A selector to target the element.
         :param event: The name of the event to trigger.
         """
-        self.logger.debug('Fire `%s` on `%s`' % (event, selector))
+        #self.logger.debug('Fire `%s` on `%s`' % (event, selector))
         element = self.main_frame.findFirstElement(selector)
         return element.evaluateJavaScript("""
             var event = document.createEvent("HTMLEvents");
@@ -801,7 +790,7 @@ class Ghost(object):
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
-        self.logger.info('Opening %s' % address)
+        #self.logger.info('Opening %s' % address)
         body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
@@ -943,7 +932,7 @@ class Ghost(object):
         :param value: The value to fill in.
         :param blur: An optional boolean that force blur when filled in.
         """
-        self.logger.debug('Setting value "%s" for "%s"' % (value, selector))
+        #self.logger.debug('Setting value "%s" for "%s"' % (value, selector))
 
         def _set_checkbox_value(el, value):
             el.setFocus()
@@ -1100,7 +1089,7 @@ class Ghost(object):
     def show(self):
         """Show current page inside a QWebView.
         """
-        self.logger.debug('Showing webview')
+        #self.logger.debug('Showing webview')
         self.webview.show()
         self.sleep()
 
@@ -1155,7 +1144,7 @@ class Ghost(object):
             if url == resource.url or url_without_hash == resource.url:
                 page = resource
 
-        self.logger.info('Page loaded %s' % url)
+        #self.logger.info('Page loaded %s' % url)
 
         return page, resources
 
@@ -1237,10 +1226,6 @@ class Ghost(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.logger.debug("[%s] bytesAvailable()= %s" % (
-                str(reply.url()),
-                reply.bytesAvailable()
-            ))
 
             try:
                 content = reply.data
@@ -1254,9 +1239,6 @@ class Ghost(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s" % (
-            str(reply.url()),
-        ))
 
         reply.readyRead.connect(
             lambda reply=reply: self._reply_download_content(reply))
