@@ -6,6 +6,7 @@ import time
 import uuid
 import codecs
 import logging
+import random
 import subprocess
 from functools import wraps
 try:
@@ -340,8 +341,10 @@ class Ghost(object):
             and not hasattr(Ghost, 'xvfb')
         ):
             try:
-                os.environ['DISPLAY'] = ':99'
-                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
+                xvfb_value = random.randint(35, 99)
+                xvfb_value = str(xvfb_value)
+                os.environ['DISPLAY'] = ':' + xvfb_value
+                Ghost.xvfb = subprocess.Popen(['Xvfb', ':' + xvfb_value])
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
@@ -1274,6 +1277,7 @@ class Ghost(object):
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
+            self.warn('SSL certificate error: %s' % url)
             reply.ignoreSslErrors()
         else:
             self.warn('SSL certificate error: %s' % url)
