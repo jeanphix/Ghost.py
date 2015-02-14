@@ -1259,10 +1259,10 @@ class Ghost(object):
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
-            self.warn('SSL certificate error: %s' % url)
+            self.logger.warn('SSL certificate error: %s' % url)
             reply.ignoreSslErrors()
         else:
-            self.warn('SSL certificate error: %s' % url)
+            self.logger.warn('SSL certificate error: %s' % url)
 
     def __enter__(self):
         return self
