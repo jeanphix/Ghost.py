@@ -22,8 +22,8 @@ def configure(name, sender, level, handler):
     logger.setLevel(level)
     # Configure handler formater
     formatter = Formatter(
-        '%(asctime)s %(sender)s: %(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S.%s',
+        '%(asctime)s.%(msecs)03d %(sender)s: %(message)s',
+        datefmt='%Y-%m-%dT%H:%M:%S',
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
