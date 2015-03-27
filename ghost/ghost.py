@@ -35,6 +35,7 @@ for name in bindings:
 
     except ImportError:
         continue
+    break
 
 
 class LazyBinding(object):
