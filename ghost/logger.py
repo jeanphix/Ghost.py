@@ -22,7 +22,7 @@ def configure(name, sender, level, handler):
     logger.setLevel(level)
     # Configure handler formater
     formatter = Formatter(
-        '%(asctime)s %(sender)s: %(message)s',
+        '%(asctime)s %(name)%: %(message)s',
         datefmt='%Y-%m-%dT%H:%M:%S.%s',
     )
     handler.setFormatter(formatter)
