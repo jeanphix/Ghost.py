@@ -536,6 +536,7 @@ class Ghost(object):
         region=None,
         selector=None,
         format=None,
+        wait=False
     ):
         """Saves snapshot as image.
 
@@ -546,6 +547,8 @@ class Ghost(object):
         :param format: The output image format.
         """
 
+        if selector and wait:
+            self.wait_for_selector(selector)
         if format is None:
             format = QImage.Format_ARGB32_Premultiplied
 
@@ -590,14 +593,16 @@ class Ghost(object):
         self.webview.print_(printer)
 
     @can_load_page
-    def click(self, selector):
+    def click(self, selector, wait=False, wait_while=False):
         """Click the targeted element.
 
         :param selector: A CSS3 selector to targeted element.
         """
+        if wait:
+            self.wait_for_selector(selector)
         if not self.exists(selector):
             raise Error("Can't find element to click")
-        return self.evaluate("""
+        res = self.evaluate("""
             (function () {
                 var element = document.querySelector(%s);
                 var evt = document.createEvent("MouseEvents");
@@ -606,6 +611,9 @@ class Ghost(object):
                 return element.dispatchEvent(evt);
             })();
         """ % repr(selector))
+        if wait_while:
+            return self.wait_while_selector(selector)
+        return res
 
     @contextmanager
     def confirm(self, confirm=True):
@@ -681,12 +689,14 @@ class Ghost(object):
             self.xvfb.terminate()
 
     @can_load_page
-    def fill(self, selector, values):
+    def fill(self, selector, values, wait=True):
         """Fills a form with provided values.
 
         :param selector: A CSS selector to the target form to fill.
         :param values: A dict containing the values.
         """
+        if wait:
+            self.wait_for_selector(selector)
         if not self.exists(selector):
             raise Error("Can't find form")
         resources = []
@@ -774,7 +784,7 @@ class Ghost(object):
         auth=None,
         body=None,
         default_popup_response=None,
-        wait=True,
+        wait=False,
         timeout=None,
         client_certificate=None,
     ):
@@ -934,7 +944,7 @@ class Ghost(object):
             raise ValueError('unsupported cookie_storage type.')
 
     @can_load_page
-    def set_field_value(self, selector, value, blur=True):
+    def set_field_value(self, selector, value, blur=True, wait=False):
         """Sets the value of the field matched by given selector.
 
         :param selector: A CSS selector that target the field.
@@ -942,6 +952,8 @@ class Ghost(object):
         :param blur: An optional boolean that force blur when filled in.
         """
         self.logger.debug('Setting value "%s" for "%s"' % (value, selector))
+        if wait:
+            self.wait_for_selector(selector)
 
         def _set_checkbox_value(el, value):
             el.setFocus()
@@ -1284,3 +1296,4 @@ class Ghost(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
+
