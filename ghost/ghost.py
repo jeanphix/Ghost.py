@@ -139,9 +139,9 @@ class GhostWebPage(QtWebKit.QWebPage):
             source,
         )
         log_type = "warn" if "Error" in message else "info"
-        getattr(self.ghost.logger, log_type)(
-            "%s(%d): %s" % (source or '<unknown>', line, message),
-            )
+        # getattr(self.ghost.logger, log_type)(
+        #     "%s(%d): %s" % (source or '<unknown>', line, message),
+        #     )
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
@@ -272,16 +272,21 @@ class NetworkAccessManager(QNetworkAccessManager):
     def createRequest(self, operation, request, data):
         # http://stackoverflow.com/questions/4575245/how-to-tell-qwebpage-not-to-load-specific-type-of-resources
         url = request.url().toString()
-        scip_flag = False
+        skip_flag = False
         if self.filter_method == 'blacklist':
-            if url in self.blacklist:
-                scip_flag = True
+            for regex in self.blacklist:
+                if re.match(regex, url):
+                    skip_flag = True
+                    break
         elif self.filter_method == 'whitelist':
-            if url not in self.whitelist:
-                scip_flag = True
+            skip_flag = True
+            for regex in self.whitelist:
+                if re.match(regex, url):
+                    skip_flag = False
+                    break
 
-        if scip_flag:
-            self.logger.warning("scipping request with url {}".format(url))
+        if skip_flag:
+            self.logger.warning("skipping request with url {}".format(url))
             reply = QNetworkAccessManager.createRequest(
                 self,
                 QNetworkAccessManager.GetOperation,
@@ -1297,7 +1302,10 @@ class Ghost(object):
     def wait_for_resource_loaded(self, url_regex, timeout=None):
         def resource_loaded():
             for resource in self.http_resources:
-                return bool(re.match(url_regex, resource.url))
+                if re.match(url_regex, resource.url):
+                    return True
+            return False
+
         self.wait_for(
             resource_loaded,
             'Can\'t load resource with url_regex %s' % url_regex,
