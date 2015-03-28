@@ -146,7 +146,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         """Notifies ghost for alert, then pass."""
         self.ghost._alert = message
         self.ghost.append_popup_message(message)
-        self.ghost.logger.info("alert('%s')" % message)
+        self.ghost.logger.warning("alert('%s')" % message)
 
     def _get_value(self, value):
         if callable(value):
@@ -165,7 +165,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         value = self.ghost._confirm_expected
-        self.ghost.logger.info("confirm('%s')" % message)
+        self.ghost.logger.warning("confirm('%s')" % message)
         return self._get_value(value)
 
     def javaScriptPrompt(self, frame, message, defaultValue, result=None):
@@ -179,10 +179,10 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.ghost.append_popup_message(message)
         value = self.ghost._prompt_expected
-        self.ghost.logger.info("prompt('%s')" % message)
+        self.ghost.logger.warning("prompt('%s')" % message)
         value = self._get_value(value)
         if value == '':
-            self.ghost.logger.warn(
+            self.ghost.logger.warning(
                 "'%s' prompt filled with empty string" % message,
             )
 
@@ -231,7 +231,7 @@ class HttpResource(object):
             self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
-        self.ghost.logger.info(
+        self.ghost.logger.warning(
             "Resource loaded: %s %s" % (self.url, self.http_status)
         )
         self.headers = {}
@@ -261,16 +261,42 @@ def replyReadyRead(reply):
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
     """
+    def __init__(self, filter_method="", blacklist=[], whitelist=[], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filter_method = filter_method
+        self.blacklist = blacklist
+        self.whitelist = whitelist
+        self.logger = logging.getLogger(__name__)
+
     def createRequest(self, operation, request, data):
-        reply = QNetworkAccessManager.createRequest(
-            self,
-            operation,
-            request,
-            data
-        )
-        reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
-        time.sleep(0.001)
-        return reply
+        # http://stackoverflow.com/questions/4575245/how-to-tell-qwebpage-not-to-load-specific-type-of-resources
+        url = request.url().toString()
+        scip_flag = False
+        if self.filter_method == 'blacklist':
+            if url in self.blacklist:
+                scip_flag = True
+        elif self.filter_method == 'whitelist':
+            if url not in self.whitelist:
+                scip_flag = True
+
+        if scip_flag:
+            self.logger.warning("scipping request with url {}".format(url))
+            reply = QNetworkAccessManager.createRequest(
+                self,
+                QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl())
+            )
+            return reply
+        else:
+            reply = QNetworkAccessManager.createRequest(
+                self,
+                operation,
+                request,
+                data
+            )
+            reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+            time.sleep(0.001)
+            return reply
 
 
 class Ghost(object):
@@ -334,6 +360,11 @@ class Ghost(object):
         self.wait_callback = wait_callback
         self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
+        self.filter_method = None
+
+        self._filter_method = ""
+        self._blacklist = []
+        self._whitelist = []
 
         if (
             sys.platform.startswith('linux')
@@ -350,7 +381,7 @@ class Ghost(object):
         self.display = display
 
         if not Ghost._app:
-            self.logger.info('Initializing QT application')
+            self.logger.warning('Initializing QT application')
             Ghost._app = QApplication.instance() or QApplication(['ghost'])
             qInstallMsgHandler(QTMessageProxy(
                 configure(
@@ -440,6 +471,60 @@ class Ghost(object):
 
     def __del__(self):
         self.exit()
+
+    @property
+    def filter_method(self):
+        return self._filter_method
+
+    @filter_method.setter
+    def filter_method(self, filter_method):
+        self._filter_method = filter_method
+        if filter_method == 'blacklist':
+            if self._blacklist:
+                nam = NetworkAccessManager(filter_method=self._filter_method,
+                                           blacklist=self._blacklist
+                      )
+                self.reinitialize_network_manager(nam)
+        elif filter_method == 'whitelist':
+            if self._whitelist:
+                nam = NetworkAccessManager(filter_method=self._filter_method,
+                                           whitelist=self._whitelist
+                      )
+                self.reinitialize_network_manager(nam)
+
+    @property
+    def blacklist(self):
+        return self._blacklist
+
+    @blacklist.setter
+    def blacklist(self, blacklist):
+        self._blacklist = blacklist
+        if self._filter_method == 'blacklist':
+            nam = NetworkAccessManager(filter_method=self._filter_method,
+                                       blacklist=self._blacklist,
+            )
+            self.reinitialize_network_manager(nam)
+
+    @property
+    def whitelist(self):
+        return self._whitelist
+
+    @whitelist.setter
+    def whitelist(self, whitelist):
+        self._whitelist = whitelist
+        if self._filter_method == 'whitelist':
+            nam = NetworkAccessManager(filter_method=self._filter_method,
+                                       whitelist=self._whitelist,
+                                       )
+            self.reinitialize_network_manager(nam)
+
+    def reinitialize_network_manager(self, network_manager):
+        self.page.setNetworkAccessManager(network_manager)
+        self.manager = self.page.networkAccessManager()
+        self.manager.finished.connect(self._request_ended)
+        self.manager.sslErrors.connect(self._on_manager_ssl_errors)
+        self.cookie_jar = QNetworkCookieJar()
+        self.manager.setCookieJar(self.cookie_jar)
 
     def frame(self, selector=None):
         """ Set main frame as current main frame's parent.
@@ -809,7 +894,7 @@ class Ghost(object):
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
-        self.logger.info('Opening %s' % address)
+        self.logger.warning('Opening %s' % address)
         body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
@@ -1165,7 +1250,7 @@ class Ghost(object):
             if url == resource.url or url_without_hash == resource.url:
                 page = resource
 
-        self.logger.info('Page loaded %s' % url)
+        self.logger.warning('Page loaded %s' % url)
 
         return page, resources
 
@@ -1264,7 +1349,7 @@ class Ghost(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s" % (
+        self.logger.warning("Unsupported content %s" % (
             str(reply.url()),
         ))
 
@@ -1296,4 +1381,3 @@ class Ghost(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
-
