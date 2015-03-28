@@ -2,6 +2,7 @@
 import sys
 PY3 = sys.version > '3'
 import os
+import re
 import time
 import uuid
 import codecs
@@ -88,8 +89,8 @@ QSsl = QtNetwork.QSsl
 QtWebKit = _import('QtWebKit')
 
 
-default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
-    "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " + \
+                     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
 
 
 class Error(Exception):
@@ -112,7 +113,7 @@ class QTMessageProxy(object):
             QtWarningMsg: 'warn',
             QtCriticalMsg: 'critical',
             QtFatalMsg: 'fatal',
-        }
+            }
         getattr(self.logger, levels[msgType])(msg)
 
 
@@ -140,7 +141,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         log_type = "warn" if "Error" in message else "info"
         getattr(self.ghost.logger, log_type)(
             "%s(%d): %s" % (source or '<unknown>', line, message),
-        )
+            )
 
     def javaScriptAlert(self, frame, message):
         """Notifies ghost for alert, then pass."""
@@ -162,7 +163,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             raise Error(
                 'You must specified a value to confirm "%s"' %
                 message,
-            )
+                )
         self.ghost.append_popup_message(message)
         value = self.ghost._confirm_expected
         self.ghost.logger.warning("confirm('%s')" % message)
@@ -176,7 +177,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             raise Error(
                 'You must specified a value for prompt "%s"' %
                 message,
-            )
+                )
         self.ghost.append_popup_message(message)
         value = self.ghost._prompt_expected
         self.ghost.logger.warning("prompt('%s')" % message)
@@ -184,7 +185,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         if value == '':
             self.ghost.logger.warning(
                 "'%s' prompt filled with empty string" % message,
-            )
+                )
 
         if result is None:
             # PySide
@@ -324,22 +325,22 @@ class Ghost(object):
     _app = None
 
     def __init__(
-        self,
-        user_agent=default_user_agent,
-        wait_timeout=8,
-        wait_callback=None,
-        log_level=logging.WARNING,
-        log_handler=logging.StreamHandler(sys.stderr),
-        display=False,
-        viewport_size=(800, 600),
-        ignore_ssl_errors=True,
-        plugins_enabled=False,
-        java_enabled=False,
-        javascript_enabled=True,
-        plugin_path=['/usr/lib/mozilla/plugins', ],
-        download_images=True,
-        show_scrollbars=True,
-        network_access_manager_class=NetworkAccessManager,
+            self,
+            user_agent=default_user_agent,
+            wait_timeout=8,
+            wait_callback=None,
+            log_level=logging.WARNING,
+            log_handler=logging.StreamHandler(sys.stderr),
+            display=False,
+            viewport_size=(800, 600),
+            ignore_ssl_errors=True,
+            plugins_enabled=False,
+            java_enabled=False,
+            javascript_enabled=True,
+            plugin_path=['/usr/lib/mozilla/plugins', ],
+            download_images=True,
+            show_scrollbars=True,
+            network_access_manager_class=NetworkAccessManager,
     ):
         if not binding:
             raise Exception("Ghost.py requires PySide or PyQt4")
@@ -351,7 +352,7 @@ class Ghost(object):
             "Ghost(<%s>)" % self.id,
             log_level,
             log_handler,
-        )
+            )
 
         self.http_resources = []
 
@@ -367,9 +368,9 @@ class Ghost(object):
         self._whitelist = []
 
         if (
-            sys.platform.startswith('linux')
-            and 'DISPLAY' not in os.environ
-            and not hasattr(Ghost, 'xvfb')
+                        sys.platform.startswith('linux')
+                    and 'DISPLAY' not in os.environ
+                and not hasattr(Ghost, 'xvfb')
         ):
             try:
                 os.environ['DISPLAY'] = ':99'
@@ -444,9 +445,9 @@ class Ghost(object):
         # User Agent
         self.page.setUserAgent(self.user_agent)
 
-        self.page.networkAccessManager().authenticationRequired\
+        self.page.networkAccessManager().authenticationRequired \
             .connect(self._authenticate)
-        self.page.networkAccessManager().proxyAuthenticationRequired\
+        self.page.networkAccessManager().proxyAuthenticationRequired \
             .connect(self._authenticate)
 
         self.main_frame = self.page.mainFrame()
@@ -483,13 +484,13 @@ class Ghost(object):
             if self._blacklist:
                 nam = NetworkAccessManager(filter_method=self._filter_method,
                                            blacklist=self._blacklist
-                      )
+                                           )
                 self.reinitialize_network_manager(nam)
         elif filter_method == 'whitelist':
             if self._whitelist:
                 nam = NetworkAccessManager(filter_method=self._filter_method,
                                            whitelist=self._whitelist
-                      )
+                                           )
                 self.reinitialize_network_manager(nam)
 
     @property
@@ -502,7 +503,7 @@ class Ghost(object):
         if self._filter_method == 'blacklist':
             nam = NetworkAccessManager(filter_method=self._filter_method,
                                        blacklist=self._blacklist,
-            )
+                                       )
             self.reinitialize_network_manager(nam)
 
     @property
@@ -539,7 +540,7 @@ class Ghost(object):
             # frame not found so we throw an exception
             raise LookupError(
                 "Child frame for name '%s' not found." % selector,
-            )
+                )
 
         if isinstance(selector, int):
             try:
@@ -548,7 +549,7 @@ class Ghost(object):
             except IndexError:
                 raise LookupError(
                     "Child frame at index '%s' not found." % selector,
-                )
+                    )
 
         # we can't ascend directly to parent frame because it might have been
         # deleted
@@ -567,10 +568,10 @@ class Ghost(object):
         return element.evaluateJavaScript('this[%s]();' % repr(method))
 
     def capture(
-        self,
-        region=None,
-        selector=None,
-        format=None,
+            self,
+            region=None,
+            selector=None,
+            format=None,
     ):
         """Returns snapshot as QImage.
 
@@ -616,12 +617,12 @@ class Ghost(object):
         return image
 
     def capture_to(
-        self,
-        path,
-        region=None,
-        selector=None,
-        format=None,
-        wait=False
+            self,
+            path,
+            region=None,
+            selector=None,
+            format=None,
+            wait=False
     ):
         """Saves snapshot as image.
 
@@ -641,12 +642,12 @@ class Ghost(object):
                      selector=selector).save(path)
 
     def print_to_pdf(
-        self,
-        path,
-        paper_size=(8.5, 11.0),
-        paper_margins=(0, 0, 0, 0),
-        paper_units=None,
-        zoom_factor=1.0,
+            self,
+            path,
+            paper_size=(8.5, 11.0),
+            paper_margins=(0, 0, 0, 0),
+            paper_units=None,
+            zoom_factor=1.0,
     ):
         """Saves page as a pdf file.
 
@@ -862,16 +863,16 @@ class Ghost(object):
             raise ValueError('unsupported cookie_storage type.')
 
     def open(
-        self,
-        address,
-        method='get',
-        headers={},
-        auth=None,
-        body=None,
-        default_popup_response=None,
-        wait=False,
-        timeout=None,
-        client_certificate=None,
+            self,
+            address,
+            method='get',
+            headers={},
+            auth=None,
+            body=None,
+            default_popup_response=None,
+            wait=False,
+            timeout=None,
+            client_certificate=None,
     ):
         """Opens a web page.
 
@@ -1109,7 +1110,7 @@ class Ghost(object):
                 "url",
                 "week",
                 "",
-            ]:
+                ]:
                 _set_text_value(element, value)
             elif type_ == "checkbox":
                 els = self.main_frame.findAllElements(selector)
@@ -1138,12 +1139,12 @@ class Ghost(object):
         return res, ressources
 
     def set_proxy(
-        self,
-        type_,
-        host='localhost',
-        port=8888,
-        user='',
-        password='',
+            self,
+            type_,
+            host='localhost',
+            port=8888,
+            user='',
+            password='',
     ):
         """Set up proxy for FURTHER connections.
 
@@ -1179,7 +1180,7 @@ class Ghost(object):
             raise ValueError(
                 'Unsupported proxy type:' + type_
                 + '\nsupported types are: none/socks5/http/https/default',
-            )
+                )
 
     def set_viewport_size(self, width, height):
         """Sets the page viewport size.
@@ -1264,7 +1265,7 @@ class Ghost(object):
             lambda: self.exists(selector),
             'Can\'t find element matching "%s"' % selector,
             timeout,
-        )
+            )
         return True, self._release_last_resources()
 
     def wait_while_selector(self, selector, timeout=None):
@@ -1277,7 +1278,7 @@ class Ghost(object):
             lambda: not self.exists(selector),
             'Element matching "%s" is still available' % selector,
             timeout,
-        )
+            )
         return True, self._release_last_resources()
 
     def wait_for_text(self, text, timeout=None):
@@ -1290,7 +1291,18 @@ class Ghost(object):
             lambda: text in self.content,
             'Can\'t find "%s" in current frame' % text,
             timeout,
-        )
+            )
+        return True, self._release_last_resources()
+
+    def wait_for_resource_loaded(self, url_regex, timeout=None):
+        def resource_loaded():
+            for resource in self.http_resources:
+                return bool(re.match(url_regex, resource.url))
+        self.wait_for(
+            resource_loaded,
+            'Can\'t load resource with url_regex %s' % url_regex,
+            timeout,
+            )
         return True, self._release_last_resources()
 
     def _authenticate(self, mix, authenticator):
