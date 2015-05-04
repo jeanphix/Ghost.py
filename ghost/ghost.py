@@ -341,7 +341,9 @@ class Ghost(object):
         ):
             try:
                 os.environ['DISPLAY'] = ':99'
-                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
+                process = ['Xvfb', ':99', '-pixdepths', '32']
+                FNULL = open(os.devnull, 'w')
+                Ghost.xvfb = subprocess.Popen(process, stdout=FNULL, stderr=subprocess.STDOUT)
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
