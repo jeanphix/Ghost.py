@@ -505,7 +505,18 @@ class Ghost(object):
             QtCore.Qt.Horizontal,
             QtCore.Qt.ScrollBarAlwaysOff,
         )
-        self.page.setViewportSize(self.main_frame.contentsSize())
+        self.logger.info(self.main_frame.contentsSize())
+        frame_size = self.main_frame.contentsSize()
+        max_size = 23170 * 23170
+        if frame_size.height() * frame_size.width() > max_size:
+            self.logger.warn("Frame size is too large.")
+            default_size = self.page.viewportSize()
+            if default_size.height() * default_size.width() > max_size:
+                return None
+        else:
+            self.page.setViewportSize(self.main_frame.contentsSize())
+        self.logger.info("Frame size -> " + str(self.page.viewportSize()))
+
         image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
 
