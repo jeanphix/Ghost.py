@@ -341,7 +341,23 @@ class Ghost(object):
         ):
             try:
                 os.environ['DISPLAY'] = ':99'
-                Ghost.xvfb = subprocess.Popen(['Xvfb', ':99'])
+                Ghost.xvfb = subprocess.Popen(['Xvfb', os.environ['DISPLAY']],
+                                              stderr=subprocess.PIPE)
+
+                # this error message happens if Xvfb is already running; can
+                # happen if Ghost isn't exited properly or if multiple
+                # instances are running
+                expected_error_msg = \
+                    '\n' \
+                    'Fatal server error:\n' \
+                    'Server is already active for display 99\n' \
+                    '\tIf this server is no longer running, ' \
+                    'remove /tmp/.X99-lock\n' \
+                    '\tand start again.\n\n'
+
+                error_output = Ghost.xvfb.stderr.read()
+                if error_output and error_output != expected_error_msg:
+                    raise Error(error_output)
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
