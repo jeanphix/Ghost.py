@@ -358,9 +358,17 @@ class Ghost(object):
                     '\tIf this server is no longer running, ' \
                     'remove /tmp/.X99-lock\n' \
                     '\tand start again.\n\n'
+                if PY3:
+                    # in python3, stderr has weirdly mis-formatted content
+                    expected_error_msg_py3 = repr(bytes(expected_error_msg,
+                                                        encoding='utf-8'))
+                else:
+                    expected_error_msg_py3 = None
 
-                error_output = Ghost.xvfb.stderr.read()
-                if error_output and error_output != expected_error_msg:
+                error_output = str(Ghost.xvfb.stderr.read())
+                if error_output != expected_error_msg \
+                        and (not PY3
+                             or error_output != expected_error_msg_py3):
                     raise Error(error_output)
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
