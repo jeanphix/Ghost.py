@@ -295,6 +295,10 @@ class Ghost(object):
     _prompt_expected = None
     _upload_file = None
     _app = None
+    display = None
+    manager = None
+    page = None
+    main_frame = None
 
     def __init__(
         self,
@@ -688,10 +692,14 @@ class Ghost(object):
         """Exits application and related."""
         if self.display:
             self.webview.close()
-        Ghost._app.quit()
-        del self.manager
-        del self.page
-        del self.main_frame
+        if Ghost._app:
+            Ghost._app.quit()
+        if self.manager:
+            del self.manager
+        if self.page:
+            del self.page
+        if self.main_frame:
+            del self.main_frame
         if hasattr(self, 'xvfb'):
             self.xvfb.terminate()
 
