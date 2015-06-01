@@ -314,6 +314,7 @@ class Ghost(object):
         download_images=True,
         show_scrollbars=True,
         network_access_manager_class=NetworkAccessManager,
+        web_page_class=GhostWebPage,
     ):
         if not binding:
             raise Exception("Ghost.py requires PySide or PyQt4")
@@ -367,7 +368,7 @@ class Ghost(object):
                     Ghost._app.addLibraryPath(p)
 
         self.popup_messages = []
-        self.page = GhostWebPage(Ghost._app, self)
+        self.page = web_page_class(Ghost._app, self)
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(network_access_manager_class())
