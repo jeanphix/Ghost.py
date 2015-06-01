@@ -1288,7 +1288,7 @@ class Ghost(object):
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
-            self.warn('SSL certificate error: %s' % url)
+            self.logger.warn('SSL certificate error: %s' % url)
 
     def __enter__(self):
         return self
