@@ -37,7 +37,7 @@ def configure(name, sender, level, handler):
     logger.setLevel(level)
     # Configure handler formater
     formatter = MillisecFormatter(
-        fmt='%(asctime)s %(sender)s: %(message)s',
+        fmt='%(asctime)s [%(levelname)-8s] %(sender)s: %(message)s',
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
