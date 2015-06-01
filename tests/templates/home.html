@@ -1,23 +1,88 @@
 <!DOCTYPE html>
 <html>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            box-sizing: border-box;
-            margin: 0;
-            width: 600px;
-            height: 300px;
-        }
-    </style>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" type="text/css" />
+    </head>
     <body>
-        <h1>Test page</h1>
-        <p>This is the home page.</p>
-        <p><a href="{{ url_for('form') }}">This is a clickable link</a></p>
-        <script type="text/javascript">
-            var myGlobal = 'my global';
-        </script>
+        <main>
+            <h1>Ghost.py</h1>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            {% endwith %}
+            <h2>Links</h2>
+            <p><a href="{{ url_for('echo', arg='link') }}">link</a></p>
+            <nav>
+                <ul>
+                    <li><a href="#" id="alert-button">alert</a></li>
+                    <li><a href="#" id="confirm-button">confirm</a></li>
+                    <li><a href="#" id="prompt-button">prompt</a></li>
+                </ul>
+            </nav>
+            <h2>Forms</h2>
+            <form action="" method="post" enctype="multipart/form-data">
+                <fieldset>
+                    <p>
+                        <label for="text">text</label>
+                        <input type="TEXT" id="text" name="text" />
+                    </p>
+                    <p>
+                        <label for="email">email</label>
+                        <input type="email" id="email" name="email" />
+                    </p>
+                    <p>
+                        <label for="textarea">textarea</label>
+                        <textarea id="textarea" name="textarea"></textarea>
+                    </p>
+                    <p>
+                        <label for="checkbox">checkbox</label>
+                        <input type="checkbox" id="checkbox" name="checkbox" />
+                    </p>
+                    <p>
+                        <label for="multiple-checkbox-first">multiple checkbox first choice</label>
+                        <input type="checkbox" id="multiple-checkbox-first" name="multiple-checkbox" value="first choice" />
+                        <label for="multiple-checkbox-second">multiple checkbox second choice</label>
+                        <input type="checkbox" id="multiple-checkbox-second" name="multiple-checkbox" value="second choice" />
+                    </p>
+                    <p>
+                        <label for="select">select</label>
+                        <select id="select" name="select">
+                            <option value="one" checked="checked">one</option>
+                            <option value="two">two</option>
+                        </select>
+                    </p>
+                    <p>
+                        <label for="radio-first">first choice</label>
+                        <input id="radio-first" type="radio" name="radio" value="first choice" />
+                        <label for="radio-second">second choice</label>
+                        <input id="radio-second" type="radio" name="radio" value="second choice" />
+                    </p>
+                    <p>
+                        <label for="simple-file">simple file upload</label>
+                        <input id="simple-file" type="file" name="simple-file" />
+                    </p>
+                    <input type="submit" value="go!" />
+                </fieldset>
+            </form>
+            <h2>Javascripts</h2>
+            <ul id="list">
+                <li>first item</li>
+            </ul>
+            <p><a href="{{ url_for('items') }}" id="update-list-button">Update list</a></p>
+            <h2>Frames</h2>
+            <iframe src="{{ url_for('echo', arg='frame 1') }}" width="100%" height="300" name="first-frame"></iframe>
+            <iframe src="{{ url_for('echo', arg='frame 2') }}" width="100%" height="300"></iframe>
+            <h2>Resources</h2>
+            <p><img src="{{ url_for('static', filename='blackhat.jpg') }}" /></p>
+            <script src="{{ url_for('static', filename='app.js') }}" type="text/javascript"></script>
+            <script type="text/javascript">
+                var myGlobal = 'my global';
+            </script>
+        </main>
     </body>
 </html>

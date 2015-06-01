@@ -6,11 +6,12 @@ Webkit based webclient.
 
 """
 from setuptools import setup, find_packages
+from ghost import __version__
 
 
 setup(
     name='Ghost.py',
-    version='0.1b4',
+    version=__version__,
     url='https://github.com/jeanphix/Ghost.py',
     license='mit',
     author='Jean-Philippe Serafin',
@@ -23,7 +24,7 @@ setup(
     zip_safe=False,
     platforms='any',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -32,5 +33,4 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    use_2to3=True,
 )

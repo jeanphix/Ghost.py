@@ -1,31 +1,45 @@
 # -*- coding: utf-8 -*-
+import sys
+PY3 = sys.version > '3'
 import os
 
 from flask import Flask, render_template, url_for, redirect, jsonify
 from flask import request, abort, Response, flash
 from flask import make_response
 
-from werkzeug import Headers
-
+from werkzeug.datastructures import Headers
 
 app = Flask(__name__)
 app.config['CSRF_ENABLED'] = False
 app.config['SECRET_KEY'] = 'asecret'
 
 
-@app.route('/')
+@app.route('/', methods=['get', 'post'])
 def home():
+    if request.method == 'POST':
+        flash('Form successfully sent.')
+        file = request.files.get('simple-file')
+        if file is not None:
+            file.save(os.path.join(
+                os.path.dirname(__file__),
+                "uploaded_%s" % file.filename
+            ))
+        return redirect(url_for('home'))
     return render_template('home.html')
 
-@app.route('/no-cache')
-def no_cahce():
-    response = make_response("No cache for me.", 200)
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
-    return response
 
-@app.route('/alert')
-def alert():
-    return render_template('alert.html')
+@app.route('/echo/<arg>')
+def echo(arg):
+    return render_template('echo.html', arg=arg)
+
+
+@app.route('/no-cache')
+def no_cache():
+    response = make_response("No cache for me.", 200)
+    response.headers['Cache-Control'] = (
+        'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+    )
+    return response
 
 
 @app.route('/cookie')
@@ -34,21 +48,25 @@ def cookie():
     resp.set_cookie('mycookies', 'mycookie value')
     return resp
 
+
 @app.route('/set/cookie')
 def set_cookie():
     resp = make_response('Response text')
     resp.set_cookie('_path', value='/get/', path='/get/')
-    resp.set_cookie('_path_fail', value='/set/', path='/set/' )
-    resp.set_cookie('_domain', value='127.0.0.1' )
+    resp.set_cookie('_path_fail', value='/set/', path='/set/')
+    resp.set_cookie('_domain', value='127.0.0.1')
     resp.set_cookie('_secure_fail', value='sslonly', secure=True)
     resp.set_cookie('_expires', value='2147483647', expires=2147483647)
     return resp
 
+
 @app.route('/get/cookie')
 def get_cookie():
-    cookies = { '_expires': '2147483647' \
-    , '_domain': '127.0.0.1' \
-    , '_path': '/get/'}
+    cookies = {
+        '_expires': '2147483647',
+        '_domain': '127.0.0.1',
+        '_path': '/get/',
+    }
     # make sure only what we expect is received.
     if cookies != request.cookies:
         return make_response('FAIL')
@@ -56,37 +74,10 @@ def get_cookie():
     else:
         return make_response('OK')
 
-@app.route('/form', methods=['get', 'post'])
-def form():
-    if request.method == 'POST':
-        flash('form successfully posted')
-        return redirect(url_for('form'))
-    return render_template('form.html')
-
-
-@app.route('/image')
-def image():
-    return render_template('image.html')
-
-
-@app.route('/upload', methods=['get', 'post'])
-def upload():
-    if request.method == 'POST':
-        file = request.files['simple-file']
-        file.save(os.path.join(os.path.dirname(__file__),
-            "uploaded_%s" % file.filename))
-        return redirect(url_for('upload'))
-    return render_template('upload.html')
-
 
 @app.route('/protected')
 def protected():
     return abort(403)
-
-
-@app.route('/mootools')
-def mootools():
-    return render_template('mootools.html')
 
 
 @app.route('/settimeout')
@@ -119,23 +110,43 @@ def send_file():
     h = Headers()
     h.add('Content-type', 'application/octet-stream', charset='utf8')
     h.add('Content-disposition', 'attachment', filename='name.tar.gz')
-    return Response(open(os.path.join(os.path.dirname(__file__), 'static',
-                                      'foo.tar.gz'), 'r'), headers=h)
+    file_path = os.path.join(os.path.dirname(__file__), 'static', 'foo.tar.gz')
+    if PY3:
+        f = open(file_path, 'r', encoding='latin-1')
+    else:
+        f = open(file_path, 'r')
+    return Response(f, headers=h)
+
 
 @app.route('/url-hash')
 def url_hash():
     return render_template('url_hash.html')
 
+
 @app.route('/url-hash-header')
 def url_hash_header():
     response = make_response("Redirecting.", 302)
-    response.headers['Location'] = url_for('url_hash_header_redirect') + "#/"
+    response.headers['Location'] = url_for('echo', arg='Welcome') + "#/"
     return response
 
-@app.route('/url-hash-header-redirect/')
-def url_hash_header_redirect():
-    return "Welcome."
 
+@app.route('/many-assets')
+def many_assets():
+    return render_template(
+        'many_assets.html',
+        css=['css%s' % i for i in range(0, 5)],
+        js=['js%s' % i for i in range(0, 5)]
+    )
+
+
+@app.route('/js/<name>.js')
+def js_assets(name=None):
+    return 'var foo = "%s";' % name
+
+
+@app.route('/css/<name>.css')
+def css_assets(name=None):
+    return 'P.%s { color: red; };' % name
 
 
 if __name__ == '__main__':

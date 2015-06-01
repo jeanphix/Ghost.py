@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    padding: 0 30px;
+    font-size: 14px;
+    font-family: "Lato",Helvetica,Arial,sans-serif;
+}
+
+h1 {
+    margin-top: 20px;
+    height: 40px;
+    width: 300px;
+}
+
+h2 {
+    font-weight: normal;
+}
+
+form {
+    margin-top: 0;
+}
+
+fieldset {
+    padding: 0;
+    border: 0;
+}
+
+main a, input[type=submit] {
+    display: inline-block;
+    padding: 0 1em;
+    line-height: 2em;
+    height: 2em;
+    color: #fff;
+    text-decoration: none;
+    border: 0;
+    border-radius: 0.3em;
+    background: #468ebe;
+}
+
+nav ul {
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+}
+
+input[type=text],
+input[type=email],
+input[type=password],
+textarea,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px #bbb solid;
+}
+
+input[type=text],
+input[type=email],
+input[type=password] {
+  padding: 0.3em 0.5em;
+  line-height: 1.5em;
+  height: 2.5em;
+}
+
+select {
+  padding: 0.3em 0.5em;
+}
+
+textarea {
+  padding: 0.5em;
+  vertical-align: top;
+}
+
+input[type=checkbox],
+input[type=radio] {
+    vertical-align: middle;
+}
+
+input[type=submit] {
+    width: 100%
+}
+
+iframe {
+    border: 0;
+}
