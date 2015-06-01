@@ -15,7 +15,7 @@ except ImportError:
 from contextlib import contextmanager
 from .logger import configure
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 if PY3:
     unicode = str
