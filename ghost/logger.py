@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
 from logging import (
     Filter,
     Formatter,
@@ -12,6 +14,19 @@ class SenderFilter(Filter):
         return True
 
 
+class MillisecFormatter(Formatter):
+    converter = datetime.fromtimestamp
+
+    def formatTime(self, record, datefmt=None):
+        ct = self.converter(record.created)
+        if datefmt is not None:
+            s = ct.strftime(datefmt)
+        else:
+            t = ct.strftime("%Y-%m-%dT%H:%M:%S")
+            s = "%s.%03dZ" % (t, record.msecs)
+        return s
+
+
 def configure(name, sender, level, handler):
     logger = getLogger(name)
     # Add `ghost_id` to formater
@@ -21,9 +36,8 @@ def configure(name, sender, level, handler):
     # Set the level
     logger.setLevel(level)
     # Configure handler formater
-    formatter = Formatter(
-        '%(asctime)s.%(msecs)03d %(sender)s: %(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S',
+    formatter = MillisecFormatter(
+        fmt='%(asctime)s %(sender)s: %(message)s',
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
