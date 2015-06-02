@@ -607,7 +607,10 @@ class Ghost(object):
         """Click the targeted element.
 
         :param selector: A CSS3 selector to targeted element.
-        :param btn: The number of mouse button. 0 - left button, 1 - middle button, 2 - right button
+        :param btn: The number of mouse button.
+            0 - left button,
+            1 - middle button,
+            2 - right button
         """
         if not self.exists(selector):
             raise Error("Can't find element to click")
