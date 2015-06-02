@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
-PY3 = sys.version > '3'
+PY3 = sys.version_info.major >= 3
 import os
 import time
 import uuid
