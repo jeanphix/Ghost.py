@@ -603,10 +603,11 @@ class Ghost(object):
         self.webview.print_(printer)
 
     @can_load_page
-    def click(self, selector):
+    def click(self, selector, btn=0):
         """Click the targeted element.
 
         :param selector: A CSS3 selector to targeted element.
+        :param btn: The number of mouse button. 0 - left button, 1 - middle button, 2 - right button
         """
         if not self.exists(selector):
             raise Error("Can't find element to click")
@@ -615,10 +616,10 @@ class Ghost(object):
                 var element = document.querySelector(%s);
                 var evt = document.createEvent("MouseEvents");
                 evt.initMouseEvent("click", true, true, window, 1, 1, 1, 1, 1,
-                    false, false, false, false, 0, element);
+                    false, false, false, false, %s, element);
                 return element.dispatchEvent(evt);
             })();
-        """ % repr(selector))
+        """ % (repr(selector), str(btn)))
 
     @contextmanager
     def confirm(self, confirm=True):
