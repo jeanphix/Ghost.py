@@ -80,7 +80,7 @@ ghost = Ghost()</code>
 })</code>
                 <h2>Submit the form</h2>
                 <p>Yon can submit the form by firing `submit` event:</p>
-                <code class="python">page, resources = ghost.fire_on("form", "submit", expect_loading=True)</code>
+                <code class="python">page, resources = ghost.call("form", "submit", expect_loading=True)</code>
             </article>
             <article>
                 <h1 id="waiter"><a href="#waiter">Waiters</a></h1>
@@ -171,7 +171,7 @@ ghost.wait_for_selector('input[name=query]')
 # Fills the form
 ghost.fill("#search_form", {'query': 'France'})
 # Submits the form
-ghost.fire_on("#search_form", "submit")
+ghost.call("#search_form", "submit")
 # Waits for results (an XHR has been called here)
 ghost.wait_for_selector(
     '#search_osm_nominatim .search_results_entry a')
