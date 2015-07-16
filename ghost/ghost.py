@@ -277,6 +277,7 @@ class Ghost(object):
             'DISPLAY' not in os.environ
         ):
             try:
+                self.logger.debug('Using Xvfb graphics.')
                 self.xvfb = Xvfb(
                     width=800,
                     height=600,
@@ -286,6 +287,8 @@ class Ghost(object):
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
+        else:
+            self.logger.debug('Using X11 server.')
 
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
@@ -301,6 +304,7 @@ class Ghost(object):
         self.logger.info('Stopping QT application')
         self._app.quit()
         if hasattr(self, 'xvfb'):
+            self.logger.debug('Terminating xvfb.')
             self.xvfb.stop()
 
     def start(self, **kwargs):
