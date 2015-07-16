@@ -337,15 +337,19 @@ class Ghost(object):
         self.loaded = True
 
         if (
-            sys.platform.startswith('linux')
-            and 'DISPLAY' not in os.environ
-            and not hasattr(Ghost, 'xvfb')
+            sys.platform.startswith('linux') and
+            'DISPLAY' not in os.environ and
+            not hasattr(Ghost, 'xvfb')
         ):
             try:
                 os.environ['DISPLAY'] = ':99'
                 process = ['Xvfb', ':99', '-pixdepths', '32']
                 FNULL = open(os.devnull, 'w')
-                Ghost.xvfb = subprocess.Popen(process, stdout=FNULL, stderr=subprocess.STDOUT)
+                Ghost.xvfb = subprocess.Popen(
+                    process,
+                    stdout=FNULL,
+                    stderr=subprocess.STDOUT,
+                )
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
@@ -1045,12 +1049,13 @@ class Ghost(object):
             elif type_ == "file":
                 Ghost._upload_file = value
                 res, resources = self.click(selector)
+
                 Ghost._upload_file = None
         else:
             raise Error('unsuported field tag')
 
         for event in ['input', 'change']:
-            self.fire(selector, event);
+            self.fire(selector, event)
 
         if blur:
             self.call(selector, 'blur')
@@ -1097,8 +1102,8 @@ class Ghost(object):
             self.manager.setProxy(proxy)
         else:
             raise ValueError(
-                'Unsupported proxy type:' + type_
-                + '\nsupported types are: none/socks5/http/https/default',
+                'Unsupported proxy type: %s' % type_ +
+                '\nsupported types are: none/socks5/http/https/default',
             )
 
     def set_viewport_size(self, width, height):
