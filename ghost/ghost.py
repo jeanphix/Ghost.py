@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-PY3 = sys.version > '3'
 import os
 import time
 import uuid
@@ -14,78 +13,42 @@ except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
 from .logger import configure
+from .bindings import (
+    binding,
+    QtCore,
+    QSize,
+    QByteArray,
+    QUrl,
+    QDateTime,
+    QtCriticalMsg,
+    QtDebugMsg,
+    QtFatalMsg,
+    QtWarningMsg,
+    qInstallMsgHandler,
+    QApplication,
+    QImage,
+    QPainter,
+    QPrinter,
+    QRegion,
+    QtNetwork,
+    QNetworkRequest,
+    QNetworkAccessManager,
+    QNetworkCookieJar,
+    QNetworkProxy,
+    QNetworkCookie,
+    QSslConfiguration,
+    QSsl,
+    QtWebKit,
+)
 
 __version__ = "0.1.2"
+
+
+PY3 = sys.version > '3'
 
 if PY3:
     unicode = str
     long = int
-
-
-bindings = ["PySide", "PyQt4"]
-binding = None
-
-
-for name in bindings:
-    try:
-        binding = __import__(name)
-        if name == 'PyQt4':
-            import sip
-            sip.setapi('QVariant', 2)
-
-    except ImportError:
-        continue
-    break
-
-
-class LazyBinding(object):
-    class __metaclass__(type):
-        def __getattr__(self, name):
-            return self.__class__
-
-    def __getattr__(self, name):
-        return self.__class__
-
-
-def _import(name):
-    if binding is None:
-        return LazyBinding()
-
-    name = "%s.%s" % (binding.__name__, name)
-    module = __import__(name)
-    for n in name.split(".")[1:]:
-        module = getattr(module, n)
-    return module
-
-
-QtCore = _import("QtCore")
-QSize = QtCore.QSize
-QByteArray = QtCore.QByteArray
-QUrl = QtCore.QUrl
-QDateTime = QtCore.QDateTime
-QtCriticalMsg = QtCore.QtCriticalMsg
-QtDebugMsg = QtCore.QtDebugMsg
-QtFatalMsg = QtCore.QtFatalMsg
-QtWarningMsg = QtCore.QtWarningMsg
-qInstallMsgHandler = QtCore.qInstallMsgHandler
-
-QtGui = _import("QtGui")
-QApplication = QtGui.QApplication
-QImage = QtGui.QImage
-QPainter = QtGui.QPainter
-QPrinter = QtGui.QPrinter
-QRegion = QtGui.QRegion
-
-QtNetwork = _import("QtNetwork")
-QNetworkRequest = QtNetwork.QNetworkRequest
-QNetworkAccessManager = QtNetwork.QNetworkAccessManager
-QNetworkCookieJar = QtNetwork.QNetworkCookieJar
-QNetworkProxy = QtNetwork.QNetworkProxy
-QNetworkCookie = QtNetwork.QNetworkCookie
-QSslConfiguration = QtNetwork.QSslConfiguration
-QSsl = QtNetwork.QSsl
-
-QtWebKit = _import('QtWebKit')
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
