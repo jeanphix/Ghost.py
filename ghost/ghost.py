@@ -336,7 +336,16 @@ class Session(object):
             raise Exception("Ghost.py requires PySide or PyQt4")
 
         self.ghost = ghost
+
         self.id = str(uuid.uuid4())
+
+        self.logger = configure(
+            'ghost.%s' % self.id,
+            "Ghost<%s>" % self.id,
+            ghost.logger.level,
+        )
+
+        self.logger.info("Starting new session")
 
         self.http_resources = []
 
@@ -778,10 +787,6 @@ class Session(object):
             toQtCookieJar(cookie_storage, self.cookie_jar)
         else:
             raise ValueError('unsupported cookie_storage type.')
-
-    @property
-    def logger(self):
-        return self.ghost.logger
 
     def open(
         self,
