@@ -254,6 +254,9 @@ class Ghost(object):
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
+        if not binding:
+            raise Exception("Ghost.py requires PySide or PyQt4")
+
         self.logger = configure(
             'ghost',
             "Ghost",
@@ -332,9 +335,6 @@ class Session(object):
         network_access_manager_class=NetworkAccessManager,
         web_page_class=GhostWebPage,
     ):
-        if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
-
         self.ghost = ghost
 
         self.id = str(uuid.uuid4())
