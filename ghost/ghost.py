@@ -86,7 +86,7 @@ class GhostWebPage(QtWebKit.QWebPage):
     """
     def __init__(self, app, session):
         self.session = session
-        super(GhostWebPage, self).__init__(app)
+        super(GhostWebPage, self).__init__()
 
     def chooseFile(self, frame, suggested_file=None):
         filename = self.session._upload_file
@@ -440,9 +440,6 @@ class Session(object):
         if self.display:
             self.show()
 
-    def __del__(self):
-        self.exit()
-
     def frame(self, selector=None):
         """ Set main frame as current main frame's parent.
 
@@ -685,13 +682,16 @@ class Session(object):
         """
         return not self.main_frame.findFirstElement(selector).isNull()
 
+
     def exit(self):
         """Exits all Qt widgets."""
-        if self.display:
-            self.webview.close()
+        self.logger.info("Closing session")
+        del self.webview
+        del self.cookie_jar
         del self.manager
-        del self.page
         del self.main_frame
+        del self.page
+        self.sleep()
 
     @can_load_page
     def fill(self, selector, values):
