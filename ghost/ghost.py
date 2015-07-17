@@ -315,6 +315,7 @@ class Ghost(object):
         show_scrollbars=True,
         network_access_manager_class=NetworkAccessManager,
         web_page_class=GhostWebPage,
+        local_storage_enabled=True,
     ):
         if not binding:
             raise Exception("Ghost.py requires PySide or PyQt4")
@@ -376,7 +377,7 @@ class Ghost(object):
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(
-            QtWebKit.QWebSettings.LocalStorageEnabled, True)
+            QtWebKit.QWebSettings.LocalStorageEnabled, local_storage_enabled)
 
         self.page.setForwardUnsupportedContent(True)
         self.page.settings().setAttribute(
