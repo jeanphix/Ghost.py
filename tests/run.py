@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-PY3 = sys.version > '3'
 import os
 import logging
 import unittest
@@ -13,6 +12,8 @@ except ImportError:
 from app import app
 from ghost import GhostTestCase
 
+
+PY3 = sys.version > '3'
 
 PORT = 5000
 
@@ -360,7 +361,11 @@ class GhostTest(GhostTestCase):
 
     def test_unsupported_content(self):
         page, resources = self.session.open("%ssend-file" % base_url)
-        file_path = os.path.join(os.path.dirname(__file__), 'static', 'foo.tar.gz')
+        file_path = os.path.join(
+            os.path.dirname(__file__),
+            'static',
+            'foo.tar.gz',
+        )
         if PY3:
             f = open(file_path, 'r', encoding='latin-1')
         else:
