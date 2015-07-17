@@ -37,10 +37,15 @@ class BaseGhostTestCase(TestCase):
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
         if not hasattr(cls, 'ghost'):
-            cls.ghost = Ghost(display=cls.display,
-                wait_timeout=cls.wait_timeout,
-                viewport_size=cls.viewport_size,
-                log_level=cls.log_level, )
+            cls.ghost = Ghost(
+                log_level=cls.log_level,
+                defaults=dict(
+                    display=cls.display,
+                    viewport_size=cls.viewport_size,
+                    wait_timeout=cls.wait_timeout,
+                )
+            )
+
         return super(BaseGhostTestCase, cls).__new__(cls)
 
     def __call__(self, result=None):
@@ -54,17 +59,14 @@ class BaseGhostTestCase(TestCase):
 
     def _post_teardown(self):
         """Deletes ghost cookies and hide UI if needed."""
-        self.ghost.delete_cookies()
-        self.ghost.clear_alert_message()
-        self.ghost.frame()
-        if self.display:
-            self.ghost.hide()
+        self.session.exit()
 
     def _pre_setup(self):
         """Shows UI if needed.
         """
+        self.session = self.ghost.start()
         if self.display:
-            self.ghost.show()
+            self.session.show()
 
 
 class GhostTestCase(BaseGhostTestCase):

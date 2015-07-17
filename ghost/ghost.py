@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-PY3 = sys.version > '3'
 import os
 import time
 import uuid
@@ -14,78 +13,42 @@ except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
 from .logger import configure
+from .bindings import (
+    binding,
+    QtCore,
+    QSize,
+    QByteArray,
+    QUrl,
+    QDateTime,
+    QtCriticalMsg,
+    QtDebugMsg,
+    QtFatalMsg,
+    QtWarningMsg,
+    qInstallMsgHandler,
+    QApplication,
+    QImage,
+    QPainter,
+    QPrinter,
+    QRegion,
+    QtNetwork,
+    QNetworkRequest,
+    QNetworkAccessManager,
+    QNetworkCookieJar,
+    QNetworkProxy,
+    QNetworkCookie,
+    QSslConfiguration,
+    QSsl,
+    QtWebKit,
+)
 
-__version__ = "0.1.2"
+__version__ = "0.2"
+
+
+PY3 = sys.version > '3'
 
 if PY3:
     unicode = str
     long = int
-
-
-bindings = ["PySide", "PyQt4"]
-binding = None
-
-
-for name in bindings:
-    try:
-        binding = __import__(name)
-        if name == 'PyQt4':
-            import sip
-            sip.setapi('QVariant', 2)
-
-    except ImportError:
-        continue
-    break
-
-
-class LazyBinding(object):
-    class __metaclass__(type):
-        def __getattr__(self, name):
-            return self.__class__
-
-    def __getattr__(self, name):
-        return self.__class__
-
-
-def _import(name):
-    if binding is None:
-        return LazyBinding()
-
-    name = "%s.%s" % (binding.__name__, name)
-    module = __import__(name)
-    for n in name.split(".")[1:]:
-        module = getattr(module, n)
-    return module
-
-
-QtCore = _import("QtCore")
-QSize = QtCore.QSize
-QByteArray = QtCore.QByteArray
-QUrl = QtCore.QUrl
-QDateTime = QtCore.QDateTime
-QtCriticalMsg = QtCore.QtCriticalMsg
-QtDebugMsg = QtCore.QtDebugMsg
-QtFatalMsg = QtCore.QtFatalMsg
-QtWarningMsg = QtCore.QtWarningMsg
-qInstallMsgHandler = QtCore.qInstallMsgHandler
-
-QtGui = _import("QtGui")
-QApplication = QtGui.QApplication
-QImage = QtGui.QImage
-QPainter = QtGui.QPainter
-QPrinter = QtGui.QPrinter
-QRegion = QtGui.QRegion
-
-QtNetwork = _import("QtNetwork")
-QNetworkRequest = QtNetwork.QNetworkRequest
-QNetworkAccessManager = QtNetwork.QNetworkAccessManager
-QNetworkCookieJar = QtNetwork.QNetworkCookieJar
-QNetworkProxy = QtNetwork.QNetworkProxy
-QNetworkCookie = QtNetwork.QNetworkCookie
-QSslConfiguration = QtNetwork.QSslConfiguration
-QSsl = QtNetwork.QSsl
-
-QtWebKit = _import('QtWebKit')
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
@@ -121,13 +84,13 @@ class GhostWebPage(QtWebKit.QWebPage):
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
-    def __init__(self, app, ghost):
-        self.ghost = ghost
-        super(GhostWebPage, self).__init__(app)
+    def __init__(self, app, session):
+        self.session = session
+        super(GhostWebPage, self).__init__()
 
     def chooseFile(self, frame, suggested_file=None):
-        filename = Ghost._upload_file
-        self.ghost.logger.debug('Choosing file %s' % filename)
+        filename = self.session._upload_file
+        self.session.logger.debug('Choosing file %s' % filename)
         return filename
 
     def javaScriptConsoleMessage(self, message, line, source):
@@ -138,15 +101,15 @@ class GhostWebPage(QtWebKit.QWebPage):
             source,
         )
         log_type = "warn" if "Error" in message else "info"
-        getattr(self.ghost.logger, log_type)(
+        getattr(self.session.logger, log_type)(
             "%s(%d): %s" % (source or '<unknown>', line, message),
         )
 
     def javaScriptAlert(self, frame, message):
-        """Notifies ghost for alert, then pass."""
-        self.ghost._alert = message
-        self.ghost.append_popup_message(message)
-        self.ghost.logger.info("alert('%s')" % message)
+        """Notifies session for alert, then pass."""
+        self.session._alert = message
+        self.session.append_popup_message(message)
+        self.session.logger.info("alert('%s')" % message)
 
     def _get_value(self, value):
         if callable(value):
@@ -155,34 +118,34 @@ class GhostWebPage(QtWebKit.QWebPage):
         return value
 
     def javaScriptConfirm(self, frame, message):
-        """Checks if ghost is waiting for confirm, then returns the right
+        """Checks if session is waiting for confirm, then returns the right
         value.
         """
-        if self.ghost._confirm_expected is None:
+        if self.session._confirm_expected is None:
             raise Error(
                 'You must specified a value to confirm "%s"' %
                 message,
             )
-        self.ghost.append_popup_message(message)
-        value = self.ghost._confirm_expected
-        self.ghost.logger.info("confirm('%s')" % message)
+        self.session.append_popup_message(message)
+        value = self.session._confirm_expected
+        self.session.logger.info("confirm('%s')" % message)
         return self._get_value(value)
 
     def javaScriptPrompt(self, frame, message, defaultValue, result=None):
         """Checks if ghost is waiting for prompt, then enters the right
         value.
         """
-        if self.ghost._prompt_expected is None:
+        if self.session._prompt_expected is None:
             raise Error(
                 'You must specified a value for prompt "%s"' %
                 message,
             )
-        self.ghost.append_popup_message(message)
-        value = self.ghost._prompt_expected
-        self.ghost.logger.info("prompt('%s')" % message)
+        self.session.append_popup_message(message)
+        value = self.session._prompt_expected
+        self.session.logger.info("prompt('%s')" % message)
         value = self._get_value(value)
         if value == '':
-            self.ghost.logger.warn(
+            self.session.logger.warn(
                 "'%s' prompt filled with empty string" % message,
             )
 
@@ -221,8 +184,8 @@ def can_load_page(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
-    def __init__(self, ghost, reply, content):
-        self.ghost = ghost
+    def __init__(self, session, reply, content):
+        self.session = session
         self.url = reply.url().toString()
         self.content = content
         try:
@@ -231,7 +194,7 @@ class HttpResource(object):
             self.content = content
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
-        self.ghost.logger.info(
+        self.session.logger.info(
             "Resource loaded: %s %s" % (self.url, self.http_status)
         )
         self.headers = {}
@@ -242,7 +205,7 @@ class HttpResource(object):
             except UnicodeDecodeError:
                 # it will lose the header value,
                 # but at least not crash the whole process
-                self.ghost.logger.error(
+                self.session.logger.error(
                     "Invalid characters in header {0}={1}".format(
                         header,
                         reply.rawHeader(header),
@@ -274,8 +237,68 @@ class NetworkAccessManager(QNetworkAccessManager):
 
 
 class Ghost(object):
-    """Ghost manages a QWebPage.
+    """`Ghost` manages a Qt application.
 
+    :param log_level: The optional logging level.
+    :param log_handler: The optional logging handler.
+    :param plugin_path: Array with paths to plugin directories
+        (default ['/usr/lib/mozilla/plugins'])
+    :param defaults: The defaults arguments to pass to new child sessions.
+    """
+    _app = None
+
+    def __init__(
+        self,
+        log_level=logging.WARNING,
+        log_handler=logging.StreamHandler(sys.stderr),
+        plugin_path=['/usr/lib/mozilla/plugins', ],
+        defaults=None,
+    ):
+        if not binding:
+            raise Exception("Ghost.py requires PySide or PyQt4")
+
+        self.logger = configure(
+            'ghost',
+            "Ghost",
+            log_level,
+            log_handler,
+        )
+
+        self.logger.info('Initializing QT application')
+        Ghost._app = QApplication.instance() or QApplication(['ghost'])
+
+        qInstallMsgHandler(QTMessageProxy(
+            configure(
+                'qt',
+                'QT',
+                log_level,
+                log_handler,
+            )
+        ))
+        if plugin_path:
+            for p in plugin_path:
+                Ghost._app.addLibraryPath(p)
+
+        self.defaults = defaults or dict()
+
+    def exit(self):
+        self._app.quit()
+        if hasattr(self, 'xvfb'):
+            self.xvfb.terminate()
+
+    def start(self, **kwargs):
+        """Starts a new `Session`."""
+        kwargs.update(self.defaults)
+        return Session(self, **kwargs)
+
+    def __del__(self):
+        self.exit()
+
+
+class Session(object):
+    """`Session` manages a QWebPage.
+
+    :param ghost: The parent `Ghost` instance.
     :param user_agent: The default User-Agent header.
     :param wait_timeout: Maximum step duration in second.
     :param wait_callback: An optional callable that is periodically
@@ -287,8 +310,6 @@ class Ghost(object):
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
-    :param plugin_path: Array with paths to plugin directories
-        (default ['/usr/lib/mozilla/plugins'])
     :param download_images: Indicate if the browser should download images
     """
     _alert = None
@@ -299,34 +320,32 @@ class Ghost(object):
 
     def __init__(
         self,
+        ghost,
         user_agent=default_user_agent,
         wait_timeout=8,
         wait_callback=None,
-        log_level=logging.WARNING,
-        log_handler=logging.StreamHandler(sys.stderr),
         display=False,
         viewport_size=(800, 600),
         ignore_ssl_errors=True,
         plugins_enabled=False,
         java_enabled=False,
         javascript_enabled=True,
-        plugin_path=['/usr/lib/mozilla/plugins', ],
         download_images=True,
         show_scrollbars=True,
         network_access_manager_class=NetworkAccessManager,
         web_page_class=GhostWebPage,
     ):
-        if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
+        self.ghost = ghost
 
         self.id = str(uuid.uuid4())
 
         self.logger = configure(
-            'ghost',
-            "Ghost(<%s>)" % self.id,
-            log_level,
-            log_handler,
+            'ghost.%s' % self.id,
+            "Ghost<%s>" % self.id,
+            ghost.logger.level,
         )
+
+        self.logger.info("Starting new session")
 
         self.http_resources = []
 
@@ -337,38 +356,27 @@ class Ghost(object):
         self.loaded = True
 
         if (
-            sys.platform.startswith('linux')
-            and 'DISPLAY' not in os.environ
-            and not hasattr(Ghost, 'xvfb')
+            sys.platform.startswith('linux') and
+            'DISPLAY' not in os.environ and
+            not hasattr(Ghost, 'xvfb')
         ):
             try:
                 os.environ['DISPLAY'] = ':99'
                 process = ['Xvfb', ':99', '-pixdepths', '32']
                 FNULL = open(os.devnull, 'w')
-                Ghost.xvfb = subprocess.Popen(process, stdout=FNULL, stderr=subprocess.STDOUT)
+                Ghost.xvfb = subprocess.Popen(
+                    process,
+                    stdout=FNULL,
+                    stderr=subprocess.STDOUT,
+                )
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
 
         self.display = display
 
-        if not Ghost._app:
-            self.logger.info('Initializing QT application')
-            Ghost._app = QApplication.instance() or QApplication(['ghost'])
-            qInstallMsgHandler(QTMessageProxy(
-                configure(
-                    'qt',
-                    'QT',
-                    log_level,
-                    log_handler,
-                )
-            ))
-            if plugin_path:
-                for p in plugin_path:
-                    Ghost._app.addLibraryPath(p)
-
         self.popup_messages = []
-        self.page = web_page_class(Ghost._app, self)
+        self.page = web_page_class(self.ghost._app, self)
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(network_access_manager_class())
@@ -440,9 +448,6 @@ class Ghost(object):
 
         if self.display:
             self.show()
-
-    def __del__(self):
-        self.exit()
 
     def frame(self, selector=None):
         """ Set main frame as current main frame's parent.
@@ -686,16 +691,16 @@ class Ghost(object):
         """
         return not self.main_frame.findFirstElement(selector).isNull()
 
+
     def exit(self):
-        """Exits application and related."""
-        if self.display:
-            self.webview.close()
-        Ghost._app.quit()
+        """Exits all Qt widgets."""
+        self.logger.info("Closing session")
+        del self.webview
+        del self.cookie_jar
         del self.manager
-        del self.page
         del self.main_frame
-        if hasattr(self, 'xvfb'):
-            self.xvfb.terminate()
+        del self.page
+        self.sleep()
 
     @can_load_page
     def fill(self, selector, values):
@@ -1043,14 +1048,15 @@ class Ghost(object):
                     value,
                 )
             elif type_ == "file":
-                Ghost._upload_file = value
+                self._upload_file = value
                 res, resources = self.click(selector)
-                Ghost._upload_file = None
+
+                self._upload_file = None
         else:
             raise Error('unsuported field tag')
 
         for event in ['input', 'change']:
-            self.fire(selector, event);
+            self.fire(selector, event)
 
         if blur:
             self.call(selector, 'blur')
@@ -1097,8 +1103,8 @@ class Ghost(object):
             self.manager.setProxy(proxy)
         else:
             raise ValueError(
-                'Unsupported proxy type:' + type_
-                + '\nsupported types are: none/socks5/http/https/default',
+                'Unsupported proxy type: %s' % type_ +
+                '\nsupported types are: none/socks5/http/https/default',
             )
 
     def set_viewport_size(self, width, height):
@@ -1124,7 +1130,7 @@ class Ghost(object):
 
         while time.time() <= (started_at + value):
             time.sleep(0.01)
-            Ghost._app.processEvents()
+            self.ghost._app.processEvents()
 
     def wait_for(self, condition, timeout_message, timeout=None):
         """Waits until condition is True.

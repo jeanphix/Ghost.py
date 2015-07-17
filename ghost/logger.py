@@ -27,7 +27,7 @@ class MillisecFormatter(Formatter):
         return s
 
 
-def configure(name, sender, level, handler):
+def configure(name, sender, level, handler=None):
     logger = getLogger(name)
     # Add `ghost_id` to formater
     ghost_filter = SenderFilter()
@@ -39,7 +39,8 @@ def configure(name, sender, level, handler):
     formatter = MillisecFormatter(
         fmt='%(asctime)s [%(levelname)-8s] %(sender)s: %(message)s',
     )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    if handler is not None:
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     return logger
