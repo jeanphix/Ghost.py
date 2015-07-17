@@ -9,14 +9,16 @@ ghost.py is a webkit web client written in python::
 
     from ghost import Ghost
     ghost = Ghost()
-    page, extra_resources = ghost.open("http://jeanphix.me")
-    assert page.http_status==200 and 'jeanphix' in ghost.content
+
+    with ghost.start() as session:
+        page, extra_resources = session.open("http://jeanphix.me")
+        assert page.http_status == 200 and 'jeanphix' in ghost.content
 
 
 Installation
 ------------
 
-ghost.py requires either PySide_ (prefered) or PyQt_ Qt_ bindings::
+ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings::
 
     pip install pyside
     pip install ghost.py --pre
