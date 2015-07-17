@@ -1053,7 +1053,7 @@ class Session(object):
 
                 self._upload_file = None
         else:
-            raise Error('unsuported field tag')
+            raise Error('unsupported field tag')
 
         for event in ['input', 'change']:
             self.fire(selector, event)
