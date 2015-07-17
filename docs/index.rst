@@ -5,5 +5,16 @@ API
 
 .. module:: ghost
 
+
+Ghost
+-----
+
 .. autoclass:: Ghost
+   :members:
+
+
+Session
+-------
+
+.. autoclass:: Session
    :members:
