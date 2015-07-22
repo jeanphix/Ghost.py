@@ -714,7 +714,7 @@ class Session(object):
         resources = []
         for field in values:
             r, res = self.set_field_value(
-                "%s [name=%s]" % (selector, repr(field)), values[field])
+                "%s[name=%s]" % (selector, repr(field)), values[field])
             resources.extend(res)
         return True, resources
 
