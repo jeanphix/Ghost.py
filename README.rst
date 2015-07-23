@@ -12,7 +12,7 @@ ghost.py is a webkit web client written in python::
 
     with ghost.start() as session:
         page, extra_resources = session.open("http://jeanphix.me")
-        assert page.http_status == 200 and 'jeanphix' in ghost.content
+        assert page.http_status == 200 and 'jeanphix' in page.content
 
 
 Installation
