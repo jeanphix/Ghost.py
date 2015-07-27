@@ -23,6 +23,17 @@ ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings::
     pip install pyside
     pip install ghost.py --pre
 
+OSX:
+
+.. code:: bash
+
+    brew install qt
+    mkvirtualenv foo
+    pip install -U pip  # make sure pip is current
+    pip install PySide
+    pyside_postinstall.py -install
+    pip install Ghost.py
+
 
 .. _PySide: https://pyside.github.io/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/intro
