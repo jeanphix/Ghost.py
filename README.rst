@@ -5,7 +5,9 @@ ghost.py
    :target: https://drone.io/github.com/jeanphix/Ghost.py/latest
 
 
-ghost.py is a webkit web client written in python::
+ghost.py is a webkit web client written in python:
+
+.. code:: python
 
     from ghost import Ghost
     ghost = Ghost()
@@ -18,7 +20,9 @@ ghost.py is a webkit web client written in python::
 Installation
 ------------
 
-ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings::
+ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings:
+
+.. code:: bash
 
     pip install pyside
     pip install ghost.py --pre
