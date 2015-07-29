@@ -599,7 +599,8 @@ class Session(object):
         printer.setOutputFormat(QPrinter.PdfFormat)
         printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
-        printer.setFullPage(True)
+        if paper_margins != (0, 0, 0, 0):
+            printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
             self.webview = QtWebKit.QWebView()
