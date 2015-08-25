@@ -41,7 +41,7 @@ from .bindings import (
     QtWebKit,
 )
 
-__version__ = "0.2"
+__version__ = "0.2.1"
 
 
 PY3 = sys.version > '3'
