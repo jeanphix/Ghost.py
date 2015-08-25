@@ -800,6 +800,7 @@ class Session(object):
         wait=True,
         timeout=None,
         client_certificate=None,
+        encode_url=True,
     ):
         """Opens a web page.
 
@@ -819,6 +820,7 @@ class Session(object):
         :param timeout: An optional timeout.
         :param client_certificate An optional dict with "certificate_path" and
         "key_path" both paths corresponding to the certificate and key files
+        :param encode_url Set to true if the url have to be encoded
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
@@ -856,7 +858,10 @@ class Session(object):
 
             QSslConfiguration.setDefaultConfiguration(ssl_conf)
 
-        request = QNetworkRequest(QUrl(address))
+        if encode_url:
+            request = QNetworkRequest(QUrl(address))
+        else:
+            request = QNetworkRequest(QUrl.fromEncoded(address))
         request.CacheLoadControl(0)
         for header in headers:
             request.setRawHeader(header, headers[header])
