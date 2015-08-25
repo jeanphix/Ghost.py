@@ -41,7 +41,7 @@ from .bindings import (
     QtWebKit,
 )
 
-__version__ = "0.2"
+__version__ = "0.2.1"
 
 
 PY3 = sys.version > '3'
@@ -599,7 +599,8 @@ class Session(object):
         printer.setOutputFormat(QPrinter.PdfFormat)
         printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
-        printer.setFullPage(True)
+        if paper_margins != (0, 0, 0, 0):
+            printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
             self.webview = QtWebKit.QWebView()
@@ -799,6 +800,7 @@ class Session(object):
         wait=True,
         timeout=None,
         client_certificate=None,
+        encode_url=True,
     ):
         """Opens a web page.
 
@@ -818,6 +820,7 @@ class Session(object):
         :param timeout: An optional timeout.
         :param client_certificate An optional dict with "certificate_path" and
         "key_path" both paths corresponding to the certificate and key files
+        :param encode_url Set to true if the url have to be encoded
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
@@ -855,7 +858,10 @@ class Session(object):
 
             QSslConfiguration.setDefaultConfiguration(ssl_conf)
 
-        request = QNetworkRequest(QUrl(address))
+        if encode_url:
+            request = QNetworkRequest(QUrl(address))
+        else:
+            request = QNetworkRequest(QUrl.fromEncoded(address))
         request.CacheLoadControl(0)
         for header in headers:
             request.setRawHeader(header, headers[header])
