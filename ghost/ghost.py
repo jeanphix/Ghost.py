@@ -264,6 +264,23 @@ class Ghost(object):
             log_handler,
         )
 
+        if (
+            sys.platform.startswith('linux') and
+            'DISPLAY' not in os.environ
+        ):
+            try:
+                os.environ['DISPLAY'] = ':99'
+                process = ['Xvfb', ':99', '-pixdepths', '32']
+                FNULL = open(os.devnull, 'w')
+                self.xvfb = subprocess.Popen(
+                    process,
+                    stdout=FNULL,
+                    stderr=subprocess.STDOUT,
+                )
+            except OSError:
+                raise Error('Xvfb is required to a ghost run outside ' +
+                            'an X instance')
+
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
@@ -354,24 +371,6 @@ class Session(object):
         self.wait_callback = wait_callback
         self.ignore_ssl_errors = ignore_ssl_errors
         self.loaded = True
-
-        if (
-            sys.platform.startswith('linux') and
-            'DISPLAY' not in os.environ and
-            not hasattr(Ghost, 'xvfb')
-        ):
-            try:
-                os.environ['DISPLAY'] = ':99'
-                process = ['Xvfb', ':99', '-pixdepths', '32']
-                FNULL = open(os.devnull, 'w')
-                Ghost.xvfb = subprocess.Popen(
-                    process,
-                    stdout=FNULL,
-                    stderr=subprocess.STDOUT,
-                )
-            except OSError:
-                raise Error('Xvfb is required to a ghost run outside ' +
-                            'an X instance')
 
         self.display = display
 
