@@ -161,5 +161,10 @@ def css_assets(name=None):
     return 'P.%s { color: red; };' % name
 
 
+@app.route('/dump')
+def dump():
+    return jsonify(dict(headers=dict(request.headers)))
+
+
 if __name__ == '__main__':
     app.run()

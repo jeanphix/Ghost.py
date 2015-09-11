@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import json
 import logging
 import unittest
 try:
@@ -11,6 +12,7 @@ except ImportError:
 
 from app import app
 from ghost import GhostTestCase
+from ghost.ghost import default_user_agent
 
 
 PY3 = sys.version > '3'
@@ -423,6 +425,26 @@ class GhostTest(GhostTestCase):
         session = self.session
         session.open(base_url)
         self.assertRaises(LookupError, session.frame, 10)
+
+    def test_set_user_agent(self):
+        def get_user_agent(session, **kwargs):
+            page, resources = self.session.open(
+                "%sdump" % base_url,
+                **kwargs
+            )
+            data = json.loads(page.content)
+            return data['headers']['User-Agent']
+
+        session = self.session
+
+        self.assertEqual(get_user_agent(session), default_user_agent)
+
+        new_agent = 'New Agent'
+
+        self.assertEqual(
+            get_user_agent(session, user_agent=new_agent),
+            new_agent,
+        )
 
 
 if __name__ == '__main__':

@@ -157,7 +157,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         result.append(unicode(value))
         return True
 
-    def setUserAgent(self, user_agent):
+    def set_user_agent(self, user_agent):
         self.user_agent = user_agent
 
     def userAgentForUrl(self, url):
@@ -367,7 +367,6 @@ class Session(object):
 
         self.http_resources = []
 
-        self.user_agent = user_agent
         self.wait_timeout = wait_timeout
         self.wait_callback = wait_callback
         self.ignore_ssl_errors = ignore_ssl_errors
@@ -418,11 +417,13 @@ class Session(object):
         self.manager = self.page.networkAccessManager()
         self.manager.finished.connect(self._request_ended)
         self.manager.sslErrors.connect(self._on_manager_ssl_errors)
+
         # Cookie jar
         self.cookie_jar = QNetworkCookieJar()
         self.manager.setCookieJar(self.cookie_jar)
+
         # User Agent
-        self.page.setUserAgent(self.user_agent)
+        self.page.set_user_agent(user_agent)
 
         self.page.networkAccessManager().authenticationRequired\
             .connect(self._authenticate)
@@ -523,6 +524,7 @@ class Session(object):
                 return None
         else:
             self.page.setViewportSize(self.main_frame.contentsSize())
+
         self.logger.info("Frame size -> " + str(self.page.viewportSize()))
 
         image = QImage(self.page.viewportSize(), format)
@@ -692,7 +694,6 @@ class Session(object):
         """
         return not self.main_frame.findFirstElement(selector).isNull()
 
-
     def exit(self):
         """Exits all Qt widgets."""
         self.logger.info("Closing session")
@@ -801,6 +802,7 @@ class Session(object):
         timeout=None,
         client_certificate=None,
         encode_url=True,
+        user_agent=None,
     ):
         """Opens a web page.
 
@@ -821,6 +823,7 @@ class Session(object):
         :param client_certificate An optional dict with "certificate_path" and
         "key_path" both paths corresponding to the certificate and key files
         :param encode_url Set to true if the url have to be encoded
+        :param user_agent An option user agent string.
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
@@ -831,6 +834,9 @@ class Session(object):
                              "%sOperation" % method.capitalize())
         except AttributeError:
             raise Error("Invalid http method %s" % method)
+
+        if user_agent is not None:
+            self.page.set_user_agent(user_agent)
 
         if client_certificate:
             ssl_conf = QSslConfiguration.defaultConfiguration()
