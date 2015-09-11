@@ -1,13 +1,25 @@
 # -*- coding: utf-8 -*-
 import sys
-PY3 = sys.version > '3'
 import os
 
-from flask import Flask, render_template, url_for, redirect, jsonify
-from flask import request, abort, Response, flash
-from flask import make_response
+from flask import (
+    abort,
+    flash,
+    Flask,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    Response,
+    url_for,
+)
 
 from werkzeug.datastructures import Headers
+
+
+PY3 = sys.version > '3'
+
 
 app = Flask(__name__)
 app.config['CSRF_ENABLED'] = False
