@@ -49,6 +49,7 @@ PY3 = sys.version > '3'
 if PY3:
     unicode = str
     long = int
+    basestring = str
 
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
