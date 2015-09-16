@@ -6,6 +6,7 @@ import uuid
 import codecs
 import logging
 import subprocess
+import re
 from functools import wraps
 try:
     from cookielib import Cookie, LWPCookieJar
@@ -224,8 +225,19 @@ def replyReadyRead(reply):
 
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
+
+    :param exclude_regex: A regex use to determine wich url exclude
+        when sending a request
     """
+    def __init__(self, exclude_regex=None, *args, **kwargs):
+        self._regex = re.compile(exclude_regex) if exclude_regex else None
+        super(self.__class__, self).__init__(*args, **kwargs)
+
     def createRequest(self, operation, request, data):
+        if self._regex and self._regex.findall(str(request.url().toString())):
+            return QNetworkAccessManager.createRequest(
+                self, QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl()))
         reply = QNetworkAccessManager.createRequest(
             self,
             operation,
@@ -329,6 +341,8 @@ class Session(object):
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param download_images: Indicate if the browser should download images
+    :param exclude: A regex use to determine which url exclude
+        when sending a request
     """
     _alert = None
     _confirm_expected = None
@@ -350,6 +364,7 @@ class Session(object):
         javascript_enabled=True,
         download_images=True,
         show_scrollbars=True,
+        exclude=None,
         network_access_manager_class=NetworkAccessManager,
         web_page_class=GhostWebPage,
     ):
@@ -378,7 +393,8 @@ class Session(object):
         self.page = web_page_class(self.ghost._app, self)
 
         if network_access_manager_class is not None:
-            self.page.setNetworkAccessManager(network_access_manager_class())
+            self.page.setNetworkAccessManager(
+                network_access_manager_class(exclude_regex=exclude))
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)

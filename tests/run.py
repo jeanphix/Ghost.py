@@ -446,6 +446,15 @@ class GhostTest(GhostTestCase):
             new_agent,
         )
 
+    def test_exclude_regex(self):
+        session = self.ghost.start(exclude="\.(jpg|css)")
+        page, resources = session.open(base_url)
+        url_loaded = [r.url for r in resources]
+        self.assertFalse(
+            "%sstatic/styles.css" % base_url in url_loaded)
+        self.assertFalse(
+            "%sstatic/blackhat.jpg" % base_url in url_loaded)
+        session.exit()
 
 if __name__ == '__main__':
     unittest.main()
