@@ -717,7 +717,7 @@ class Session(object):
         del self.cookie_jar
         del self.manager
         del self.main_frame
-        del self.page
+        self.page.deleteLater()
         self.sleep()
 
     @can_load_page
