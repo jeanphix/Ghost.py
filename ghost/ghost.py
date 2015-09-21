@@ -343,6 +343,8 @@ class Session(object):
     :param download_images: Indicate if the browser should download images
     :param exclude: A regex use to determine which url exclude
         when sending a request
+    :param local_storage_enabled: An optional boolean to enable / disable
+        local storage.
     """
     _alert = None
     _confirm_expected = None
