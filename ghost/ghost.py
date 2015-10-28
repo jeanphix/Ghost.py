@@ -191,7 +191,7 @@ class HttpResource(object):
         self.url = reply.url().toString()
         self.content = content
         try:
-            self.content = unicode(content)
+            self.content = unicode(content, encoding='utf-8')
         except UnicodeDecodeError:
             self.content = content
         self.http_status = reply.attribute(
