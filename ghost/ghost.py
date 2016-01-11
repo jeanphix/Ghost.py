@@ -231,7 +231,7 @@ class NetworkAccessManager(QNetworkAccessManager):
     """
     def __init__(self, exclude_regex=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
-        super(self.__class__, self).__init__(*args, **kwargs)
+        super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
         if self._regex and self._regex.findall(str(request.url().toString())):
