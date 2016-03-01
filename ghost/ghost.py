@@ -234,7 +234,7 @@ class NetworkAccessManager(QNetworkAccessManager):
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
-        if self._regex and self._regex.findall(str(request.url().toString())):
+        if self._regex and self._regex.findall(request.url().toString().encode('utf-8')):
             return QNetworkAccessManager.createRequest(
                 self, QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl()))
