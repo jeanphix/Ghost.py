@@ -686,7 +686,7 @@ class Session(object):
         self._alert = None
 
     @can_load_page
-    def evaluate(self, script):
+    def evaluate(self, script, **kwargs):
         """Evaluates script in page frame.
 
         :param script: The script to evaluate.
