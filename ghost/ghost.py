@@ -827,7 +827,7 @@ class Session(object):
 
         :param address: The resource URL.
         :param method: The Http method.
-        :param headers: An optional dict of extra request hearders.
+        :param headers: An optional dict of extra request headers.
         :param auth: An optional tuple of HTTP auth (username, password).
         :param body: An optional string containing a payload.
         :param default_popup_response: the default response for any confirm/
