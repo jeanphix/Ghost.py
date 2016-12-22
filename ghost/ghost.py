@@ -229,8 +229,9 @@ class NetworkAccessManager(QNetworkAccessManager):
     :param exclude_regex: A regex use to determine wich url exclude
         when sending a request
     """
-    def __init__(self, exclude_regex=None, *args, **kwargs):
+    def __init__(self, exclude_regex=None, logger=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
+        self.logger = logger or logging.getLogger()
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
@@ -245,6 +246,11 @@ class NetworkAccessManager(QNetworkAccessManager):
             data
         )
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+        reply.downloadProgress.connect(
+            lambda received, total:
+            self.logger.debug('Downloading content of %s: %s of %s',
+                              reply.url(), received, total)
+        )
         time.sleep(0.001)
         return reply
 
@@ -381,7 +387,8 @@ class Session(object):
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
-                network_access_manager_class(exclude_regex=exclude))
+                network_access_manager_class(exclude_regex=exclude,
+                                             logger=self.logger))
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
