@@ -79,8 +79,10 @@ class BaseGhostTestCase(TestCase):
         in subclasses.
         """
         self._pre_setup()
-        super(BaseGhostTestCase, self).__call__(result)
-        self._post_teardown()
+        try:
+            super(BaseGhostTestCase, self).__call__(result)
+        finally:
+            self._post_teardown()
 
     def _post_teardown(self):
         """Deletes ghost cookies and hide UI if needed."""
