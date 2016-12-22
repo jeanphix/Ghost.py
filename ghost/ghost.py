@@ -1289,10 +1289,11 @@ class Session(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.logger.debug("[%s] bytesAvailable()= %s" % (
+            self.logger.debug(
+                "[%s] bytesAvailable()= %s",
                 str(reply.url()),
                 reply.bytesAvailable()
-            ))
+            )
 
             try:
                 content = reply.data
@@ -1306,9 +1307,7 @@ class Session(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s" % (
-            str(reply.url()),
-        ))
+        self.logger.info("Unsupported content %s", str(reply.url()))
 
         reply.readyRead.connect(
             lambda reply=reply: self._reply_download_content(reply))
