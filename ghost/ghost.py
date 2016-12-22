@@ -1292,22 +1292,6 @@ class Session(object):
         self.logger.info("Unsupported content %s",
                          str(reply.url()))
 
-        reply.readyRead.connect(
-            lambda reply=reply: self._reply_download_content(reply))
-
-    def _reply_download_content(self, reply):
-        """Adds an HttpResource object to http_resources with unsupported
-        content.
-
-        :param reply: The QNetworkReply object.
-        """
-        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(
-                self,
-                reply,
-                reply.readAll(),
-            ))
-
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
