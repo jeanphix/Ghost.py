@@ -256,6 +256,12 @@ class NetworkAccessManager(QNetworkAccessManager):
         )
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
 
+        reply.downloadProgress.connect(
+            lambda received, total:
+            self.logger.debug('Downloading content of %s: %s of %s',
+                              reply.url(), received, total)
+        )
+
         self.logger.debug('Registring reply for %s', reply.url())
         self._registry[id(reply)] = reply
 
