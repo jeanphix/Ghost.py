@@ -280,12 +280,19 @@ class NetworkAccessManager(QNetworkAccessManager):
         self.logger = logger or logging.getLogger()
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
+        # Keep a registry of in-flight requests
+        self._registry = {}
+        self.finished.connect(self._reply_finished_callback)
+
     def createRequest(self, operation, request, data):
+        """Create a new QNetworkReply."""
         if self._regex and self._regex.findall(str(request.url().toString())):
-            return super(NetworkAccessManager, self).createRequest(
+            reply = super(NetworkAccessManager, self).createRequest(
                 QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl())
             )
+            self._registry[id(reply)] = reply
+            return reply
 
         reply = super(NetworkAccessManager, self).createRequest(
             operation,
@@ -294,8 +301,22 @@ class NetworkAccessManager(QNetworkAccessManager):
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.downloadProgress.connect(partial(reply_download_progress, reply))
+
+        self.logger.debug('Registring reply for %s', reply.url().toString())
+        self._registry[id(reply)] = reply
+
         time.sleep(0.001)
         return reply
+
+    def _reply_finished_callback(self, reply):
+        """Unregister a complete QNetworkReply."""
+        self.logger.debug('Reply for %s complete', reply.url().toString())
+        self._registry.pop(id(reply))
+
+    @property
+    def requests(self):
+        """Count in-flight QNetworkReply."""
+        return len(self._registry)
 
 
 class Ghost(object):
@@ -1234,7 +1255,7 @@ class Session(object):
 
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: self.loaded,
+        self.wait_for(lambda: self.loaded and self.manager.requests == 0,
                       'Unable to load requested page', timeout)
         resources = self._release_last_resources()
         page = None
