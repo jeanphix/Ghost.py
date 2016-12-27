@@ -231,7 +231,7 @@ class NetworkAccessManager(QNetworkAccessManager):
     """
     def __init__(self, exclude_regex=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
-        super(self.__class__, self).__init__(*args, **kwargs)
+        super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
         if self._regex and self._regex.findall(str(request.url().toString())):
@@ -343,6 +343,8 @@ class Session(object):
     :param download_images: Indicate if the browser should download images
     :param exclude: A regex use to determine which url exclude
         when sending a request
+    :param local_storage_enabled: An optional boolean to enable / disable
+        local storage.
     """
     _alert = None
     _confirm_expected = None
@@ -367,6 +369,7 @@ class Session(object):
         exclude=None,
         network_access_manager_class=NetworkAccessManager,
         web_page_class=GhostWebPage,
+        local_storage_enabled=True,
     ):
         self.ghost = ghost
 
@@ -399,7 +402,7 @@ class Session(object):
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
         QtWebKit.QWebSettings.globalSettings().setAttribute(
-            QtWebKit.QWebSettings.LocalStorageEnabled, True)
+            QtWebKit.QWebSettings.LocalStorageEnabled, local_storage_enabled)
 
         self.page.setForwardUnsupportedContent(True)
         self.page.settings().setAttribute(
@@ -824,7 +827,7 @@ class Session(object):
 
         :param address: The resource URL.
         :param method: The Http method.
-        :param headers: An optional dict of extra request hearders.
+        :param headers: An optional dict of extra request headers.
         :param auth: An optional tuple of HTTP auth (username, password).
         :param body: An optional string containing a payload.
         :param default_popup_response: the default response for any confirm/

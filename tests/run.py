@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+
 import sys
 import os
 import json
@@ -10,9 +13,10 @@ try:
 except ImportError:
     from http import cookiejar as cookielib
 
-from app import app
 from ghost import GhostTestCase
 from ghost.ghost import default_user_agent
+
+from .app import app
 
 
 PY3 = sys.version > '3'

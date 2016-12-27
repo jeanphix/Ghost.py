@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+import os
 import sys
 
 PY3 = sys.version > '3'
@@ -8,9 +10,12 @@ if PY3:
     long = int
 
 
-bindings = ["PySide", "PyQt4"]
 binding = None
 
+if 'GHOST_QT_PROVIDER' in os.environ:
+    bindings = [os.environ['GHOST_QT_PROVIDER']]
+else:
+    bindings = ["PySide", "PyQt4"]
 
 for name in bindings:
     try:

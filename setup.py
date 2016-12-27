@@ -21,6 +21,8 @@ setup(
     data_files=[('ghost', ['README.rst',])],
     packages=find_packages(),
     include_package_data=True,
+    tests_require=['Flask'],
+    test_suite='tests.run',
     zip_safe=False,
     platforms='any',
     classifiers=[

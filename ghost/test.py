@@ -3,8 +3,23 @@ import threading
 import logging
 import time
 from unittest import TestCase
-from wsgiref.simple_server import make_server
+from wsgiref.simple_server import make_server, WSGIRequestHandler
 from ghost import Ghost
+
+
+class WSGILogHandler(WSGIRequestHandler):
+
+    logger = logging.getLogger('wsgiref.simple_server')
+
+    def log_request(self, code='-', size='-'):
+        self.log_message(logging.DEBUG, '"%s" %s %s',
+                         self.requestline, str(code), str(size))
+
+    def log_error(self, format_, *args):
+        self.log_message(logging.ERROR, format_, *args)
+
+    def log_message(self, log_level, format_, *args):
+        self.logger.log(log_level, format_, *args)
 
 
 class ServerThread(threading.Thread):
@@ -19,7 +34,8 @@ class ServerThread(threading.Thread):
         super(ServerThread, self).__init__()
 
     def run(self):
-        self.http_server = make_server('', self.port, self.app)
+        self.http_server = make_server('localhost', self.port, self.app,
+                                       handler_class=WSGILogHandler)
         self.http_server.serve_forever()
 
     def join(self, timeout=None):
@@ -54,8 +70,10 @@ class BaseGhostTestCase(TestCase):
         in subclasses.
         """
         self._pre_setup()
-        super(BaseGhostTestCase, self).__call__(result)
-        self._post_teardown()
+        try:
+            super(BaseGhostTestCase, self).__call__(result)
+        finally:
+            self._post_teardown()
 
     def _post_teardown(self):
         """Deletes ghost cookies and hide UI if needed."""
