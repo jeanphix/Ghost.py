@@ -48,13 +48,11 @@ class BaseGhostTestCase(TestCase):
     display = False
     wait_timeout = 5
     viewport_size = (800, 600)
-    log_level = logging.DEBUG
 
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
         if not hasattr(cls, 'ghost'):
             cls.ghost = Ghost(
-                log_level=cls.log_level,
                 defaults=dict(
                     display=cls.display,
                     viewport_size=cls.viewport_size,
