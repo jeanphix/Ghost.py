@@ -25,7 +25,6 @@ base_url = 'http://localhost:%s/' % PORT
 class GhostTest(GhostTestCase):
     port = PORT
     display = False
-    log_level = logging.INFO
 
     @classmethod
     def create_app(cls):

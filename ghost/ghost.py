@@ -13,7 +13,6 @@ try:
 except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-from .logger import configure
 from .bindings import (
     binding,
     QtCore,
@@ -52,9 +51,11 @@ if PY3:
     long = int
     basestring = str
 
-
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+
+logger = logging.getLogger('ghost')
+logger.addHandler(logging.NullHandler())
 
 
 class Error(Exception):
@@ -262,20 +263,13 @@ class Ghost(object):
 
     def __init__(
         self,
-        log_level=logging.WARNING,
-        log_handler=logging.StreamHandler(sys.stderr),
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
         if not binding:
             raise Exception("Ghost.py requires PySide or PyQt4")
 
-        self.logger = configure(
-            'ghost',
-            "Ghost",
-            log_level,
-            log_handler,
-        )
+        self.logger = logger.getChild('application')
 
         if (
             sys.platform.startswith('linux') and
@@ -297,14 +291,7 @@ class Ghost(object):
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        qInstallMsgHandler(QTMessageProxy(
-            configure(
-                'qt',
-                'QT',
-                log_level,
-                log_handler,
-            )
-        ))
+        qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
         if plugin_path:
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
@@ -375,12 +362,10 @@ class Session(object):
 
         self.id = str(uuid.uuid4())
 
-        self.logger = configure(
-            'ghost.%s' % self.id,
-            "Ghost<%s>" % self.id,
-            ghost.logger.level,
+        self.logger = logging.LoggerAdapter(
+            logger.getChild('session'),
+            {'session': self.id},
         )
-
         self.logger.info("Starting new session")
 
         self.http_resources = []
