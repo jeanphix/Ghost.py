@@ -2,8 +2,10 @@ dist: trusty
 sudo: false
 language: python
 cache:
-  - pip
-  - ccache
+  pip: true
+  ccache: true
+  directories:
+    - .eggs
 python:
   - "2.7"
   - "3.3"
