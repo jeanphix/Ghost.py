@@ -229,15 +229,25 @@ class NetworkAccessManager(QNetworkAccessManager):
     :param exclude_regex: A regex use to determine wich url exclude
         when sending a request
     """
-    def __init__(self, exclude_regex=None, *args, **kwargs):
+    def __init__(self, exclude_regex=None, logger=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
+        self.logger = logger or logging.getLogger()
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
+        # Keep a registry of in-flight requests
+        self._registry = {}
+        self.finished.connect(lambda reply:
+                              self._reply_finished_callback(reply))
+
     def createRequest(self, operation, request, data):
+        """Create a new QNetworkReply."""
         if self._regex and self._regex.findall(str(request.url().toString())):
-            return QNetworkAccessManager.createRequest(
+            reply = QNetworkAccessManager.createRequest(
                 self, QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl()))
+            self._registry[id(reply)] = reply
+            return reply
+
         reply = QNetworkAccessManager.createRequest(
             self,
             operation,
@@ -245,8 +255,28 @@ class NetworkAccessManager(QNetworkAccessManager):
             data
         )
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+
+        reply.downloadProgress.connect(
+            lambda received, total:
+            self.logger.debug('Downloading content of %s: %s of %s',
+                              reply.url(), received, total)
+        )
+
+        self.logger.debug('Registring reply for %s', reply.url())
+        self._registry[id(reply)] = reply
+
         time.sleep(0.001)
         return reply
+
+    def _reply_finished_callback(self, reply):
+        """Unregister a complete QNetworkReply."""
+        self.logger.debug('Reply for %s complete', reply.url())
+        self._registry.pop(id(reply))
+
+    @property
+    def requests(self):
+        """Count in-flight QNetworkReply."""
+        return len(self._registry)
 
 
 class Ghost(object):
@@ -397,7 +427,9 @@ class Session(object):
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
-                network_access_manager_class(exclude_regex=exclude))
+                network_access_manager_class(exclude_regex=exclude,
+                                             logger=self.logger)
+            )
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
@@ -1195,7 +1227,7 @@ class Session(object):
 
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: self.loaded,
+        self.wait_for(lambda: self.loaded and self.manager.requests == 0,
                       'Unable to load requested page', timeout)
         resources = self._release_last_resources()
         page = None
@@ -1289,10 +1321,11 @@ class Session(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.logger.debug("[%s] bytesAvailable()= %s" % (
+            self.logger.debug(
+                "[%s] bytesAvailable()= %s",
                 str(reply.url()),
                 reply.bytesAvailable()
-            ))
+            )
 
             try:
                 content = reply.data
@@ -1306,25 +1339,7 @@ class Session(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s" % (
-            str(reply.url()),
-        ))
-
-        reply.readyRead.connect(
-            lambda reply=reply: self._reply_download_content(reply))
-
-    def _reply_download_content(self, reply):
-        """Adds an HttpResource object to http_resources with unsupported
-        content.
-
-        :param reply: The QNetworkReply object.
-        """
-        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(
-                self,
-                reply,
-                reply.readAll(),
-            ))
+        self.logger.info("Unsupported content %s", str(reply.url()))
 
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
