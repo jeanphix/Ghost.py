@@ -1,0 +1,22 @@
+dist: trusty
+sudo: false
+language: python
+cache:
+  - pip
+  - ccache
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+addons:
+  apt:
+    packages:
+      - python-pyside.qtwebkit
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+install:
+  - pip install tox
+script:
+  - tox -vvv --sitepackages -e py${TRAVIS_PYTHON_VERSION//.}-pyside
