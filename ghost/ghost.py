@@ -216,7 +216,11 @@ class HttpResource(object):
         self._reply = reply
 
 
-def replyReadyRead(reply):
+def reply_ready_peek(reply):
+    """Copy available bytes to `reply` data attribute.
+
+    :param reply: QNetworkReply object.
+    """
     if not hasattr(reply, 'data'):
         reply.data = ''
 
@@ -254,7 +258,7 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+        reply.readyRead.connect(lambda reply=reply: reply_ready_peek(reply))
 
         reply.downloadProgress.connect(
             lambda received, total:
