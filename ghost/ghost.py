@@ -227,6 +227,14 @@ def reply_ready_peek(reply):
     reply.data += reply.peek(reply.bytesAvailable())
 
 
+def reply_ready_read(reply):
+    """Consume data from `reply` buffer.
+
+    :param reply: QNetworkReply object.
+    """
+    reply.readAll()
+
+
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
@@ -1344,6 +1352,10 @@ class Session(object):
 
     def _unsupported_content(self, reply):
         self.logger.info("Unsupported content %s", str(reply.url()))
+        # reply went though reply_read_peek already, consume buffer to avoid
+        # duplication on next signal handling and connect callback
+        reply_ready_read(reply)
+        reply.readyRead.connect(partial(reply_ready_read, reply))
 
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
