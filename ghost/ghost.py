@@ -7,7 +7,7 @@ import codecs
 import logging
 import subprocess
 import re
-from functools import wraps
+from functools import partial, wraps
 try:
     from cookielib import Cookie, LWPCookieJar
 except ImportError:
@@ -217,11 +217,29 @@ class HttpResource(object):
         self._reply = reply
 
 
-def replyReadyRead(reply):
+def reply_ready_peek(reply):
+    """Copy available bytes to `reply` data attribute.
+
+    :param reply: QNetworkReply object.
+    """
     if not hasattr(reply, 'data'):
         reply.data = ''
 
     reply.data += reply.peek(reply.bytesAvailable())
+
+
+def reply_ready_read(reply):
+    """Consume data from `reply` buffer.
+
+    :param reply: QNetworkReply object.
+    """
+    reply.readAll()
+
+
+def reply_download_progress(reply, received, total):
+    """Log `reply` download progress."""
+    reply.manager().logger.debug('Downloading content of %s: %s of %s',
+                                 reply.url().toString(), received, total)
 
 
 class NetworkAccessManager(QNetworkAccessManager):
@@ -237,8 +255,7 @@ class NetworkAccessManager(QNetworkAccessManager):
 
         # Keep a registry of in-flight requests
         self._registry = {}
-        self.finished.connect(lambda reply:
-                              self._reply_finished_callback(reply))
+        self.finished.connect(self._reply_finished_callback)
 
     def createRequest(self, operation, request, data):
         """Create a new QNetworkReply."""
@@ -255,15 +272,12 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
-
+        reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.downloadProgress.connect(
-            lambda received, total:
-            self.logger.debug('Downloading content of %s: %s of %s',
-                              reply.url(), received, total)
+            partial(reply_download_progress, reply)
         )
 
-        self.logger.debug('Registring reply for %s', reply.url())
+        self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
 
         time.sleep(0.001)
@@ -271,7 +285,7 @@ class NetworkAccessManager(QNetworkAccessManager):
 
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
-        self.logger.debug('Reply for %s complete', reply.url())
+        self.logger.debug('Reply for %s complete', reply.url().toString())
         self._registry.pop(id(reply))
 
     @property
@@ -1325,6 +1339,10 @@ class Session(object):
 
     def _unsupported_content(self, reply):
         self.logger.info("Unsupported content %s", str(reply.url()))
+        # reply went though reply_read_peek already, consume buffer to avoid
+        # duplication on next signal handling and connect callback
+        reply_ready_read(reply)
+        reply.readyRead.connect(partial(reply_ready_read, reply))
 
     def _on_manager_ssl_errors(self, reply, errors):
         url = unicode(reply.url().toString())
