@@ -276,7 +276,7 @@ class NetworkAccessManager(QNetworkAccessManager):
             partial(reply_download_progress, reply)
         )
 
-        self.logger.debug('Registring reply for %s', reply.url())
+        self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
 
         time.sleep(0.001)
@@ -284,7 +284,7 @@ class NetworkAccessManager(QNetworkAccessManager):
 
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
-        self.logger.debug('Reply for %s complete', reply.url())
+        self.logger.debug('Reply for %s complete', reply.url().toString())
         self._registry.pop(id(reply))
 
     @property
