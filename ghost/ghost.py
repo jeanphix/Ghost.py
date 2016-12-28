@@ -242,6 +242,12 @@ def reply_ready_read(reply):
     reply.readAll()
 
 
+def reply_download_progress(reply, received, total):
+    """Log `reply` download progress."""
+    reply.manager().logger.debug('Downloading content of %s: %s of %s',
+                                 reply.url().toString(), received, total)
+
+
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
@@ -264,12 +270,8 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        reply.readyRead.connect(lambda reply=reply: reply_ready_peek(reply))
-        reply.downloadProgress.connect(
-            lambda received, total:
-            self.logger.debug('Downloading content of %s: %s of %s',
-                              reply.url(), received, total)
-        )
+        reply.readyRead.connect(partial(reply_ready_peek, reply))
+        reply.downloadProgress.connect(partial(reply_download_progress, reply))
         time.sleep(0.001)
         return reply
 
