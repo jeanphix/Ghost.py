@@ -7,7 +7,7 @@ import codecs
 import logging
 import subprocess
 import re
-from functools import wraps
+from functools import partial, wraps
 try:
     from cookielib import Cookie, LWPCookieJar
 except ImportError:
@@ -235,6 +235,12 @@ def reply_ready_read(reply):
     reply.readAll()
 
 
+def reply_download_progress(reply, received, total):
+    """Log `reply` download progress."""
+    reply.manager().logger.debug('Downloading content of %s: %s of %s',
+                                 reply.url().toString(), received, total)
+
+
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
@@ -248,8 +254,7 @@ class NetworkAccessManager(QNetworkAccessManager):
 
         # Keep a registry of in-flight requests
         self._registry = {}
-        self.finished.connect(lambda reply:
-                              self._reply_finished_callback(reply))
+        self.finished.connect(self._reply_finished_callback)
 
     def createRequest(self, operation, request, data):
         """Create a new QNetworkReply."""
@@ -266,12 +271,9 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        reply.readyRead.connect(lambda reply=reply: reply_ready_peek(reply))
-
+        reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.downloadProgress.connect(
-            lambda received, total:
-            self.logger.debug('Downloading content of %s: %s of %s',
-                              reply.url(), received, total)
+            partial(reply_download_progress, reply)
         )
 
         self.logger.debug('Registring reply for %s', reply.url())
