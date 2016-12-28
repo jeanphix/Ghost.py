@@ -1,17 +1,47 @@
 # -*- coding: utf-8 -*-
+import logging
 import select
 import threading
-import logging
 import time
 from unittest import TestCase
-from wsgiref.simple_server import make_server, WSGIRequestHandler
+from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
+
 from ghost import Ghost
 
 
-class MyWSGIRequestHandler(WSGIRequestHandler):
+class GhostWSGIServer(WSGIServer):
+    """Server class that integrates error handling with logging."""
+
+    logger = logging.getLogger('ghost.test.wsgi.server')
+
+    def handle_error(self, request, client_address):
+        # Interpose base class method so that the exception gets printed to
+        # our log file rather than stderr.
+        self.logger.exception('REST server exception during request from %s',
+                              client_address)
+
+
+class StderrLogger(object):
+    """File-like redirecting data written to it to logging."""
+
+    logger = logging.getLogger('ghost.test.wsgi.request')
+
+    def __init__(self):
+        self._buffer = []
+
+    def write(self, message):
+        self._buffer.append(message)
+
+    def flush(self):
+        self._buffer.insert(0, 'REST request handler error:\n')
+        self.logger.error(''.join(self._buffer))
+        self._buffer = []
+
+
+class GhostWSGIRequestHandler(WSGIRequestHandler):
     """Handle logs and timeout errors gracefully."""
 
-    logger = logging.getLogger('wsgiref.simple_server')
+    logger = logging.getLogger('ghost.test.wsgi.request')
 
     def handle(self):
         fd_sets = select.select([self.rfile], [], [], 1.0)
@@ -30,6 +60,11 @@ class MyWSGIRequestHandler(WSGIRequestHandler):
     def log_message(self, log_level, format_, *args):
         self.logger.log(log_level, format_, *args)
 
+    def get_stderr(self):
+        # Return a fake stderr object that will actually write its output to
+        # the log file.
+        return StderrLogger()
+
 
 class ServerThread(threading.Thread):
     """Starts given WSGI application.
@@ -43,8 +78,13 @@ class ServerThread(threading.Thread):
         super(ServerThread, self).__init__()
 
     def run(self):
-        self.http_server = make_server('localhost', self.port, self.app,
-                                       handler_class=MyWSGIRequestHandler)
+        self.http_server = make_server(
+            'localhost',
+            self.port,
+            self.app,
+            server_class=GhostWSGIServer,
+            handler_class=GhostWSGIRequestHandler,
+        )
         self.http_server.serve_forever()
 
     def join(self, timeout=None):
