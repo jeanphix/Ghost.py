@@ -74,12 +74,12 @@ class QTMessageProxy(object):
 
     def __call__(self, msgType, msg):
         levels = {
-            QtDebugMsg: 'debug',
-            QtWarningMsg: 'warn',
-            QtCriticalMsg: 'critical',
-            QtFatalMsg: 'fatal',
+            QtDebugMsg: logging.DEBUG,
+            QtWarningMsg: logging.WARNING,
+            QtCriticalMsg: logging.CRITICAL,
+            QtFatalMsg: logging.FATAL,
         }
-        getattr(self.logger, levels[msgType])(msg)
+        self.logger.log(levels[msgType], msg)
 
 
 class GhostWebPage(QtWebKit.QWebPage):
@@ -103,9 +103,9 @@ class GhostWebPage(QtWebKit.QWebPage):
             line,
             source,
         )
-        log_type = "warn" if "Error" in message else "info"
-        getattr(self.session.logger, log_type)(
-            "%s(%d): %s" % (source or '<unknown>', line, message),
+        self.session.logger.log(
+            logging.WARNING if "Error" in message else logging.INFO,
+            "%s(%d): %s", source or '<unknown>', line, message,
         )
 
     def javaScriptAlert(self, frame, message):
