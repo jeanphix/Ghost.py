@@ -148,7 +148,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         self.session.logger.info("prompt('%s')" % message)
         value = self._get_value(value)
         if value == '':
-            self.session.logger.warn(
+            self.session.logger.warning(
                 "'%s' prompt filled with empty string" % message,
             )
 
@@ -522,7 +522,7 @@ class Session(object):
         frame_size = self.main_frame.contentsSize()
         max_size = 23170 * 23170
         if frame_size.height() * frame_size.width() > max_size:
-            self.logger.warn("Frame size is too large.")
+            self.logger.warning("Frame size is too large.")
             default_size = self.page.viewportSize()
             if default_size.height() * default_size.width() > max_size:
                 return None
