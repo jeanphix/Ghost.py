@@ -311,7 +311,13 @@ class NetworkAccessManager(QNetworkAccessManager):
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
         self.logger.debug('Reply for %s complete', reply.url().toString())
-        self._registry.pop(id(reply))
+        try:
+            self._registry.pop(id(reply))
+        except KeyError:
+            # Workaround for QtWebkit bug #82506
+            # https://bugs.webkit.org/show_bug.cgi?format=multiple&id=82506
+            self.logger.debug('Reply was not in registry,'
+                              'maybe webkit bug #82506')
 
     @property
     def requests(self):
