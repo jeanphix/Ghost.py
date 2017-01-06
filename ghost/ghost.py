@@ -275,12 +275,18 @@ class NetworkAccessManager(QNetworkAccessManager):
         reply.downloadProgress.connect(
             partial(reply_download_progress, reply)
         )
+        reply.error.connect(partial(self._reply_error_callback, reply))
 
         self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
 
         time.sleep(0.001)
         return reply
+
+    def _reply_error_callback(self, reply, error_code):
+        """Log an error message on QtNetworkReply error."""
+        self.logger.debug('Reply for %s encountered an error: %s',
+                          reply.url().toString(), reply.errorString())
 
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
