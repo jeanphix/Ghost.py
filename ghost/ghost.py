@@ -275,6 +275,7 @@ class NetworkAccessManager(QNetworkAccessManager):
         reply.downloadProgress.connect(
             partial(reply_download_progress, reply)
         )
+        reply.error.connect(partial(self._reply_error_callback, reply))
 
         self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
@@ -282,10 +283,21 @@ class NetworkAccessManager(QNetworkAccessManager):
         time.sleep(0.001)
         return reply
 
+    def _reply_error_callback(self, reply, error_code):
+        """Log an error message on QtNetworkReply error."""
+        self.logger.debug('Reply for %s encountered an error: %s',
+                          reply.url().toString(), reply.errorString())
+
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
         self.logger.debug('Reply for %s complete', reply.url().toString())
-        self._registry.pop(id(reply))
+        try:
+            self._registry.pop(id(reply), None)
+        except KeyError:
+            # Workaround for QtWebkit bug #82506
+            # https://bugs.webkit.org/show_bug.cgi?format=multiple&id=82506
+            self.logger.debug('Reply was not in registry,'
+                              'maybe webkit bug #82506')
 
     @property
     def requests(self):
