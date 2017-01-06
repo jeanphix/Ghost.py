@@ -269,6 +269,12 @@ def reply_download_progress(reply, received, total):
                                  reply.url().toString(), received, total)
 
 
+def _reply_error_callback(reply, error_code):
+    """Log an error message on QtNetworkReply error."""
+    reply.manager().logger.error('Reply for %s encountered an error: %s',
+                                 reply.url().toString(), reply.errorString())
+
+
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
@@ -301,6 +307,7 @@ class NetworkAccessManager(QNetworkAccessManager):
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.downloadProgress.connect(partial(reply_download_progress, reply))
+        reply.error.connect(partial(_reply_error_callback, reply))
 
         self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
