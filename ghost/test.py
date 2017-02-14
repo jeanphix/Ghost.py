@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
 import select
+import sys
 import threading
 import time
 from unittest import TestCase
 from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
 
 from ghost import Ghost
+
+PY3 = sys.version_info[0] > 2
 
 
 class GhostWSGIServer(WSGIServer):
@@ -48,7 +51,11 @@ class GhostWSGIRequestHandler(WSGIRequestHandler):
         if not fd_sets[0]:
             # Sometimes WebKit times out waiting for us.
             return
-        WSGIRequestHandler.handle(self)
+
+        if PY3:
+            super(GhostWSGIRequestHandler, self).handle()
+        else:
+            WSGIRequestHandler.handle(self)
 
     def log_request(self, code='-', size='-'):
         self.log_message(logging.DEBUG, '"%s" %s %s',
