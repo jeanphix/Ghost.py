@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
+import select
 import threading
 import logging
 import time
 from unittest import TestCase
-from wsgiref.simple_server import make_server
+from wsgiref.simple_server import make_server, WSGIRequestHandler
 from ghost import Ghost
+
+
+class MyWSGIRequestHandler(WSGIRequestHandler):
+    def handle(self):
+        fd_sets = select.select([self.rfile], [], [], 1.0)
+        if not fd_sets[0]:
+            # Sometimes WebKit times out waiting for us.
+            return
+        WSGIRequestHandler.handle(self)
 
 
 class ServerThread(threading.Thread):
@@ -19,7 +29,7 @@ class ServerThread(threading.Thread):
         super(ServerThread, self).__init__()
 
     def run(self):
-        self.http_server = make_server('', self.port, self.app)
+        self.http_server = make_server('', self.port, self.app, handler_class=MyWSGIRequestHandler)
         self.http_server.serve_forever()
 
     def join(self, timeout=None):
