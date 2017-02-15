@@ -335,6 +335,8 @@ class GhostTest(GhostTestCase):
             "document.querySelector('option[value=one]').selected;")
         self.assertFalse(value)
 
+    @unittest.skipIf(os.environ.get('TRAVIS') == "true",
+                     'Running on Travis CI')
     def test_set_field_value_simple_file_field(self):
         self.session.open(base_url)
         self.session.set_field_value(
@@ -346,10 +348,15 @@ class GhostTest(GhostTestCase):
             'submit',
             expect_loading=True,
         )
-        file_path = os.path.join(
-            os.path.dirname(__file__), 'uploaded_blackhat.jpg')
-        self.assertTrue(os.path.isfile(file_path))
-        os.remove(file_path)
+        file_path = os.path.join(os.path.dirname(__file__),
+                                 'uploaded_blackhat.jpg')
+
+        try:
+            self.assertTrue(os.path.isfile(file_path),
+                            msg='QtWebKit did not provide local file name')
+            os.remove(file_path)
+        finally:
+            os.remove(os.path.join(os.path.dirname(__file__), 'uploaded_'))
 
     def test_basic_http_auth_success(self):
         page, resources = self.session.open(
