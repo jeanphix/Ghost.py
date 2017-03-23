@@ -16,7 +16,7 @@ except ImportError:
 from ghost import GhostTestCase
 from ghost.ghost import default_user_agent
 
-from .app import app
+from app import app
 
 
 PY3 = sys.version > '3'

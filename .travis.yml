@@ -1,5 +1,5 @@
-dist: trusty
-sudo: false
+dist: xenial
+sudo: required
 language: python
 cache:
   pip: true
@@ -7,22 +7,18 @@ cache:
   directories:
     - .eggs
 python:
-  - "2.7"
   - "3.3"
   - "3.4"
-addons:
-  apt:
-    packages:
-      - python-pyside.qtwebkit
 env:
   global:
     - DISPLAY=:99
     - TOX_TESTENV_PASSENV=TRAVIS
 before_script:
+  - sudo add-apt-repository ppa:thopiekar/pyside-git -y
+  - sudo apt-get update
+  - sudo apt-get install python3-pyside2 -y
   - "export DISPLAY=:99"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
-install:
-  - pip install tox
 script:
-  - tox -vvv --sitepackages -e py${TRAVIS_PYTHON_VERSION//.}-pyside
+  - python tests/run.py

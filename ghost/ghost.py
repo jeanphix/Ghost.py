@@ -13,33 +13,42 @@ try:
 except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-from .bindings import (
-    binding,
-    QtCore,
-    QSize,
+
+from PySide2.QtWebKitWidgets import (
+    QWebPage,
+    QWebSettings,
+    QWebView,
+)
+from PySide2.QtCore import (
     QByteArray,
-    QUrl,
     QDateTime,
+    qInstallMessageHandler,
+    QSize,
+    QSizeF,
+    Qt,
     QtCriticalMsg,
     QtDebugMsg,
     QtFatalMsg,
     QtWarningMsg,
-    qInstallMsgHandler,
-    QApplication,
+    QUrl,
+)
+from PySide2.QtGui import (
     QImage,
     QPainter,
-    QPrinter,
     QRegion,
-    QtNetwork,
-    QNetworkRequest,
+)
+from PySide2.QtPrintSupport import QPrinter
+from PySide2.QtWidgets import (
+    QApplication,
+)
+from PySide2.QtNetwork import (
     QNetworkAccessManager,
+    QNetworkCookie,
     QNetworkCookieJar,
     QNetworkProxy,
-    QNetworkCookie,
-    QSslConfiguration,
-    QSsl,
-    QtWebKit,
+    QNetworkRequest,
 )
+
 
 __version__ = "0.2.3"
 
@@ -82,7 +91,7 @@ class QTMessageProxy(object):
         self.logger.log(levels[msgType], msg)
 
 
-class GhostWebPage(QtWebKit.QWebPage):
+class GhostWebPage(QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
@@ -265,9 +274,6 @@ class Ghost(object):
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
-        if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
-
         self.logger = logger.getChild('application')
 
         if (
@@ -290,7 +296,8 @@ class Ghost(object):
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
+        qInstallMessageHandler(QTMessageProxy(logging.getLogger('qt')))
+
         if plugin_path:
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
@@ -383,31 +390,31 @@ class Session(object):
             self.page.setNetworkAccessManager(
                 network_access_manager_class(exclude_regex=exclude))
 
-        QtWebKit.QWebSettings.setMaximumPagesInCache(0)
-        QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
-        QtWebKit.QWebSettings.globalSettings().setAttribute(
-            QtWebKit.QWebSettings.LocalStorageEnabled, local_storage_enabled)
+        QWebSettings.setMaximumPagesInCache(0)
+        QWebSettings.setObjectCacheCapacities(0, 0, 0)
+        QWebSettings.globalSettings().setAttribute(
+            QWebSettings.LocalStorageEnabled, local_storage_enabled)
 
         self.page.setForwardUnsupportedContent(True)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.AutoLoadImages, download_images)
+            QWebSettings.AutoLoadImages, download_images)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
+            QWebSettings.PluginsEnabled, plugins_enabled)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.JavaEnabled,
+            QWebSettings.JavaEnabled,
             java_enabled,
         )
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.JavascriptEnabled, javascript_enabled)
+            QWebSettings.JavascriptEnabled, javascript_enabled)
 
         if not show_scrollbars:
             self.page.mainFrame().setScrollBarPolicy(
-                QtCore.Qt.Vertical,
-                QtCore.Qt.ScrollBarAlwaysOff,
+                Qt.Vertical,
+                Qt.ScrollBarAlwaysOff,
             )
             self.page.mainFrame().setScrollBarPolicy(
-                QtCore.Qt.Horizontal,
-                QtCore.Qt.ScrollBarAlwaysOff,
+                Qt.Horizontal,
+                Qt.ScrollBarAlwaysOff,
             )
 
         self.set_viewport_size(*viewport_size)
@@ -435,7 +442,7 @@ class Session(object):
 
         self.main_frame = self.page.mainFrame()
 
-        class GhostQWebView(QtWebKit.QWebView):
+        class GhostQWebView(QWebView):
             def sizeHint(self):
                 return QSize(*viewport_size)
 
@@ -443,10 +450,10 @@ class Session(object):
 
         if plugins_enabled:
             self.webview.settings().setAttribute(
-                QtWebKit.QWebSettings.PluginsEnabled, True)
+                QWebSettings.PluginsEnabled, True)
         if java_enabled:
             self.webview.settings().setAttribute(
-                QtWebKit.QWebSettings.JavaEnabled, True)
+                QWebSettings.JavaEnabled, True)
 
         self.webview.setPage(self.page)
 
@@ -511,12 +518,12 @@ class Session(object):
             format = QImage.Format_ARGB32_Premultiplied
 
         self.main_frame.setScrollBarPolicy(
-            QtCore.Qt.Vertical,
-            QtCore.Qt.ScrollBarAlwaysOff,
+            Qt.Vertical,
+            Qt.ScrollBarAlwaysOff,
         )
         self.main_frame.setScrollBarPolicy(
-            QtCore.Qt.Horizontal,
-            QtCore.Qt.ScrollBarAlwaysOff,
+            Qt.Horizontal,
+            Qt.ScrollBarAlwaysOff,
         )
         frame_size = self.main_frame.contentsSize()
         max_size = 23170 * 23170
@@ -602,13 +609,13 @@ class Session(object):
 
         printer = QPrinter(mode=QPrinter.ScreenResolution)
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
+        printer.setPaperSize(QSizeF(*paper_size), paper_units)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
         if paper_margins != (0, 0, 0, 0):
             printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
-            self.webview = QtWebKit.QWebView()
+            self.webview = QWebView()
             self.webview.setPage(self.page)
         self.webview.setZoomFactor(zoom_factor)
         self.webview.print_(printer)
@@ -803,7 +810,6 @@ class Session(object):
         default_popup_response=None,
         wait=True,
         timeout=None,
-        client_certificate=None,
         encode_url=True,
         user_agent=None,
     ):
@@ -823,7 +829,6 @@ class Session(object):
         it is the caller's responsibilty to wait for the load to
         finish by other means (e.g. by calling wait_for_page_loaded()).
         :param timeout: An optional timeout.
-        :param client_certificate An optional dict with "certificate_path" and
         "key_path" both paths corresponding to the certificate and key files
         :param encode_url Set to true if the url have to be encoded
         :param user_agent An option user agent string.
@@ -840,32 +845,6 @@ class Session(object):
 
         if user_agent is not None:
             self.page.set_user_agent(user_agent)
-
-        if client_certificate:
-            ssl_conf = QSslConfiguration.defaultConfiguration()
-
-            if "certificate_path" in client_certificate:
-                try:
-                    certificate = QtNetwork.QSslCertificate.fromPath(
-                        client_certificate["certificate_path"],
-                        QSsl.Pem,
-                    )[0]
-                except IndexError:
-                    raise Error(
-                        "Can't find certicate in %s"
-                        % client_certificate["certificate_path"]
-                    )
-
-                ssl_conf.setLocalCertificate(certificate)
-
-            if "key_path" in client_certificate:
-                private_key = QtNetwork.QSslKey(
-                    open(client_certificate["key_path"]).read(),
-                    QSsl.Rsa,
-                )
-                ssl_conf.setPrivateKey(private_key)
-
-            QSslConfiguration.setDefaultConfiguration(ssl_conf)
 
         if encode_url:
             request = QNetworkRequest(QUrl(address))
