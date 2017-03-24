@@ -351,6 +351,7 @@ class Ghost(object):
         self.defaults = defaults or dict()
 
     def exit(self):
+        self.logger.info('Stopping QT application')
         self._app.quit()
         if hasattr(self, 'xvfb'):
             self.xvfb.terminate()
