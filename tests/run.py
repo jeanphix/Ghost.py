@@ -334,6 +334,8 @@ class GhostTest(GhostTestCase):
             "document.querySelector('option[value=one]').selected;")
         self.assertFalse(value)
 
+    @unittest.skipIf(os.environ.get('TRAVIS') == "true",
+                     'Running on Travis CI')
     def test_set_field_value_simple_file_field(self):
         self.session.open(base_url)
         self.session.set_field_value(
