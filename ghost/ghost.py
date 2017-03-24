@@ -256,18 +256,17 @@ class NetworkAccessManager(QNetworkAccessManager):
         self._registry = {}
         self.finished.connect(self._reply_finished_callback)
 
-    def createRequest(self, operation, request, data):
+    def createRequest(self, operation, request, data=None):
         """Create a new QNetworkReply."""
         if self._regex and self._regex.findall(str(request.url().toString())):
             operation = QNetworkAccessManager.GetOperation
             request = QNetworkRequest()
             data = None
 
-        reply = QNetworkAccessManager.createRequest(
-            self,
+        reply = super(NetworkAccessManager, self).createRequest(
             operation,
             request,
-            data
+            data,
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.downloadProgress.connect(
