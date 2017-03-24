@@ -13,7 +13,6 @@ try:
 except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-from .logger import configure
 from .bindings import (
     binding,
     QtCore,
@@ -52,9 +51,11 @@ if PY3:
     long = int
     basestring = str
 
-
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+
+logger = logging.getLogger('ghost')
+logger.addHandler(logging.NullHandler())
 
 
 class Error(Exception):
@@ -73,12 +74,12 @@ class QTMessageProxy(object):
 
     def __call__(self, msgType, msg):
         levels = {
-            QtDebugMsg: 'debug',
-            QtWarningMsg: 'warn',
-            QtCriticalMsg: 'critical',
-            QtFatalMsg: 'fatal',
+            QtDebugMsg: logging.DEBUG,
+            QtWarningMsg: logging.WARNING,
+            QtCriticalMsg: logging.CRITICAL,
+            QtFatalMsg: logging.FATAL,
         }
-        getattr(self.logger, levels[msgType])(msg)
+        self.logger.log(levels[msgType], msg)
 
 
 class GhostWebPage(QtWebKit.QWebPage):
@@ -92,7 +93,7 @@ class GhostWebPage(QtWebKit.QWebPage):
 
     def chooseFile(self, frame, suggested_file=None):
         filename = self.session._upload_file
-        self.session.logger.debug('Choosing file %s' % filename)
+        self.session.logger.debug('Choosing file %s', filename)
         return filename
 
     def javaScriptConsoleMessage(self, message, line, source):
@@ -102,16 +103,16 @@ class GhostWebPage(QtWebKit.QWebPage):
             line,
             source,
         )
-        log_type = "warn" if "Error" in message else "info"
-        getattr(self.session.logger, log_type)(
-            "%s(%d): %s" % (source or '<unknown>', line, message),
+        self.session.logger.log(
+            logging.WARNING if "Error" in message else logging.INFO,
+            "%s(%d): %s", source or '<unknown>', line, message,
         )
 
     def javaScriptAlert(self, frame, message):
         """Notifies session for alert, then pass."""
         self.session._alert = message
         self.session.append_popup_message(message)
-        self.session.logger.info("alert('%s')" % message)
+        self.session.logger.info("alert('%s')", message)
 
     def _get_value(self, value):
         if callable(value):
@@ -130,7 +131,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.session.append_popup_message(message)
         value = self.session._confirm_expected
-        self.session.logger.info("confirm('%s')" % message)
+        self.session.logger.info("confirm('%s')", message)
         return self._get_value(value)
 
     def javaScriptPrompt(self, frame, message, defaultValue, result=None):
@@ -144,11 +145,11 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
         self.session.append_popup_message(message)
         value = self.session._prompt_expected
-        self.session.logger.info("prompt('%s')" % message)
+        self.session.logger.info("prompt('%s')", message)
         value = self._get_value(value)
         if value == '':
-            self.session.logger.warn(
-                "'%s' prompt filled with empty string" % message,
+            self.session.logger.warning(
+                "'%s' prompt filled with empty string", message,
             )
 
         if result is None:
@@ -197,7 +198,7 @@ class HttpResource(object):
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
-            "Resource loaded: %s %s" % (self.url, self.http_status)
+            "Resource loaded: %s %s", self.url, self.http_status
         )
         self.headers = {}
         for header in reply.rawHeaderList():
@@ -208,10 +209,9 @@ class HttpResource(object):
                 # it will lose the header value,
                 # but at least not crash the whole process
                 self.session.logger.error(
-                    "Invalid characters in header {0}={1}".format(
-                        header,
-                        reply.rawHeader(header),
-                    )
+                    "Invalid characters in header %s=%s",
+                    header,
+                    reply.rawHeader(header),
                 )
         self._reply = reply
 
@@ -262,20 +262,13 @@ class Ghost(object):
 
     def __init__(
         self,
-        log_level=logging.WARNING,
-        log_handler=logging.StreamHandler(sys.stderr),
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
         if not binding:
             raise Exception("Ghost.py requires PySide or PyQt4")
 
-        self.logger = configure(
-            'ghost',
-            "Ghost",
-            log_level,
-            log_handler,
-        )
+        self.logger = logger.getChild('application')
 
         if (
             sys.platform.startswith('linux') and
@@ -297,14 +290,7 @@ class Ghost(object):
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        qInstallMsgHandler(QTMessageProxy(
-            configure(
-                'qt',
-                'QT',
-                log_level,
-                log_handler,
-            )
-        ))
+        qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
         if plugin_path:
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
@@ -375,12 +361,10 @@ class Session(object):
 
         self.id = str(uuid.uuid4())
 
-        self.logger = configure(
-            'ghost.%s' % self.id,
-            "Ghost<%s>" % self.id,
-            ghost.logger.level,
+        self.logger = logging.LoggerAdapter(
+            logger.getChild('session'),
+            {'session': self.id},
         )
-
         self.logger.info("Starting new session")
 
         self.http_resources = []
@@ -505,7 +489,7 @@ class Session(object):
         :param method: The name of the method to call.
         :param expect_loading: Specifies if a page loading is expected.
         """
-        self.logger.debug('Calling `%s` method on `%s`' % (method, selector))
+        self.logger.debug('Calling `%s` method on `%s`', method, selector)
         element = self.main_frame.findFirstElement(selector)
         return element.evaluateJavaScript('this[%s]();' % repr(method))
 
@@ -537,14 +521,14 @@ class Session(object):
         frame_size = self.main_frame.contentsSize()
         max_size = 23170 * 23170
         if frame_size.height() * frame_size.width() > max_size:
-            self.logger.warn("Frame size is too large.")
+            self.logger.warning("Frame size is too large.")
             default_size = self.page.viewportSize()
             if default_size.height() * default_size.width() > max_size:
                 return None
         else:
             self.page.setViewportSize(self.main_frame.contentsSize())
 
-        self.logger.info("Frame size -> " + str(self.page.viewportSize()))
+        self.logger.info("Frame size -> %s", str(self.page.viewportSize()))
 
         image = QImage(self.page.viewportSize(), format)
         painter = QPainter(image)
@@ -746,7 +730,7 @@ class Session(object):
         :param selector: A selector to target the element.
         :param event: The name of the event to trigger.
         """
-        self.logger.debug('Fire `%s` on `%s`' % (event, selector))
+        self.logger.debug('Fire `%s` on `%s`', event, selector)
         element = self.main_frame.findFirstElement(selector)
         return element.evaluateJavaScript("""
             var event = document.createEvent("HTMLEvents");
@@ -846,7 +830,7 @@ class Session(object):
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
-        self.logger.info('Opening %s' % address)
+        self.logger.info('Opening %s', address)
         body = body or QByteArray()
         try:
             method = getattr(QNetworkAccessManager,
@@ -994,7 +978,7 @@ class Session(object):
         :param value: The value to fill in.
         :param blur: An optional boolean that force blur when filled in.
         """
-        self.logger.debug('Setting value "%s" for "%s"' % (value, selector))
+        self.logger.debug('Setting value "%s" for "%s"', value, selector)
 
         def _set_checkbox_value(el, value):
             el.setFocus()
@@ -1207,7 +1191,7 @@ class Session(object):
             if url == resource.url or url_without_hash == resource.url:
                 page = resource
 
-        self.logger.info('Page loaded %s' % url)
+        self.logger.info('Page loaded %s', url)
 
         return page, resources
 
@@ -1289,10 +1273,9 @@ class Session(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.logger.debug("[%s] bytesAvailable()= %s" % (
-                str(reply.url()),
-                reply.bytesAvailable()
-            ))
+            self.logger.debug("[%s] bytesAvailable()= %s",
+                              str(reply.url()),
+                              reply.bytesAvailable())
 
             try:
                 content = reply.data
@@ -1306,9 +1289,8 @@ class Session(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s" % (
-            str(reply.url()),
-        ))
+        self.logger.info("Unsupported content %s",
+                         str(reply.url()))
 
         reply.readyRead.connect(
             lambda reply=reply: self._reply_download_content(reply))
@@ -1331,7 +1313,7 @@ class Session(object):
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
-            self.logger.warn('SSL certificate error: %s' % url)
+            self.logger.warning('SSL certificate error: %s', url)
 
     def __enter__(self):
         return self
