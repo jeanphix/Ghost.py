@@ -35,7 +35,7 @@ OSX:
     brew install qt
     mkvirtualenv foo
     pip install -U pip  # make sure pip is current
-    pip install PySide
+    pip install PySide==1.2.2
     pyside_postinstall.py -install
     pip install Ghost.py
 
