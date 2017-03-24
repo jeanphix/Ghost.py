@@ -308,7 +308,7 @@ class NetworkAccessManager(QNetworkAccessManager):
         """Unregister a complete QNetworkReply."""
         self.logger.debug('Reply for %s complete', reply.url().toString())
         try:
-            self._registry.pop(id(reply), None)
+            self._registry.pop(id(reply))
         except KeyError:
             # Workaround for QtWebkit bug #82506
             # https://bugs.webkit.org/show_bug.cgi?format=multiple&id=82506
