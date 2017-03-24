@@ -263,6 +263,26 @@ def reply_ready_read(reply):
     reply.readAll()
 
 
+def reply_destroyed(reply):
+    """Handle `reply` destroyed signal.
+
+    Hack required to avoid blocking on replies that for some reason never send
+    the finished or error signal.
+
+    :param reply: QNetworkReply object.
+    """
+    key = id(reply)
+    qnam = reply.manager()
+    qnam.logger.debug('Reply for %s destroyed', reply.url().toString())
+
+    if key in qnam._registry:
+        qnam._registry.pop(key)
+        qnam.logger.warning(
+            'Reply for %s did not trigger finished or error signal',
+            reply.url().toString()
+        )
+
+
 def reply_download_progress(reply, received, total):
     """Log `reply` download progress."""
     reply.manager().logger.debug('Downloading content of %s: %s of %s',
@@ -306,6 +326,7 @@ class NetworkAccessManager(QNetworkAccessManager):
             data
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
+        reply.destroyed.connect(partial(reply_destroyed, reply))
         reply.downloadProgress.connect(partial(reply_download_progress, reply))
         reply.error.connect(partial(_reply_error_callback, reply))
 
