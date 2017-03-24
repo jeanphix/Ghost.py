@@ -1197,11 +1197,11 @@ class Session(object):
         self.sleep()
 
     def sleep(self, value=0.1):
-        started_at = time.time()
-
-        while time.time() <= (started_at + value):
-            time.sleep(0.01)
-            self.ghost._app.processEvents()
+        """Run the event loop for at most `value` seconds."""
+        self.ghost._app.processEvents(
+            QtCore.QEventLoop.ExcludeUserInputEvents,
+            int(value * 100)
+        )
 
     def wait_for(self, condition, timeout_message, timeout=None):
         """Waits until condition is True.
