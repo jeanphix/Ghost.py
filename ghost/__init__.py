@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .ghost import (
     Ghost,
     Error,
@@ -7,3 +6,12 @@ from .ghost import (
     __version__,
 )
 from .test import GhostTestCase
+
+
+__all__ = [
+    'Ghost',
+    'Error',
+    'Session',
+    'TimeoutError',
+    'GhostTestCase',
+]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 import os
 import time
@@ -7,12 +6,10 @@ import codecs
 import logging
 import subprocess
 import re
-from functools import wraps
-try:
-    from cookielib import Cookie, LWPCookieJar
-except ImportError:
-    from http.cookiejar import Cookie, LWPCookieJar
+
+from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
+from functools import wraps
 
 from PySide2.QtWebKitWidgets import (
     QWebPage,
@@ -50,15 +47,8 @@ from PySide2.QtNetwork import (
 )
 
 
-__version__ = "0.2.3"
+__version__ = "1.0.0"
 
-
-PY3 = sys.version > '3'
-
-if PY3:
-    unicode = str
-    long = int
-    basestring = str
 
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
@@ -165,7 +155,7 @@ class GhostWebPage(QWebPage):
             # PySide
             return True, value
 
-        result.append(unicode(value))
+        result.append(str(value))
         return True
 
     def set_user_agent(self, user_agent):
@@ -199,11 +189,7 @@ class HttpResource(object):
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
-        self.content = content
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
+        self.content = bytes(content.data())
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
@@ -212,7 +198,7 @@ class HttpResource(object):
         self.headers = {}
         for header in reply.rawHeaderList():
             try:
-                self.headers[unicode(header)] = unicode(
+                self.headers[str(header)] = str(
                     reply.rawHeader(header))
             except UnicodeDecodeError:
                 # it will lose the header value,
@@ -465,7 +451,7 @@ class Session(object):
 
         :param frame: An optional name or index of the child to descend to.
         """
-        if isinstance(selector, basestring):
+        if isinstance(selector, str):
             for frame in self.main_frame.childFrames():
                 if frame.frameName() == selector:
                     self.main_frame = frame
@@ -659,7 +645,7 @@ class Session(object):
         :param to_unicode: Whether to convert html to unicode or not
         """
         if to_unicode:
-            return unicode(self.main_frame.toHtml())
+            return str(self.main_frame.toHtml())
         else:
             return self.main_frame.toHtml()
 
@@ -916,7 +902,7 @@ class Session(object):
                 domain_initial_dot = v.startswith('.')
             else:
                 domain_initial_dot = None
-            v = long(QtCookie.expirationDate().toTime_t())
+            v = int(QtCookie.expirationDate().toTime_t())
             # Long type boundary on 32bit platfroms; avoid ValueError
             expires = 2147483647 if v > 2147483647 else v
             rest = {}
@@ -1110,7 +1096,7 @@ class Session(object):
         self.page.setViewportSize(QSize(width, height))
 
     def append_popup_message(self, message):
-        self.popup_messages.append(unicode(message))
+        self.popup_messages.append(str(message))
 
     def show(self):
         """Show current page inside a QWebView.
@@ -1288,7 +1274,7 @@ class Session(object):
             ))
 
     def _on_manager_ssl_errors(self, reply, errors):
-        url = unicode(reply.url().toString())
+        url = str(reply.url().toString())
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:

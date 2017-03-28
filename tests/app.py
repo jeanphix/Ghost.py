@@ -123,10 +123,7 @@ def send_file():
     h.add('Content-type', 'application/octet-stream', charset='utf8')
     h.add('Content-disposition', 'attachment', filename='name.tar.gz')
     file_path = os.path.join(os.path.dirname(__file__), 'static', 'foo.tar.gz')
-    if PY3:
-        f = open(file_path, 'r', encoding='latin-1')
-    else:
-        f = open(file_path, 'r')
+    f = open(file_path, 'rb')
     return Response(f, headers=h)
 
 
