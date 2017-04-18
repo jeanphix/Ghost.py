@@ -3,7 +3,6 @@ from .ghost import (
     Error,
     Session,
     TimeoutError,
-    __version__,
 )
 from .test import GhostTestCase
 

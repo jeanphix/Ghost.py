@@ -47,11 +47,9 @@ from PySide2.QtNetwork import (
 )
 
 
-__version__ = "1.0.0"
-
-
 default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
     "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+
 
 logger = logging.getLogger('ghost')
 logger.addHandler(logging.NullHandler())

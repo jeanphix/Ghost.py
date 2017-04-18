@@ -6,12 +6,11 @@ Webkit based webclient.
 
 """
 from setuptools import setup, find_packages
-from ghost import __version__
 
 
 setup(
     name='Ghost.py',
-    version=__version__,
+    version='2.0.0-dev',
     url='https://github.com/jeanphix/Ghost.py',
     license='mit',
     author='Jean-Philippe Serafin',
