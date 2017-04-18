@@ -1,24 +1,10 @@
-dist: xenial
 sudo: required
-language: python
-cache:
-  pip: true
-  ccache: true
-  directories:
-    - .eggs
-python:
-  - "3.3"
-  - "3.4"
-env:
-  global:
-    - DISPLAY=:99
-    - TOX_TESTENV_PASSENV=TRAVIS
-before_script:
-  - sudo add-apt-repository ppa:thopiekar/pyside-git -y
-  - sudo apt-get update
-  - sudo apt-get install python3-pyside2 -y
-  - "export DISPLAY=:99"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
+
+services:
+  - docker
+
+before_install:
+  - docker build -t test .
+
 script:
-  - python tests/run.py
+  - docker run --env TRAVIS=true test python3 tests/run.py
