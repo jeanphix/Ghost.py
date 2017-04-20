@@ -5,7 +5,6 @@ import time
 import uuid
 import codecs
 import logging
-import subprocess
 import re
 from functools import wraps
 try:
@@ -40,6 +39,7 @@ from .bindings import (
     QSsl,
     QtWebKit,
 )
+from xvfbwrapper import Xvfb
 
 __version__ = "0.2.3"
 
@@ -277,14 +277,12 @@ class Ghost(object):
             'DISPLAY' not in os.environ
         ):
             try:
-                os.environ['DISPLAY'] = ':99'
-                process = ['Xvfb', ':99', '-pixdepths', '32']
-                FNULL = open(os.devnull, 'w')
-                self.xvfb = subprocess.Popen(
-                    process,
-                    stdout=FNULL,
-                    stderr=subprocess.STDOUT,
+                self.xvfb = Xvfb(
+                    width=800,
+                    height=600,
                 )
+                self.xvfb.start()
+
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
@@ -303,7 +301,7 @@ class Ghost(object):
         self.logger.info('Stopping QT application')
         self._app.quit()
         if hasattr(self, 'xvfb'):
-            self.xvfb.terminate()
+            self.xvfb.stop()
 
     def start(self, **kwargs):
         """Starts a new `Session`."""
