@@ -51,8 +51,10 @@ if PY3:
     long = int
     basestring = str
 
-default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
-    "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+default_user_agent = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/57.0.2987.133 Safari/537.36"
+)
 
 logger = logging.getLogger('ghost')
 logger.addHandler(logging.NullHandler())
