@@ -313,6 +313,7 @@ class Ghost(object):
         self,
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
+        display_size=(1600, 900),
     ):
         if not binding:
             raise RuntimeError("Ghost.py requires PySide or PyQt4")
@@ -326,8 +327,8 @@ class Ghost(object):
             try:
                 self.logger.debug('Using Xvfb display server')
                 self.xvfb = Xvfb(
-                    width=800,
-                    height=600,
+                    width=display_size[0],
+                    height=display_size[1],
                 )
                 self.xvfb.start()
 
@@ -346,7 +347,10 @@ class Ghost(object):
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
 
-        self.defaults = defaults or dict()
+        self.display_size = display_size
+        _defaults = dict(viewport_size=display_size)
+        _defaults.update(defaults or dict())
+        self.defaults = _defaults
 
     def exit(self):
         if self._app:
@@ -358,8 +362,9 @@ class Ghost(object):
 
     def start(self, **kwargs):
         """Starts a new `Session`."""
-        kwargs.update(self.defaults)
-        return Session(self, **kwargs)
+        _kwargs = self.defaults.copy()
+        _kwargs.update(kwargs)
+        return Session(self, **_kwargs)
 
     def __del__(self):
         self.exit()
@@ -399,7 +404,7 @@ class Session(object):
         wait_timeout=8,
         wait_callback=None,
         display=False,
-        viewport_size=(800, 600),
+        viewport_size=None,
         ignore_ssl_errors=True,
         plugins_enabled=False,
         java_enabled=False,
@@ -465,8 +470,6 @@ class Session(object):
                 QtCore.Qt.ScrollBarAlwaysOff,
             )
 
-        self.set_viewport_size(*viewport_size)
-
         # Page signals
         self.page.loadFinished.connect(self._page_loaded)
         self.page.loadStarted.connect(self._page_load_started)
@@ -495,6 +498,8 @@ class Session(object):
                 return QSize(*viewport_size)
 
         self.webview = GhostQWebView()
+
+        self.set_viewport_size(*viewport_size)
 
         if plugins_enabled:
             self.webview.settings().setAttribute(
@@ -1183,7 +1188,13 @@ class Session(object):
         :param width: An integer that sets width pixel count.
         :param height: An integer that sets height pixel count.
         """
-        self.page.setViewportSize(QSize(width, height))
+        new_size = QSize(width, height)
+
+        self.webview.resize(new_size)
+        self.page.setPreferredContentsSize(new_size)
+        self.page.setViewportSize(new_size)
+
+        self.sleep()
 
     def append_popup_message(self, message):
         self.popup_messages.append(unicode(message))

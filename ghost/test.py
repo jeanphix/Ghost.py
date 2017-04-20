@@ -103,7 +103,6 @@ class ServerThread(threading.Thread):
 class BaseGhostTestCase(TestCase):
     display = False
     wait_timeout = 5
-    viewport_size = (800, 600)
 
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
@@ -111,7 +110,6 @@ class BaseGhostTestCase(TestCase):
             cls.ghost = Ghost(
                 defaults=dict(
                     display=cls.display,
-                    viewport_size=cls.viewport_size,
                     wait_timeout=cls.wait_timeout,
                 )
             )
