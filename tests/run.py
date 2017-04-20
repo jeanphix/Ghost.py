@@ -454,6 +454,22 @@ class GhostTest(GhostTestCase):
             "%sstatic/blackhat.jpg" % base_url in url_loaded)
         session.exit()
 
+    def _assert_viewport_width(self, session, width):
+        self.assertEqual(session.main_frame.contentsSize().width(), width)
+        self.assertEqual(session.page.viewportSize().width(), width)
+        self.assertEqual(session.webview.size().width(), width)
+
+    def test_viewport_size_default(self):
+        session = self.ghost.start()
+        page, resources = session.open(base_url)
+        self._assert_viewport_width(session, 1600)
+
+    def test_viewport_size_override(self):
+        session = self.ghost.start()
+        session.set_viewport_size(800, 600)
+        page, resources = session.open(base_url)
+        self._assert_viewport_width(session, 800)
+
 
 if __name__ == '__main__':
     unittest.main()
