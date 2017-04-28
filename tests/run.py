@@ -1,25 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import
-
-import sys
 import os
 import json
-import logging
 import unittest
-try:
-    import cookielib
-except ImportError:
-    from http import cookiejar as cookielib
+
+from http import cookiejar
 
 from ghost import GhostTestCase
 from ghost.ghost import default_user_agent
 
-from .app import app
+from app import app
 
-
-PY3 = sys.version > '3'
 
 PORT = 5000
 
@@ -42,7 +33,7 @@ class GhostTest(GhostTestCase):
     def test_open_page_with_no_cache_headers(self):
         page, resources = self.session.open("%sno-cache" % base_url)
         self.assertIsNotNone(page.content)
-        self.assertIn("cache for me", page.content)
+        self.assertIn(b"cache for me", page.content)
 
     def test_open_403(self):
         page, resources = self.session.open("%sprotected" % base_url)
@@ -58,13 +49,13 @@ class GhostTest(GhostTestCase):
 
     def test_extra_resource_content(self):
         page, resources = self.session.open(base_url)
-        self.assertIn('globals alert', resources[4].content)
+        self.assertIn(b'globals alert', resources[4].content)
 
     def test_extra_resource_binaries(self):
         page, resources = self.session.open(base_url)
         self.assertEqual(
-            resources[5].content.__class__.__name__,
-            'QByteArray',
+            resources[5].content.__class__,
+            bytes,
         )
 
     def test_wait_for_selector(self):
@@ -168,8 +159,8 @@ class GhostTest(GhostTestCase):
 
     def test_load_cookies_expire_is_none(self):
         self.session.delete_cookies()
-        jar = cookielib.CookieJar()
-        cookie = cookielib.Cookie(version=0, name='Name', value='1', port=None,
+        jar = cookiejar.CookieJar()
+        cookie = cookiejar.Cookie(version=0, name='Name', value='1', port=None,
                                   port_specified=False,
                                   domain='www.example.com',
                                   domain_specified=False,
@@ -378,10 +369,7 @@ class GhostTest(GhostTestCase):
             'static',
             'foo.tar.gz',
         )
-        if PY3:
-            f = open(file_path, 'r', encoding='latin-1')
-        else:
-            f = open(file_path, 'r')
+        f = open(file_path, 'rb')
         foo = f.read(1024)
         f.close()
 
@@ -442,7 +430,7 @@ class GhostTest(GhostTestCase):
                 "%sdump" % base_url,
                 **kwargs
             )
-            data = json.loads(page.content)
+            data = json.loads(page.content.decode())
             return data['headers']['User-Agent']
 
         session = self.session
@@ -465,6 +453,23 @@ class GhostTest(GhostTestCase):
         self.assertFalse(
             "%sstatic/blackhat.jpg" % base_url in url_loaded)
         session.exit()
+
+    def _assert_viewport_width(self, session, width):
+        self.assertEqual(session.main_frame.contentsSize().width(), width)
+        self.assertEqual(session.page.viewportSize().width(), width)
+        self.assertEqual(session.webview.size().width(), width)
+
+    def test_viewport_size_default(self):
+        session = self.ghost.start()
+        page, resources = session.open(base_url)
+        self._assert_viewport_width(session, 1600)
+
+    def test_viewport_size_override(self):
+        session = self.ghost.start()
+        session.set_viewport_size(800, 600)
+        page, resources = session.open(base_url)
+        self._assert_viewport_width(session, 800)
+
 
 if __name__ == '__main__':
     unittest.main()

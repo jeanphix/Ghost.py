@@ -1,28 +1,10 @@
-dist: trusty
-sudo: false
-language: python
-cache:
-  pip: true
-  ccache: true
-  directories:
-    - .eggs
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-addons:
-  apt:
-    packages:
-      - python-pyside.qtwebkit
-env:
-  global:
-    - DISPLAY=:99
-    - TOX_TESTENV_PASSENV=TRAVIS
-before_script:
-  - "export DISPLAY=:99"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
-install:
-  - pip install tox
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t test .
+
 script:
-  - tox -vvv --sitepackages -e py${TRAVIS_PYTHON_VERSION//.}-pyside
+  - docker run --env TRAVIS=true test python3 tests/run.py

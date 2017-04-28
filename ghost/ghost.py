@@ -1,58 +1,57 @@
-# -*- coding: utf-8 -*-
 import sys
 import os
 import time
 import uuid
 import codecs
 import logging
-import subprocess
 import re
-from functools import wraps
-try:
-    from cookielib import Cookie, LWPCookieJar
-except ImportError:
-    from http.cookiejar import Cookie, LWPCookieJar
+
+from http.cookiejar import Cookie, LWPCookieJar
 from contextlib import contextmanager
-from .bindings import (
-    binding,
-    QtCore,
-    QSize,
+from functools import wraps
+
+from PySide2.QtWebKitWidgets import (
+    QWebPage,
+    QWebSettings,
+    QWebView,
+)
+from PySide2.QtCore import (
     QByteArray,
-    QUrl,
     QDateTime,
+    qInstallMessageHandler,
+    QSize,
+    QSizeF,
+    Qt,
     QtCriticalMsg,
     QtDebugMsg,
     QtFatalMsg,
     QtWarningMsg,
-    qInstallMsgHandler,
-    QApplication,
+    QUrl,
+)
+from PySide2.QtGui import (
     QImage,
     QPainter,
-    QPrinter,
     QRegion,
-    QtNetwork,
-    QNetworkRequest,
+)
+from PySide2.QtPrintSupport import QPrinter
+from PySide2.QtWidgets import (
+    QApplication,
+)
+from PySide2.QtNetwork import (
     QNetworkAccessManager,
+    QNetworkCookie,
     QNetworkCookieJar,
     QNetworkProxy,
-    QNetworkCookie,
-    QSslConfiguration,
-    QSsl,
-    QtWebKit,
+    QNetworkRequest,
+)
+from xvfbwrapper import Xvfb
+
+
+default_user_agent = (
+    "5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/57.0.2987.133 Safari/537.36"
 )
 
-__version__ = "0.2.3"
-
-
-PY3 = sys.version > '3'
-
-if PY3:
-    unicode = str
-    long = int
-    basestring = str
-
-default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
-    "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
 
 logger = logging.getLogger('ghost')
 logger.addHandler(logging.NullHandler())
@@ -82,7 +81,7 @@ class QTMessageProxy(object):
         self.logger.log(levels[msgType], msg)
 
 
-class GhostWebPage(QtWebKit.QWebPage):
+class GhostWebPage(QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
@@ -156,7 +155,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             # PySide
             return True, value
 
-        result.append(unicode(value))
+        result.append(str(value))
         return True
 
     def set_user_agent(self, user_agent):
@@ -190,11 +189,7 @@ class HttpResource(object):
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
-        self.content = content
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
+        self.content = bytes(content.data())
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
@@ -203,7 +198,7 @@ class HttpResource(object):
         self.headers = {}
         for header in reply.rawHeaderList():
             try:
-                self.headers[unicode(header)] = unicode(
+                self.headers[str(header)] = str(
                     reply.rawHeader(header))
             except UnicodeDecodeError:
                 # it will lose the header value,
@@ -264,10 +259,8 @@ class Ghost(object):
         self,
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
+        display_size=(1600, 900),
     ):
-        if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
-
         self.logger = logger.getChild('application')
 
         if (
@@ -275,14 +268,12 @@ class Ghost(object):
             'DISPLAY' not in os.environ
         ):
             try:
-                os.environ['DISPLAY'] = ':99'
-                process = ['Xvfb', ':99', '-pixdepths', '32']
-                FNULL = open(os.devnull, 'w')
-                self.xvfb = subprocess.Popen(
-                    process,
-                    stdout=FNULL,
-                    stderr=subprocess.STDOUT,
+                self.xvfb = Xvfb(
+                    width=display_size[0],
+                    height=display_size[1],
                 )
+                self.xvfb.start()
+
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
@@ -290,22 +281,27 @@ class Ghost(object):
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
 
-        qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
+        qInstallMessageHandler(QTMessageProxy(logging.getLogger('qt')))
+
         if plugin_path:
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
 
-        self.defaults = defaults or dict()
+        self.display_size = display_size
+        _defaults = dict(viewport_size=display_size)
+        _defaults.update(defaults or dict())
+        self.defaults = _defaults
 
     def exit(self):
         self._app.quit()
         if hasattr(self, 'xvfb'):
-            self.xvfb.terminate()
+            self.xvfb.stop()
 
     def start(self, **kwargs):
         """Starts a new `Session`."""
-        kwargs.update(self.defaults)
-        return Session(self, **kwargs)
+        _kwargs = self.defaults.copy()
+        _kwargs.update(kwargs)
+        return Session(self, **_kwargs)
 
     def __del__(self):
         self.exit()
@@ -345,7 +341,7 @@ class Session(object):
         wait_timeout=8,
         wait_callback=None,
         display=False,
-        viewport_size=(800, 600),
+        viewport_size=None,
         ignore_ssl_errors=True,
         plugins_enabled=False,
         java_enabled=False,
@@ -383,34 +379,32 @@ class Session(object):
             self.page.setNetworkAccessManager(
                 network_access_manager_class(exclude_regex=exclude))
 
-        QtWebKit.QWebSettings.setMaximumPagesInCache(0)
-        QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
-        QtWebKit.QWebSettings.globalSettings().setAttribute(
-            QtWebKit.QWebSettings.LocalStorageEnabled, local_storage_enabled)
+        QWebSettings.setMaximumPagesInCache(0)
+        QWebSettings.setObjectCacheCapacities(0, 0, 0)
+        QWebSettings.globalSettings().setAttribute(
+            QWebSettings.LocalStorageEnabled, local_storage_enabled)
 
         self.page.setForwardUnsupportedContent(True)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.AutoLoadImages, download_images)
+            QWebSettings.AutoLoadImages, download_images)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.PluginsEnabled, plugins_enabled)
+            QWebSettings.PluginsEnabled, plugins_enabled)
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.JavaEnabled,
+            QWebSettings.JavaEnabled,
             java_enabled,
         )
         self.page.settings().setAttribute(
-            QtWebKit.QWebSettings.JavascriptEnabled, javascript_enabled)
+            QWebSettings.JavascriptEnabled, javascript_enabled)
 
         if not show_scrollbars:
             self.page.mainFrame().setScrollBarPolicy(
-                QtCore.Qt.Vertical,
-                QtCore.Qt.ScrollBarAlwaysOff,
+                Qt.Vertical,
+                Qt.ScrollBarAlwaysOff,
             )
             self.page.mainFrame().setScrollBarPolicy(
-                QtCore.Qt.Horizontal,
-                QtCore.Qt.ScrollBarAlwaysOff,
+                Qt.Horizontal,
+                Qt.ScrollBarAlwaysOff,
             )
-
-        self.set_viewport_size(*viewport_size)
 
         # Page signals
         self.page.loadFinished.connect(self._page_loaded)
@@ -435,18 +429,20 @@ class Session(object):
 
         self.main_frame = self.page.mainFrame()
 
-        class GhostQWebView(QtWebKit.QWebView):
+        class GhostQWebView(QWebView):
             def sizeHint(self):
                 return QSize(*viewport_size)
 
         self.webview = GhostQWebView()
 
+        self.set_viewport_size(*viewport_size)
+
         if plugins_enabled:
             self.webview.settings().setAttribute(
-                QtWebKit.QWebSettings.PluginsEnabled, True)
+                QWebSettings.PluginsEnabled, True)
         if java_enabled:
             self.webview.settings().setAttribute(
-                QtWebKit.QWebSettings.JavaEnabled, True)
+                QWebSettings.JavaEnabled, True)
 
         self.webview.setPage(self.page)
 
@@ -458,7 +454,7 @@ class Session(object):
 
         :param frame: An optional name or index of the child to descend to.
         """
-        if isinstance(selector, basestring):
+        if isinstance(selector, str):
             for frame in self.main_frame.childFrames():
                 if frame.frameName() == selector:
                     self.main_frame = frame
@@ -511,12 +507,12 @@ class Session(object):
             format = QImage.Format_ARGB32_Premultiplied
 
         self.main_frame.setScrollBarPolicy(
-            QtCore.Qt.Vertical,
-            QtCore.Qt.ScrollBarAlwaysOff,
+            Qt.Vertical,
+            Qt.ScrollBarAlwaysOff,
         )
         self.main_frame.setScrollBarPolicy(
-            QtCore.Qt.Horizontal,
-            QtCore.Qt.ScrollBarAlwaysOff,
+            Qt.Horizontal,
+            Qt.ScrollBarAlwaysOff,
         )
         frame_size = self.main_frame.contentsSize()
         max_size = 23170 * 23170
@@ -602,13 +598,13 @@ class Session(object):
 
         printer = QPrinter(mode=QPrinter.ScreenResolution)
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setPaperSize(QtCore.QSizeF(*paper_size), paper_units)
+        printer.setPaperSize(QSizeF(*paper_size), paper_units)
         printer.setPageMargins(*(paper_margins + (paper_units,)))
         if paper_margins != (0, 0, 0, 0):
             printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
-            self.webview = QtWebKit.QWebView()
+            self.webview = QWebView()
             self.webview.setPage(self.page)
         self.webview.setZoomFactor(zoom_factor)
         self.webview.print_(printer)
@@ -652,7 +648,7 @@ class Session(object):
         :param to_unicode: Whether to convert html to unicode or not
         """
         if to_unicode:
-            return unicode(self.main_frame.toHtml())
+            return str(self.main_frame.toHtml())
         else:
             return self.main_frame.toHtml()
 
@@ -803,7 +799,6 @@ class Session(object):
         default_popup_response=None,
         wait=True,
         timeout=None,
-        client_certificate=None,
         encode_url=True,
         user_agent=None,
     ):
@@ -823,7 +818,6 @@ class Session(object):
         it is the caller's responsibilty to wait for the load to
         finish by other means (e.g. by calling wait_for_page_loaded()).
         :param timeout: An optional timeout.
-        :param client_certificate An optional dict with "certificate_path" and
         "key_path" both paths corresponding to the certificate and key files
         :param encode_url Set to true if the url have to be encoded
         :param user_agent An option user agent string.
@@ -840,32 +834,6 @@ class Session(object):
 
         if user_agent is not None:
             self.page.set_user_agent(user_agent)
-
-        if client_certificate:
-            ssl_conf = QSslConfiguration.defaultConfiguration()
-
-            if "certificate_path" in client_certificate:
-                try:
-                    certificate = QtNetwork.QSslCertificate.fromPath(
-                        client_certificate["certificate_path"],
-                        QSsl.Pem,
-                    )[0]
-                except IndexError:
-                    raise Error(
-                        "Can't find certicate in %s"
-                        % client_certificate["certificate_path"]
-                    )
-
-                ssl_conf.setLocalCertificate(certificate)
-
-            if "key_path" in client_certificate:
-                private_key = QtNetwork.QSslKey(
-                    open(client_certificate["key_path"]).read(),
-                    QSsl.Rsa,
-                )
-                ssl_conf.setPrivateKey(private_key)
-
-            QSslConfiguration.setDefaultConfiguration(ssl_conf)
 
         if encode_url:
             request = QNetworkRequest(QUrl(address))
@@ -937,7 +905,7 @@ class Session(object):
                 domain_initial_dot = v.startswith('.')
             else:
                 domain_initial_dot = None
-            v = long(QtCookie.expirationDate().toTime_t())
+            v = int(QtCookie.expirationDate().toTime_t())
             # Long type boundary on 32bit platfroms; avoid ValueError
             expires = 2147483647 if v > 2147483647 else v
             rest = {}
@@ -1128,10 +1096,16 @@ class Session(object):
         :param width: An integer that sets width pixel count.
         :param height: An integer that sets height pixel count.
         """
-        self.page.setViewportSize(QSize(width, height))
+        new_size = QSize(width, height)
+
+        self.webview.resize(new_size)
+        self.page.setPreferredContentsSize(new_size)
+        self.page.setViewportSize(new_size)
+
+        self.sleep()
 
     def append_popup_message(self, message):
-        self.popup_messages.append(unicode(message))
+        self.popup_messages.append(str(message))
 
     def show(self):
         """Show current page inside a QWebView.
@@ -1309,7 +1283,7 @@ class Session(object):
             ))
 
     def _on_manager_ssl_errors(self, reply, errors):
-        url = unicode(reply.url().toString())
+        url = str(reply.url().toString())
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
