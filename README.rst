@@ -21,25 +21,7 @@ ghost.py is a webkit web client written in python:
 Installation
 ------------
 
-ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings:
+ghost.py requires PySide2_ Qt5_ bindings.
 
-.. code:: bash
-
-    pip install pyside
-    pip install ghost.py --pre
-
-OSX:
-
-.. code:: bash
-
-    brew install qt
-    mkvirtualenv foo
-    pip install -U pip  # make sure pip is current
-    pip install PySide
-    pyside_postinstall.py -install
-    pip install Ghost.py
-
-
-.. _PySide: https://pyside.github.io/
-.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/intro
-.. _Qt: http://qt-project.org/
+.. _PySide2: https://wiki.qt.io/PySide2
+.. _Qt5: https://www.qt.io/developers/
