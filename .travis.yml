@@ -4,7 +4,7 @@ services:
   - docker
 
 before_install:
-  - docker build -f tests/Dockerfile -t test .
+  - docker build -f docker/DockerfileTest -t test .
 
 script:
   - docker run --env TRAVIS=true test python3 tests/run.py
