@@ -173,11 +173,16 @@ def can_load_page(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         expect_loading = kwargs.pop('expect_loading', False)
+        expect_request = kwargs.pop('expect_request', False)
         timeout = kwargs.pop('timeout', None)
         if expect_loading:
             self.loaded = False
             func(self, *args, **kwargs)
             return self.wait_for_page_loaded(
+                timeout=timeout)
+        if expect_request:
+            func(self, *args, **kwargs)
+            return self.wait_for_requests(
                 timeout=timeout)
         return func(self, *args, **kwargs)
     return wrapper
@@ -186,10 +191,16 @@ def can_load_page(func):
 class HttpResource(object):
     """Represents an HTTP resource.
     """
+
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
         self.content = bytes(content.data())
+        self.post_attributes = "No post attributes"
+        _str_operation = ['HEAD', 'GET', 'PUT', 'POST', 'DELETE', 'CUSTOM']
+        self.operation = _str_operation[reply.operation() - 1]
+        if hasattr(reply, 'post_attributes'):
+            self.post_attributes = reply.post_attributes
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
@@ -221,14 +232,18 @@ def replyReadyRead(reply):
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
+    :param session_object: The Session object, to access the number of
+        request
     :param exclude_regex: A regex use to determine wich url exclude
         when sending a request
     """
-    def __init__(self, exclude_regex=None, *args, **kwargs):
+    def __init__(self, session_object, exclude_regex=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
+        self._session = session_object
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
+        self._session.current_request_number += 1
         if self._regex and self._regex.findall(str(request.url().toString())):
             return QNetworkAccessManager.createRequest(
                 self, QNetworkAccessManager.GetOperation,
@@ -239,6 +254,9 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
+        reply.post_attributes = "No Data"
+        if data:
+            reply.post_attributes = list(data.peek(100000))
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
         time.sleep(0.001)
         return reply
@@ -364,6 +382,7 @@ class Session(object):
         self.logger.info("Starting new session")
 
         self.http_resources = []
+        self.current_request_number = 0
 
         self.wait_timeout = wait_timeout
         self.wait_callback = wait_callback
@@ -377,7 +396,7 @@ class Session(object):
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
-                network_access_manager_class(exclude_regex=exclude))
+                network_access_manager_class(self, exclude_regex=exclude))
 
         QWebSettings.setMaximumPagesInCache(0)
         QWebSettings.setObjectCacheCapacities(0, 0, 0)
@@ -1169,6 +1188,27 @@ class Session(object):
 
         return page, resources
 
+    def wait_for_requests(self, timeout=None):
+        """Wait until all the current request to end.
+
+        :param timeout: An optional timeout.
+        """
+        self.wait_for(lambda: self.current_request_number == 0,
+                      'Unable to complete requests', timeout)
+        resources = self._release_last_resources()
+        page = None
+
+        url = self.main_frame.url().toString()
+        url_without_hash = url.split("#")[0]
+
+        for resource in resources:
+            if url == resource.url or url_without_hash == resource.url:
+                page = resource
+
+        self.logger.info('Page loaded %s' % url)
+
+        return page, resources
+
     def wait_for_selector(self, selector, timeout=None):
         """Waits until selector match an element on the frame.
 
@@ -1245,17 +1285,15 @@ class Session(object):
 
         :param reply: The QNetworkReply object.
         """
-
+        self.current_request_number -= 1
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.logger.debug("[%s] bytesAvailable()= %s",
                               str(reply.url()),
                               reply.bytesAvailable())
-
             try:
                 content = reply.data
             except AttributeError:
                 content = reply.readAll()
-
             self.http_resources.append(HttpResource(
                 self,
                 reply,
@@ -1275,6 +1313,7 @@ class Session(object):
 
         :param reply: The QNetworkReply object.
         """
+        self.current_request_number -= 1
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.http_resources.append(HttpResource(
                 self,
