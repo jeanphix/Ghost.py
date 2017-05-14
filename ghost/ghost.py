@@ -256,7 +256,7 @@ class NetworkAccessManager(QNetworkAccessManager):
         )
         reply.post_attributes = "No Data"
         if data:
-            reply.post_attributes = data.peek(100000)[:]
+            reply.post_attributes = list(data.peek(100000))
         reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
         time.sleep(0.001)
         return reply
