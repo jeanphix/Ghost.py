@@ -855,6 +855,22 @@ class Session(object):
         if wait:
             return self.wait_for_page_loaded(timeout=timeout)
 
+    def render_html(
+        self,
+        html,
+        base_url=None,
+        default_popup_response=None,
+    ):
+        self.logger.info('Rendering %s' % base_url if base_url else 'html')
+        if base_url:
+            base_url = QUrl(base_url)
+        self.main_frame.setHtml(html, base_url)
+        self.loaded = True
+
+        if default_popup_response is not None:
+            self._prompt_expected = default_popup_response
+            self._confirm_expected = default_popup_response
+
     def scroll_to_anchor(self, anchor):
         self.main_frame.scrollToAnchor(anchor)
 
