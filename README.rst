@@ -1,8 +1,9 @@
 ghost.py
 ========
 
-.. image:: https://drone.io/github.com/jeanphix/Ghost.py/status.png
-   :target: https://drone.io/github.com/jeanphix/Ghost.py/latest
+.. image:: https://travis-ci.org/jeanphix/Ghost.py.svg?branch=master
+   :target: https://travis-ci.org/jeanphix/Ghost.py
+   :alt: Build Status
 
 
 ghost.py is a webkit web client written in python:
@@ -20,25 +21,24 @@ ghost.py is a webkit web client written in python:
 Installation
 ------------
 
-ghost.py requires either PySide_ (preferred) or PyQt_ Qt_ bindings:
+ghost.py requires PySide2_ Qt5_ bindings.
+
+The most convenient way to run ghost is to use the official docker image.
 
 .. code:: bash
 
-    pip install pyside
-    pip install ghost.py --pre
+    docker run -i -t jeanphix/ghost.py:2.0.0-dev python3
 
-OSX:
-
-.. code:: bash
-
-    brew install qt
-    mkvirtualenv foo
-    pip install -U pip  # make sure pip is current
-    pip install PySide
-    pyside_postinstall.py -install
-    pip install Ghost.py
+    Python 3.5.2 (default, Nov 17 2016, 17:05:23)
+    [GCC 5.4.0 20160609] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from ghost import Ghost
+    >>> g = Ghost()
+    >>> with g.start() as session:
+    ...     session.open('http://jeanphix.me')
+    ...
+    (<ghost.ghost.HttpResource object at 0x7f3a118fa128>, [<ghost.ghost.HttpResource object at 0x7f3a118fa128>, <ghost.ghost.HttpResource object at 0x7f3a118fa0f0>, <ghost.ghost.HttpResource object at 0x7f3a118fa160>, <ghost.ghost.HttpResource object at 0x7f3a118ec4e0>, <ghost.ghost.HttpResource object at 0x7f3a118ecfd0>])
 
 
-.. _PySide: https://pyside.github.io/
-.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/intro
-.. _Qt: http://qt-project.org/
+.. _PySide2: https://wiki.qt.io/PySide2
+.. _Qt5: https://www.qt.io/developers/

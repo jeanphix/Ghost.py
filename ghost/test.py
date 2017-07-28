@@ -1,10 +1,70 @@
 # -*- coding: utf-8 -*-
-import threading
 import logging
+import select
+import threading
 import time
 from unittest import TestCase
-from wsgiref.simple_server import make_server
+from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
+
 from ghost import Ghost
+
+
+class GhostWSGIServer(WSGIServer):
+    """Server class that integrates error handling with logging."""
+
+    logger = logging.getLogger('ghost.test.wsgi.server')
+
+    def handle_error(self, request, client_address):
+        # Interpose base class method so that the exception gets printed to
+        # our log file rather than stderr.
+        self.logger.exception('REST server exception during request from %s',
+                              client_address)
+
+
+class StderrLogger(object):
+    """File-like redirecting data written to it to logging."""
+
+    logger = logging.getLogger('ghost.test.wsgi.request')
+
+    def __init__(self):
+        self._buffer = []
+
+    def write(self, message):
+        self._buffer.append(message)
+
+    def flush(self):
+        self._buffer.insert(0, 'REST request handler error:\n')
+        self.logger.error(''.join(self._buffer))
+        self._buffer = []
+
+
+class GhostWSGIRequestHandler(WSGIRequestHandler):
+    """Handle logs and timeout errors gracefully."""
+
+    logger = logging.getLogger('ghost.test.wsgi.request')
+
+    def handle(self):
+        fd_sets = select.select([self.rfile], [], [], 1.0)
+        if not fd_sets[0]:
+            # Sometimes WebKit times out waiting for us.
+            return
+
+        super().handle()
+
+    def log_request(self, code='-', size='-'):
+        self.log_message(logging.DEBUG, '"%s" %s %s',
+                         self.requestline, str(code), str(size))
+
+    def log_error(self, format_, *args):
+        self.log_message(logging.ERROR, format_, *args)
+
+    def log_message(self, log_level, format_, *args):
+        self.logger.log(log_level, format_, *args)
+
+    def get_stderr(self):
+        # Return a fake stderr object that will actually write its output to
+        # the log file.
+        return StderrLogger()
 
 
 class ServerThread(threading.Thread):
@@ -19,7 +79,13 @@ class ServerThread(threading.Thread):
         super(ServerThread, self).__init__()
 
     def run(self):
-        self.http_server = make_server('', self.port, self.app)
+        self.http_server = make_server(
+            'localhost',
+            self.port,
+            self.app,
+            server_class=GhostWSGIServer,
+            handler_class=GhostWSGIRequestHandler,
+        )
         self.http_server.serve_forever()
 
     def join(self, timeout=None):
@@ -31,17 +97,13 @@ class ServerThread(threading.Thread):
 class BaseGhostTestCase(TestCase):
     display = False
     wait_timeout = 5
-    viewport_size = (800, 600)
-    log_level = logging.DEBUG
 
     def __new__(cls, *args, **kwargs):
         """Creates Ghost instance."""
         if not hasattr(cls, 'ghost'):
             cls.ghost = Ghost(
-                log_level=cls.log_level,
                 defaults=dict(
                     display=cls.display,
-                    viewport_size=cls.viewport_size,
                     wait_timeout=cls.wait_timeout,
                 )
             )
@@ -54,8 +116,10 @@ class BaseGhostTestCase(TestCase):
         in subclasses.
         """
         self._pre_setup()
-        super(BaseGhostTestCase, self).__call__(result)
-        self._post_teardown()
+        try:
+            super(BaseGhostTestCase, self).__call__(result)
+        finally:
+            self._post_teardown()
 
     def _post_teardown(self):
         """Deletes ghost cookies and hide UI if needed."""
