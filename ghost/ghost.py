@@ -1274,8 +1274,7 @@ class Session(object):
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
             self.logger.debug("[%s] bytesAvailable()= %s",
-                              str(reply.url()),
-                              reply.bytesAvailable())
+                              reply.url().toString(), reply.bytesAvailable())
 
             try:
                 content = reply.data
@@ -1289,8 +1288,7 @@ class Session(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s",
-                         str(reply.url()))
+        self.logger.info("Unsupported content %s", reply.url().toString())
 
         reply.readyRead.connect(
             lambda reply=reply: self._reply_download_content(reply))
@@ -1309,11 +1307,11 @@ class Session(object):
             ))
 
     def _on_manager_ssl_errors(self, reply, errors):
-        url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
-            self.logger.warning('SSL certificate error: %s', url)
+            self.logger.warning('SSL certificate error: %s',
+                                reply.url().toString())
 
     def __enter__(self):
         return self
