@@ -332,8 +332,6 @@ class NetworkAccessManager(QNetworkAccessManager):
 
         self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
-
-        time.sleep(0.001)
         return reply
 
     def _reply_finished_callback(self, reply):
