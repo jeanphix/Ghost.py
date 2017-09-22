@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
-import sys
 import os
+import sys
 
 from flask import (
+    Flask,
+    Response,
     abort,
     flash,
-    Flask,
     jsonify,
     make_response,
     redirect,
     render_template,
     request,
-    Response,
     url_for,
 )
-
 from werkzeug.datastructures import Headers
-
 
 PY3 = sys.version > '3'
 

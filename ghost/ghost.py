@@ -1,45 +1,48 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
-import time
-import uuid
 import codecs
 import logging
+import os
 import re
+import sys
+import time
+import uuid
+from contextlib import contextmanager
 from functools import wraps
+
+from xvfbwrapper import Xvfb
+
+from .bindings import (
+    QApplication,
+    QByteArray,
+    QDateTime,
+    QImage,
+    QNetworkAccessManager,
+    QNetworkCookie,
+    QNetworkCookieJar,
+    QNetworkProxy,
+    QNetworkRequest,
+    QPainter,
+    QPrinter,
+    QRegion,
+    QSize,
+    QSsl,
+    QSslConfiguration,
+    QtCore,
+    QtCriticalMsg,
+    QtDebugMsg,
+    QtFatalMsg,
+    QtNetwork,
+    QtWarningMsg,
+    QtWebKit,
+    QUrl,
+    binding,
+    qInstallMsgHandler,
+)
+
 try:
     from cookielib import Cookie, LWPCookieJar
 except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
-from contextlib import contextmanager
-from .bindings import (
-    binding,
-    QtCore,
-    QSize,
-    QByteArray,
-    QUrl,
-    QDateTime,
-    QtCriticalMsg,
-    QtDebugMsg,
-    QtFatalMsg,
-    QtWarningMsg,
-    qInstallMsgHandler,
-    QApplication,
-    QImage,
-    QPainter,
-    QPrinter,
-    QRegion,
-    QtNetwork,
-    QNetworkRequest,
-    QNetworkAccessManager,
-    QNetworkCookieJar,
-    QNetworkProxy,
-    QNetworkCookie,
-    QSslConfiguration,
-    QSsl,
-    QtWebKit,
-)
-from xvfbwrapper import Xvfb
 
 __version__ = "0.2.3"
 

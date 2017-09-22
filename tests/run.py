@@ -3,20 +3,23 @@
 
 from __future__ import absolute_import
 
-import sys
-import os
 import json
 import logging
+import os
+import sys
 import unittest
-try:
-    import cookielib
-except ImportError:
-    from http import cookiejar as cookielib
 
 from ghost import GhostTestCase
 from ghost.ghost import default_user_agent
 
 from .app import app
+
+try:
+    import cookielib
+except ImportError:
+    from http import cookiejar as cookielib
+
+
 
 
 PY3 = sys.version > '3'
