@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+import io
 import json
 import logging
 import os
@@ -19,10 +20,6 @@ try:
 except ImportError:
     from http import cookiejar as cookielib
 
-
-
-
-PY3 = sys.version > '3'
 
 PORT = 5000
 
@@ -381,12 +378,8 @@ class GhostTest(GhostTestCase):
             'static',
             'foo.tar.gz',
         )
-        if PY3:
-            f = open(file_path, 'r', encoding='latin-1')
-        else:
-            f = open(file_path, 'r')
-        foo = f.read(1024)
-        f.close()
+        with io.open(file_path, 'rb') as f:
+            foo = f.read()
 
         self.assertEqual(resources[0].content, foo)
 

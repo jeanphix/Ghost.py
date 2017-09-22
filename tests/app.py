@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 import os
 import sys
 
@@ -15,8 +16,6 @@ from flask import (
     url_for,
 )
 from werkzeug.datastructures import Headers
-
-PY3 = sys.version > '3'
 
 
 app = Flask(__name__)
@@ -121,10 +120,7 @@ def send_file():
     h.add('Content-type', 'application/octet-stream', charset='utf8')
     h.add('Content-disposition', 'attachment', filename='name.tar.gz')
     file_path = os.path.join(os.path.dirname(__file__), 'static', 'foo.tar.gz')
-    if PY3:
-        f = open(file_path, 'r', encoding='latin-1')
-    else:
-        f = open(file_path, 'r')
+    f = io.open(file_path, 'rb')
     return Response(f, headers=h)
 
 
