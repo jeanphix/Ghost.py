@@ -7,7 +7,7 @@ import sys
 import time
 import uuid
 from contextlib import contextmanager
-from functools import wraps
+from functools import partial, wraps
 
 from xvfbwrapper import Xvfb
 
@@ -221,11 +221,25 @@ class HttpResource(object):
         self._reply = reply
 
 
-def replyReadyRead(reply):
+def reply_ready_peek(reply):
+    """Copy available bytes to `reply` data attribute.
+
+    .. note:: Does not consume the `reply` buffer!
+
+    :param reply: QNetworkReply object.
+    """
     if not hasattr(reply, 'data'):
         reply.data = ''
 
     reply.data += reply.peek(reply.bytesAvailable())
+
+
+def reply_ready_read(reply):
+    """Consume data from `reply` buffer.
+
+    :param reply: QNetworkReply object.
+    """
+    reply.readAll()
 
 
 class NetworkAccessManager(QNetworkAccessManager):
@@ -234,8 +248,9 @@ class NetworkAccessManager(QNetworkAccessManager):
     :param exclude_regex: A regex use to determine wich url exclude
         when sending a request
     """
-    def __init__(self, exclude_regex=None, *args, **kwargs):
+    def __init__(self, exclude_regex=None, logger=None, *args, **kwargs):
         self._regex = re.compile(exclude_regex) if exclude_regex else None
+        self.logger = logger or logging.getLogger()
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
     def createRequest(self, operation, request, data):
@@ -249,7 +264,12 @@ class NetworkAccessManager(QNetworkAccessManager):
             request,
             data
         )
-        reply.readyRead.connect(lambda reply=reply: replyReadyRead(reply))
+        reply.readyRead.connect(lambda reply=reply: reply_ready_peek(reply))
+        reply.downloadProgress.connect(
+            lambda received, total:
+            self.logger.debug('Downloading content of %s: %s of %s',
+                              reply.url(), received, total)
+        )
         time.sleep(0.001)
         return reply
 
@@ -390,7 +410,8 @@ class Session(object):
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
-                network_access_manager_class(exclude_regex=exclude))
+                network_access_manager_class(exclude_regex=exclude,
+                                             logger=self.logger))
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
@@ -1298,22 +1319,10 @@ class Session(object):
 
     def _unsupported_content(self, reply):
         self.logger.info("Unsupported content %s", reply.url().toString())
-
-        reply.readyRead.connect(
-            lambda reply=reply: self._reply_download_content(reply))
-
-    def _reply_download_content(self, reply):
-        """Adds an HttpResource object to http_resources with unsupported
-        content.
-
-        :param reply: The QNetworkReply object.
-        """
-        if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.http_resources.append(HttpResource(
-                self,
-                reply,
-                reply.readAll(),
-            ))
+        # reply went though reply_read_peek already, consume buffer to avoid
+        # duplication on next "ready" signal handling and connect callback
+        reply_ready_read(reply)
+        reply.readyRead.connect(partial(reply_ready_read, reply))
 
     def _on_manager_ssl_errors(self, reply, errors):
         if self.ignore_ssl_errors:
