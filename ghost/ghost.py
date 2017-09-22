@@ -189,35 +189,56 @@ def can_load_page(func):
     return wrapper
 
 
+def qt_type_to_python(obj, encoding='iso-8859-1'):
+    """Cast Qt binding object to a python type.
+
+    Qt bindings do not have a consistent way of representing data types,
+    sometimes even changing behavior according to running python version.
+
+    This function is an attempt to workaround this while keeping
+    the amount of extra code in below classes limited. It should return bytes
+    or properly encoded string in intended usage scenario.
+
+    :param obj: Qt object to cast (most likely a QByteArray)
+    :param encoding: encoding to encoding `obj`'s data with.
+    """
+    data = obj.data()
+
+    if encoding is None or isinstance(data, str):
+        return data
+
+    return data.decode(encoding)
+
+
 class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
-        self.content = content
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
+        self.headers = {
+            qt_type_to_python(header):
+            qt_type_to_python(reply.rawHeader(header))
+            for header in reply.rawHeaderList()
+        }
+
+        content_type = self.headers.get('Content-Type',
+                                        'application/octet-stream')
+
+        if content_type.startswith('text/'):
+            charset = re.search(r'charset=([^;]+)', content_type)
+            # As specified in RFC 2616 Section 3.7.1
+            charset = charset.expand(r'\1') if charset else 'iso-8859-1'
+            self.content = qt_type_to_python(content, encoding=charset)
+        else:
+            self.content = content.data()
+
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
             "Resource loaded: %s %s", self.url, self.http_status
         )
-        self.headers = {}
-        for header in reply.rawHeaderList():
-            try:
-                self.headers[unicode(header)] = unicode(
-                    reply.rawHeader(header))
-            except UnicodeDecodeError:
-                # it will lose the header value,
-                # but at least not crash the whole process
-                self.session.logger.error(
-                    "Invalid characters in header %s=%s",
-                    header,
-                    reply.rawHeader(header),
-                )
+
         self._reply = reply
 
 
@@ -957,8 +978,8 @@ class Session(object):
             port = None
             port_specified = False
             secure = QtCookie.isSecure()
-            name = str(QtCookie.name())
-            value = str(QtCookie.value())
+            name = qt_type_to_python(QtCookie.name())
+            value = qt_type_to_python(QtCookie.value())
             v = str(QtCookie.path())
             path_specified = bool(v != "")
             path = v if path_specified else None
