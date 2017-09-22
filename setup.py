@@ -25,6 +25,9 @@ setup(
     test_suite='tests.run',
     zip_safe=False,
     platforms='any',
+    install_requires=[
+        'xvfbwrapper ~=0.2.8',
+    ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
