@@ -58,14 +58,11 @@ class GhostTest(GhostTestCase):
 
     def test_extra_resource_content(self):
         page, resources = self.session.open(base_url)
-        self.assertIn('globals alert', resources[4].content)
+        self.assertIn(b'globals alert', resources[4].content)
 
     def test_extra_resource_binaries(self):
         page, resources = self.session.open(base_url)
-        self.assertEqual(
-            resources[5].content.__class__.__name__,
-            'QByteArray',
-        )
+        self.assertIsInstance(resources[5].content, bytes)
 
     def test_wait_for_selector(self):
         page, resources = self.session.open(base_url)
@@ -438,7 +435,7 @@ class GhostTest(GhostTestCase):
                 "%sdump" % base_url,
                 **kwargs
             )
-            data = json.loads(page.content)
+            data = json.loads(page.content.decode('utf-8'))
             return data['headers']['User-Agent']
 
         session = self.session

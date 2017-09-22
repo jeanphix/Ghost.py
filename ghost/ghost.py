@@ -216,21 +216,28 @@ class HttpResource(object):
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
-        self.content = content
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
-        self.http_status = reply.attribute(
-            QNetworkRequest.HttpStatusCodeAttribute)
-        self.session.logger.info(
-            "Resource loaded: %s %s", self.url, self.http_status
-        )
         self.headers = {
             qt_type_to_python(header):
             qt_type_to_python(reply.rawHeader(header))
             for header in reply.rawHeaderList()
         }
+
+        content_type = self.headers.get('Content-Type',
+                                        'application/octet-stream')
+
+        if content_type.startswith('text/'):
+            charset = re.search(r'charset=([^;]+)', content_type)
+            # As specified in RFC 2616 Section 3.7.1
+            charset = charset.expand(r'\1') if charset else 'iso-8859-1'
+            self.content = qt_type_to_python(content, encoding=charset)
+        else:
+            self.content = content.data()
+
+        self.http_status = reply.attribute(
+            QNetworkRequest.HttpStatusCodeAttribute)
+        self.session.logger.info(
+            "Resource loaded: %s %s", self.url, self.http_status
+        )
 
         self._reply = reply
 
