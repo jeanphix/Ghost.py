@@ -313,10 +313,10 @@ class Ghost(object):
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
-        self.logger = logger.getChild('application')
-
         if not binding:
             raise RuntimeError("Ghost.py requires PySide or PyQt4")
+
+        self.logger = logger.getChild('application')
 
         if (
             sys.platform.startswith('linux') and
@@ -348,8 +348,8 @@ class Ghost(object):
         self.defaults = defaults or dict()
 
     def exit(self):
-        self.logger.info('Stopping QT application')
         if self._app:
+            self.logger.info('Stopping QT application')
             self._app.quit()
         if hasattr(self, 'xvfb'):
             self.logger.debug('Terminating Xvfb display server')
