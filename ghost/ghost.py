@@ -1266,6 +1266,8 @@ class Session(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + timeout):
+                self.logger.debug('Timeout with %d requests still in flight',
+                                  self.manager.requests)
                 raise TimeoutError(timeout_message)
             self.sleep(value=timeout / 10)
             if self.wait_callback is not None:
