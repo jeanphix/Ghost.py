@@ -282,11 +282,12 @@ class NetworkAccessManager(QNetworkAccessManager):
 
     def createRequest(self, operation, request, data):
         if self._regex and self._regex.findall(str(request.url().toString())):
-            return QNetworkAccessManager.createRequest(
-                self, QNetworkAccessManager.GetOperation,
-                QNetworkRequest(QUrl()))
-        reply = QNetworkAccessManager.createRequest(
-            self,
+            return super(NetworkAccessManager, self).createRequest(
+                QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl())
+            )
+
+        reply = super(NetworkAccessManager, self).createRequest(
             operation,
             request,
             data
