@@ -314,7 +314,7 @@ class Ghost(object):
         defaults=None,
     ):
         if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
+            raise RuntimeError("Ghost.py requires PySide or PyQt4")
 
         self.logger = logger.getChild('application')
 
@@ -348,8 +348,9 @@ class Ghost(object):
         self.defaults = defaults or dict()
 
     def exit(self):
-        self.logger.info('Stopping QT application')
-        self._app.quit()
+        if self._app:
+            self.logger.info('Stopping QT application')
+            self._app.quit()
         if hasattr(self, 'xvfb'):
             self.logger.debug('Terminating Xvfb display server')
             self.xvfb.stop()
@@ -754,7 +755,7 @@ class Session(object):
         """Exits all Qt widgets."""
         self.logger.info("Closing session")
         self.page.deleteLater()
-        self.sleep()
+        self.ghost._app.processEvents()
         del self.webview
         del self.cookie_jar
         del self.manager
@@ -1191,13 +1192,13 @@ class Session(object):
         """
         self.logger.debug('Showing webview')
         self.webview.show()
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def sleep(self, value=0.1):
         started_at = time.time()
 
         while time.time() <= (started_at + value):
-            time.sleep(0.01)
+            time.sleep(value / 10)
             self.ghost._app.processEvents()
 
     def wait_for(self, condition, timeout_message, timeout=None):
@@ -1212,7 +1213,7 @@ class Session(object):
         while not condition():
             if time.time() > (started_at + timeout):
                 raise TimeoutError(timeout_message)
-            self.sleep()
+            self.sleep(value=timeout / 10)
             if self.wait_callback is not None:
                 self.wait_callback()
 
@@ -1303,7 +1304,7 @@ class Session(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def _page_load_started(self):
         """Called back when page load started.
