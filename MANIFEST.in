@@ -2,6 +2,7 @@ include README.rst *.py
 include ghost/ghost.py
 include ghost/test.py
 include ghost/ext/django/test.py
+include tox.ini
 recursive-include docs *
 recursive-exclude docs *.pyc
 recursive-exclude docs *.pyo
