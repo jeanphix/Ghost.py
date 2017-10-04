@@ -755,7 +755,7 @@ class Session(object):
         """Exits all Qt widgets."""
         self.logger.info("Closing session")
         self.page.deleteLater()
-        self.sleep()
+        self.ghost._app.processEvents()
         del self.webview
         del self.cookie_jar
         del self.manager
@@ -1192,7 +1192,7 @@ class Session(object):
         """
         self.logger.debug('Showing webview')
         self.webview.show()
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def sleep(self, value=0.1):
         started_at = time.time()
@@ -1304,7 +1304,7 @@ class Session(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def _page_load_started(self):
         """Called back when page load started.
