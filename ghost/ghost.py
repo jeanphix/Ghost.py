@@ -1198,7 +1198,7 @@ class Session(object):
         started_at = time.time()
 
         while time.time() <= (started_at + value):
-            time.sleep(0.01)
+            time.sleep(value / 10)
             self.ghost._app.processEvents()
 
     def wait_for(self, condition, timeout_message, timeout=None):
@@ -1213,7 +1213,7 @@ class Session(object):
         while not condition():
             if time.time() > (started_at + timeout):
                 raise TimeoutError(timeout_message)
-            self.sleep()
+            self.sleep(value=timeout / 10)
             if self.wait_callback is not None:
                 self.wait_callback()
 
