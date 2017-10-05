@@ -263,10 +263,36 @@ def reply_ready_read(reply):
     reply.readAll()
 
 
+def reply_destroyed(reply):
+    """Handle `reply` destroyed signal.
+
+    Hack required to avoid blocking on replies that for some reason never send
+    the finished or error signal.
+
+    :param reply: QNetworkReply object.
+    """
+    key = id(reply)
+    qnam = reply.manager()
+    qnam.logger.debug('Reply for %s destroyed', reply.url().toString())
+
+    if key in qnam._registry:
+        qnam._registry.pop(key)
+        qnam.logger.warning(
+            'Reply for %s did not trigger finished or error signal',
+            reply.url().toString()
+        )
+
+
 def reply_download_progress(reply, received, total):
     """Log `reply` download progress."""
     reply.manager().logger.debug('Downloading content of %s: %s of %s',
                                  reply.url().toString(), received, total)
+
+
+def _reply_error_callback(reply, error_code):
+    """Log an error message on QtNetworkReply error."""
+    reply.manager().logger.error('Reply for %s encountered an error: %s',
+                                 reply.url().toString(), reply.errorString())
 
 
 class NetworkAccessManager(QNetworkAccessManager):
@@ -280,12 +306,19 @@ class NetworkAccessManager(QNetworkAccessManager):
         self.logger = logger or logging.getLogger()
         super(NetworkAccessManager, self).__init__(*args, **kwargs)
 
+        # Keep a registry of in-flight requests
+        self._registry = {}
+        self.finished.connect(self._reply_finished_callback)
+
     def createRequest(self, operation, request, data):
+        """Create a new QNetworkReply."""
         if self._regex and self._regex.findall(str(request.url().toString())):
-            return super(NetworkAccessManager, self).createRequest(
+            reply = super(NetworkAccessManager, self).createRequest(
                 QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl())
             )
+            self._registry[id(reply)] = reply
+            return reply
 
         reply = super(NetworkAccessManager, self).createRequest(
             operation,
@@ -293,9 +326,29 @@ class NetworkAccessManager(QNetworkAccessManager):
             data
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
+        reply.destroyed.connect(partial(reply_destroyed, reply))
         reply.downloadProgress.connect(partial(reply_download_progress, reply))
-        time.sleep(0.001)
+        reply.error.connect(partial(_reply_error_callback, reply))
+
+        self.logger.debug('Registring reply for %s', reply.url().toString())
+        self._registry[id(reply)] = reply
         return reply
+
+    def _reply_finished_callback(self, reply):
+        """Unregister a complete QNetworkReply."""
+        self.logger.debug('Reply for %s complete', reply.url().toString())
+        try:
+            self._registry.pop(id(reply))
+        except KeyError:
+            # Workaround for QtWebkit bug #82506
+            # https://bugs.webkit.org/show_bug.cgi?format=multiple&id=82506
+            self.logger.debug('Reply was not in registry,'
+                              'maybe webkit bug #82506')
+
+    @property
+    def requests(self):
+        """Count in-flight QNetworkReply."""
+        return len(self._registry)
 
 
 class Ghost(object):
@@ -1213,6 +1266,8 @@ class Session(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + timeout):
+                self.logger.debug('Timeout with %d requests still in flight',
+                                  self.manager.requests)
                 raise TimeoutError(timeout_message)
             self.sleep(value=timeout / 10)
             if self.wait_callback is not None:
@@ -1234,7 +1289,7 @@ class Session(object):
 
         :param timeout: An optional timeout.
         """
-        self.wait_for(lambda: self.loaded,
+        self.wait_for(lambda: self.loaded and self.manager.requests == 0,
                       'Unable to load requested page', timeout)
         resources = self._release_last_resources()
         page = None
