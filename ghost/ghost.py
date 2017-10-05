@@ -347,10 +347,9 @@ class Ghost(object):
             for p in plugin_path:
                 Ghost._app.addLibraryPath(p)
 
-        self.display_size = display_size
-        _defaults = dict(viewport_size=display_size)
-        _defaults.update(defaults or dict())
-        self.defaults = _defaults
+        self.defaults = {'viewport_size': display_size}
+        if defaults:
+            self.defaults.update(defaults)
 
     def exit(self):
         if self._app:
@@ -362,9 +361,9 @@ class Ghost(object):
 
     def start(self, **kwargs):
         """Starts a new `Session`."""
-        _kwargs = self.defaults.copy()
-        _kwargs.update(kwargs)
-        return Session(self, **_kwargs)
+        session_kwargs = self.defaults.copy()
+        session_kwargs.update(kwargs)
+        return Session(self, **session_kwargs)
 
     def __del__(self):
         self.exit()
