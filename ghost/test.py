@@ -73,21 +73,6 @@ class GhostWSGIRequestHandler(WSGIRequestHandler):
         return StderrLogger()
 
 
-class WSGILogHandler(WSGIRequestHandler):
-
-    logger = logging.getLogger('wsgiref.simple_server')
-
-    def log_request(self, code='-', size='-'):
-        self.log_message(logging.DEBUG, '"%s" %s %s',
-                         self.requestline, str(code), str(size))
-
-    def log_error(self, format_, *args):
-        self.log_message(logging.ERROR, format_, *args)
-
-    def log_message(self, log_level, format_, *args):
-        self.logger.log(log_level, format_, *args)
-
-
 class ServerThread(threading.Thread):
     """Starts given WSGI application.
 

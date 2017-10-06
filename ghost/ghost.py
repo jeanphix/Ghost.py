@@ -1,47 +1,50 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
-import time
-import uuid
 import codecs
 import logging
-import subprocess
+import os
 import re
+import sys
+import time
+import uuid
+from contextlib import contextmanager
 from functools import partial, wraps
+
+from xvfbwrapper import Xvfb
+
+from .bindings import (
+    QApplication,
+    QByteArray,
+    QDateTime,
+    QImage,
+    QNetworkAccessManager,
+    QNetworkCookie,
+    QNetworkCookieJar,
+    QNetworkProxy,
+    QNetworkRequest,
+    QPainter,
+    QPrinter,
+    QRegion,
+    QSize,
+    QSsl,
+    QSslConfiguration,
+    QtCore,
+    QtCriticalMsg,
+    QtDebugMsg,
+    QtFatalMsg,
+    QtNetwork,
+    QtWarningMsg,
+    QtWebKit,
+    QUrl,
+    binding,
+    qInstallMsgHandler,
+)
+
 try:
     from cookielib import Cookie, LWPCookieJar
 except ImportError:
     from http.cookiejar import Cookie, LWPCookieJar
-from contextlib import contextmanager
-from .bindings import (
-    binding,
-    QtCore,
-    QSize,
-    QByteArray,
-    QUrl,
-    QDateTime,
-    QtCriticalMsg,
-    QtDebugMsg,
-    QtFatalMsg,
-    QtWarningMsg,
-    qInstallMsgHandler,
-    QApplication,
-    QImage,
-    QPainter,
-    QPrinter,
-    QRegion,
-    QtNetwork,
-    QNetworkRequest,
-    QNetworkAccessManager,
-    QNetworkCookieJar,
-    QNetworkProxy,
-    QNetworkCookie,
-    QSslConfiguration,
-    QSsl,
-    QtWebKit,
-)
 
-__version__ = "0.2.3.post5"
+__version__ = "0.2.3"
 
 
 PY3 = sys.version > '3'
@@ -51,8 +54,10 @@ if PY3:
     long = int
     basestring = str
 
-default_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 " +\
-    "(KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2"
+default_user_agent = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/57.0.2987.133 Safari/537.36"
+)
 
 logger = logging.getLogger('ghost')
 logger.addHandler(logging.NullHandler())
@@ -184,40 +189,63 @@ def can_load_page(func):
     return wrapper
 
 
+def qt_type_to_python(obj, encoding='iso-8859-1'):
+    """Cast Qt binding object to a python type.
+
+    Qt bindings do not have a consistent way of representing data types,
+    sometimes even changing behavior according to running python version.
+
+    This function is an attempt to workaround this while keeping
+    the amount of extra code in below classes limited. It should return bytes
+    or properly encoded string in intended usage scenario.
+
+    :param obj: Qt object to cast (most likely a QByteArray)
+    :param encoding: encoding to encoding `obj`'s data with.
+    """
+    data = obj.data()
+
+    if encoding is None or isinstance(data, str):
+        return data
+
+    return data.decode(encoding)
+
+
 class HttpResource(object):
     """Represents an HTTP resource.
     """
     def __init__(self, session, reply, content):
         self.session = session
         self.url = reply.url().toString()
-        self.content = content
-        try:
-            self.content = unicode(content)
-        except UnicodeDecodeError:
-            self.content = content
+        self.headers = {
+            qt_type_to_python(header):
+            qt_type_to_python(reply.rawHeader(header))
+            for header in reply.rawHeaderList()
+        }
+
+        content_type = self.headers.get('Content-Type',
+                                        'application/octet-stream')
+
+        if content_type.startswith('text/'):
+            charset = re.search(r'charset=([^;]+)', content_type)
+            # As specified in RFC 2616 Section 3.7.1
+            charset = charset.expand(r'\1') if charset else 'iso-8859-1'
+            self.content = qt_type_to_python(content, encoding=charset)
+        else:
+            self.content = content.data()
+
         self.http_status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute)
         self.session.logger.info(
             "Resource loaded: %s %s", self.url, self.http_status
         )
-        self.headers = {}
-        for header in reply.rawHeaderList():
-            try:
-                self.headers[unicode(header)] = unicode(
-                    reply.rawHeader(header))
-            except UnicodeDecodeError:
-                # it will lose the header value,
-                # but at least not crash the whole process
-                self.session.logger.error(
-                    "Invalid characters in header %s=%s",
-                    header,
-                    reply.rawHeader(header),
-                )
+
         self._reply = reply
 
 
 def reply_ready_peek(reply):
     """Copy available bytes to `reply` data attribute.
+
+    .. note:: Does not consume the `reply` buffer!
 
     :param reply: QNetworkReply object.
     """
@@ -261,6 +289,12 @@ def reply_download_progress(reply, received, total):
                                  reply.url().toString(), received, total)
 
 
+def _reply_error_callback(reply, error_code):
+    """Log an error message on QtNetworkReply error."""
+    reply.manager().logger.error('Reply for %s encountered an error: %s',
+                                 reply.url().toString(), reply.errorString())
+
+
 class NetworkAccessManager(QNetworkAccessManager):
     """Subclass QNetworkAccessManager to always cache the reply content
 
@@ -276,33 +310,29 @@ class NetworkAccessManager(QNetworkAccessManager):
         self._registry = {}
         self.finished.connect(self._reply_finished_callback)
 
-    def createRequest(self, operation, request, data=None):
+    def createRequest(self, operation, request, data):
         """Create a new QNetworkReply."""
         if self._regex and self._regex.findall(str(request.url().toString())):
-            operation = QNetworkAccessManager.GetOperation
-            request = QNetworkRequest()
-            data = None
+            reply = super(NetworkAccessManager, self).createRequest(
+                QNetworkAccessManager.GetOperation,
+                QNetworkRequest(QUrl())
+            )
+            self._registry[id(reply)] = reply
+            return reply
 
         reply = super(NetworkAccessManager, self).createRequest(
             operation,
             request,
-            data,
+            data
         )
         reply.readyRead.connect(partial(reply_ready_peek, reply))
         reply.destroyed.connect(partial(reply_destroyed, reply))
-        reply.downloadProgress.connect(
-            partial(reply_download_progress, reply)
-        )
-        reply.error.connect(partial(self._reply_error_callback, reply))
+        reply.downloadProgress.connect(partial(reply_download_progress, reply))
+        reply.error.connect(partial(_reply_error_callback, reply))
 
         self.logger.debug('Registring reply for %s', reply.url().toString())
         self._registry[id(reply)] = reply
         return reply
-
-    def _reply_error_callback(self, reply, error_code):
-        """Log an error message on QtNetworkReply error."""
-        self.logger.debug('Reply for %s encountered an error: %s',
-                          reply.url().toString(), reply.errorString())
 
     def _reply_finished_callback(self, reply):
         """Unregister a complete QNetworkReply."""
@@ -338,7 +368,7 @@ class Ghost(object):
         defaults=None,
     ):
         if not binding:
-            raise Exception("Ghost.py requires PySide or PyQt4")
+            raise RuntimeError("Ghost.py requires PySide or PyQt4")
 
         self.logger = logger.getChild('application')
 
@@ -347,17 +377,19 @@ class Ghost(object):
             'DISPLAY' not in os.environ
         ):
             try:
-                os.environ['DISPLAY'] = ':99'
-                process = ['Xvfb', ':99', '-pixdepths', '32']
-                FNULL = open(os.devnull, 'w')
-                self.xvfb = subprocess.Popen(
-                    process,
-                    stdout=FNULL,
-                    stderr=subprocess.STDOUT,
+                self.logger.debug('Using Xvfb display server')
+                self.xvfb = Xvfb(
+                    width=800,
+                    height=600,
                 )
+                self.xvfb.start()
+
             except OSError:
                 raise Error('Xvfb is required to a ghost run outside ' +
                             'an X instance')
+        else:
+            self.logger.debug('Using X11 display server %s',
+                              os.environ['DISPLAY'])
 
         self.logger.info('Initializing QT application')
         Ghost._app = QApplication.instance() or QApplication(['ghost'])
@@ -370,10 +402,12 @@ class Ghost(object):
         self.defaults = defaults or dict()
 
     def exit(self):
-        self.logger.info('Stopping QT application')
-        self._app.quit()
+        if self._app:
+            self.logger.info('Stopping QT application')
+            self._app.quit()
         if hasattr(self, 'xvfb'):
-            self.xvfb.terminate()
+            self.logger.debug('Terminating Xvfb display server')
+            self.xvfb.stop()
 
     def start(self, **kwargs):
         """Starts a new `Session`."""
@@ -455,8 +489,7 @@ class Session(object):
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
                 network_access_manager_class(exclude_regex=exclude,
-                                             logger=self.logger)
-            )
+                                             logger=self.logger))
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
@@ -776,7 +809,7 @@ class Session(object):
         """Exits all Qt widgets."""
         self.logger.info("Closing session")
         self.page.deleteLater()
-        self.sleep()
+        self.ghost._app.processEvents()
         del self.webview
         del self.cookie_jar
         del self.manager
@@ -1000,8 +1033,8 @@ class Session(object):
             port = None
             port_specified = False
             secure = QtCookie.isSecure()
-            name = str(QtCookie.name())
-            value = str(QtCookie.value())
+            name = qt_type_to_python(QtCookie.name())
+            value = qt_type_to_python(QtCookie.value())
             v = str(QtCookie.path())
             path_specified = bool(v != "")
             path = v if path_specified else None
@@ -1213,17 +1246,14 @@ class Session(object):
         """
         self.logger.debug('Showing webview')
         self.webview.show()
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def sleep(self, value=0.1):
-        """Run the event loop for at most `value` seconds."""
         started_at = time.time()
-        while time.time() < started_at + value:
-            self.ghost._app.processEvents(
-                QtCore.QEventLoop.ExcludeUserInputEvents,
-                int(value * 100)
-            )
-            time.sleep(0.01)
+
+        while time.time() <= (started_at + value):
+            time.sleep(value / 10)
+            self.ghost._app.processEvents()
 
     def wait_for(self, condition, timeout_message, timeout=None):
         """Waits until condition is True.
@@ -1236,8 +1266,10 @@ class Session(object):
         started_at = time.time()
         while not condition():
             if time.time() > (started_at + timeout):
+                self.logger.debug('Timeout with %d requests still in flight',
+                                  self.manager.requests)
                 raise TimeoutError(timeout_message)
-            self.sleep()
+            self.sleep(value=timeout / 10)
             if self.wait_callback is not None:
                 self.wait_callback()
 
@@ -1328,7 +1360,7 @@ class Session(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        self.sleep()
+        self.ghost._app.processEvents()
 
     def _page_load_started(self):
         """Called back when page load started.
@@ -1351,11 +1383,8 @@ class Session(object):
         """
 
         if reply.attribute(QNetworkRequest.HttpStatusCodeAttribute):
-            self.logger.debug(
-                "[%s] bytesAvailable()= %s",
-                str(reply.url()),
-                reply.bytesAvailable()
-            )
+            self.logger.debug("[%s] bytesAvailable()= %s",
+                              reply.url().toString(), reply.bytesAvailable())
 
             try:
                 content = reply.data
@@ -1369,18 +1398,18 @@ class Session(object):
             ))
 
     def _unsupported_content(self, reply):
-        self.logger.info("Unsupported content %s", str(reply.url()))
+        self.logger.info("Unsupported content %s", reply.url().toString())
         # reply went though reply_read_peek already, consume buffer to avoid
-        # duplication on next signal handling and connect callback
+        # duplication on next "ready" signal handling and connect callback
         reply_ready_read(reply)
         reply.readyRead.connect(partial(reply_ready_read, reply))
 
     def _on_manager_ssl_errors(self, reply, errors):
-        url = unicode(reply.url().toString())
         if self.ignore_ssl_errors:
             reply.ignoreSslErrors()
         else:
-            self.logger.warning('SSL certificate error: %s', url)
+            self.logger.warning('SSL certificate error: %s',
+                                reply.url().toString())
 
     def __enter__(self):
         return self

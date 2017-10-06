@@ -3,23 +3,23 @@
 
 from __future__ import absolute_import
 
-import sys
-import os
+import io
 import json
 import logging
+import os
+import sys
 import unittest
-try:
-    import cookielib
-except ImportError:
-    from http import cookiejar as cookielib
 
 from ghost import GhostTestCase
 from ghost.ghost import default_user_agent
 
 from .app import app
 
+try:
+    import cookielib
+except ImportError:
+    from http import cookiejar as cookielib
 
-PY3 = sys.version > '3'
 
 PORT = 5000
 
@@ -58,14 +58,11 @@ class GhostTest(GhostTestCase):
 
     def test_extra_resource_content(self):
         page, resources = self.session.open(base_url)
-        self.assertIn('globals alert', resources[4].content)
+        self.assertIn(b'globals alert', resources[4].content)
 
     def test_extra_resource_binaries(self):
         page, resources = self.session.open(base_url)
-        self.assertEqual(
-            resources[5].content.__class__.__name__,
-            'QByteArray',
-        )
+        self.assertIsInstance(resources[5].content, bytes)
 
     def test_wait_for_selector(self):
         page, resources = self.session.open(base_url)
@@ -378,12 +375,8 @@ class GhostTest(GhostTestCase):
             'static',
             'foo.tar.gz',
         )
-        if PY3:
-            f = open(file_path, 'r', encoding='latin-1')
-        else:
-            f = open(file_path, 'r')
-        foo = f.read(1024)
-        f.close()
+        with io.open(file_path, 'rb') as f:
+            foo = f.read()
 
         self.assertEqual(resources[0].content, foo)
 
@@ -442,7 +435,7 @@ class GhostTest(GhostTestCase):
                 "%sdump" % base_url,
                 **kwargs
             )
-            data = json.loads(page.content)
+            data = json.loads(page.content.decode('utf-8'))
             return data['headers']['User-Agent']
 
         session = self.session
