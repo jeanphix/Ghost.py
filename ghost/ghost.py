@@ -895,7 +895,10 @@ class Session(object):
             QtCookieJar.setAllCookies(allCookies)
 
         def toQtCookie(PyCookie):
-            qc = QNetworkCookie(PyCookie.name, PyCookie.value)
+            qc = QNetworkCookie(
+                PyCookie.name.encode('utf-8'),
+                PyCookie.value.encode('utf-8')
+            )
             qc.setSecure(PyCookie.secure)
             if PyCookie.path_specified:
                 qc.setPath(PyCookie.path)
