@@ -11,7 +11,7 @@ import sys
 import unittest
 
 from ghost import GhostTestCase
-from ghost.ghost import default_user_agent
+from ghost.ghost import binding, default_user_agent
 
 from .app import app
 
@@ -340,8 +340,11 @@ class GhostTest(GhostTestCase):
             "document.querySelector('option[value=one]').selected;")
         self.assertFalse(value)
 
-    @unittest.skipIf(os.environ.get('TRAVIS') == "true",
-                     'Running on Travis CI')
+    @unittest.skipIf(
+        binding.__name__ == 'PyQt5' or
+        os.environ.get('TRAVIS') == "true",
+        'Running on Travis CI or using PyQt5'
+    )
     def test_set_field_value_simple_file_field(self):
         self.session.open(base_url)
         self.session.set_field_value(
