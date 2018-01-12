@@ -120,10 +120,7 @@ class GhostWebPage(QtWebKit.QWebPage):
         self.session.logger.info("alert('%s')", message)
 
     def _get_value(self, value):
-        if callable(value):
-            return value()
-
-        return value
+        return value() if callable(value) else value
 
     def javaScriptConfirm(self, frame, message):
         """Checks if session is waiting for confirm, then returns the right
