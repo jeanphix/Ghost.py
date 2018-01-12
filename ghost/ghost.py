@@ -153,7 +153,8 @@ class GhostWebPage(QWebPage):
         self.session.logger.info("prompt('%s')", message)
         value = self._get_value(value)
 
-        # PySide and PyQt4 (on python3) return a (bool, string) 2-tuple
+        # PySide and PyQt4 (on python3) and PyQt5 return a (bool, string)
+        # 2-tuple
         # In some instance (like in unittest), value is not a string so set
         # a realistic replacement value
         #
@@ -168,7 +169,7 @@ class GhostWebPage(QWebPage):
             )
 
         if result is None:
-            # PySide and PyQt4/PY3 return branch
+            # PySide, PyQt4/PY3 and PyQt5 return branch
             return True, value
 
         result.append(unicode(value))
