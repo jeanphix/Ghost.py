@@ -33,6 +33,19 @@ matrix:
         apt:
           packages:
             - python3-pyqt4
+    # Package does not exist in trusty
+    #- python: "2.7"
+    #  env: TOXENV=py27-pyqt5
+    #  addons:
+    #    apt:
+    #      packages:
+    #        - python-pyqt5.qtwebkit
+    - python: "3.4"
+      env: TOXENV=py34-pyqt5
+      addons:
+        apt:
+          packages:
+            - python3-pyqt5.qtwebkit
 env:
   global:
     - DISPLAY=:99
