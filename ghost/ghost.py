@@ -149,13 +149,23 @@ class GhostWebPage(QtWebKit.QWebPage):
         value = self.session._prompt_expected
         self.session.logger.info("prompt('%s')", message)
         value = self._get_value(value)
+
+        # PySide and PyQt4 (on python3) return a (bool, string) 2-tuple
+        # In some instance (like in unittest), value is not a string so set
+        # a realistic replacement value
+        #
+        # FIXME: check if it makes sense to return false according to
+        # self.session._prompt_expected
+        if not isinstance(value, str):
+            value = ''
+
         if value == '':
             self.session.logger.warning(
                 "'%s' prompt filled with empty string", message,
             )
 
         if result is None:
-            # PySide
+            # PySide and PyQt4/PY3 return branch
             return True, value
 
         result.append(unicode(value))
