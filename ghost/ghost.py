@@ -261,7 +261,7 @@ def reply_ready_peek(reply):
     :param reply: QNetworkReply object.
     """
     if not hasattr(reply, 'data'):
-        reply.data = ''
+        reply.data = b'' if PY3 else ''
 
     reply.data += reply.peek(reply.bytesAvailable())
 
