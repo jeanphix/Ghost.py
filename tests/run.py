@@ -351,8 +351,9 @@ class GhostTest(GhostTestCase):
             self.assertTrue(os.path.isfile(file_path),
                             msg='QtWebKit did not provide local file name')
             os.remove(file_path)
-        finally:
+        except AssertionError:
             os.remove(os.path.join(os.path.dirname(__file__), 'uploaded_'))
+            raise
 
     def test_basic_http_auth_success(self):
         page, resources = self.session.open(
