@@ -280,6 +280,12 @@ def reply_destroyed(reply):
     """
     key = id(reply)
     qnam = reply.manager()
+
+    # XXX: in some instance PySide and PyQt4 appear to attach the original
+    # QNetworkAccessManager instead of our custom class
+    if not isinstance(qnam, NetworkAccessManager):
+        return
+
     qnam.logger.debug('Reply for %s destroyed', reply.url().toString())
 
     if key in qnam._registry:
