@@ -206,8 +206,8 @@ class GhostTest(GhostTestCase):
         self.assertEqual(msg, 'you denied!')
 
     @unittest.skipIf(os.environ.get('TRAVIS') == "true" and
-                     os.environ.get('TOXENV') == "py34-pyqt4",
-                     'Running on Travis CI/Python 3.4/PyQt4')
+                     os.environ.get('TOXENV') in ("py34-pyqt4", "py34-pyqt5"),
+                     'Test broken in this configuration on Travis CI')
     def test_prompt(self):
         self.session.open(base_url)
         with self.session.prompt('my value'):
@@ -216,8 +216,8 @@ class GhostTest(GhostTestCase):
         self.assertEqual(value, 'my value')
 
     @unittest.skipIf(os.environ.get('TRAVIS') == "true" and
-                     os.environ.get('TOXENV') == "py34-pyqt4",
-                     'Running on Travis CI/Python 3.4/PyQt4')
+                     os.environ.get('TOXENV') in ("py34-pyqt4", "py34-pyqt5"),
+                     'Test broken in this configuration on Travis CI')
     def test_prompt_callable(self):
         self.session.open(base_url)
         with self.session.prompt(lambda: 'another value'):
