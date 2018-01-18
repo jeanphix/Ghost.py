@@ -123,10 +123,7 @@ class GhostWebPage(QWebPage):
         self.session.logger.info("alert('%s')", message)
 
     def _get_value(self, value):
-        if callable(value):
-            return value()
-
-        return value
+        return value() if callable(value) else value
 
     def javaScriptConfirm(self, frame, message):
         """Checks if session is waiting for confirm, then returns the right
@@ -155,13 +152,23 @@ class GhostWebPage(QWebPage):
         value = self.session._prompt_expected
         self.session.logger.info("prompt('%s')", message)
         value = self._get_value(value)
+
+        # PySide and PyQt4 (on python3) return a (bool, string) 2-tuple
+        # In some instance (like in unittest), value is not a string so set
+        # a realistic replacement value
+        #
+        # FIXME: check if it makes sense to return false according to
+        # self.session._prompt_expected
+        if not isinstance(value, str):
+            value = ''
+
         if value == '':
             self.session.logger.warning(
                 "'%s' prompt filled with empty string", message,
             )
 
         if result is None:
-            # PySide
+            # PySide and PyQt4/PY3 return branch
             return True, value
 
         result.append(unicode(value))
@@ -276,6 +283,12 @@ def reply_destroyed(reply):
     """
     key = id(reply)
     qnam = reply.manager()
+
+    # XXX: in some instance PySide and PyQt4 appear to attach the original
+    # QNetworkAccessManager instead of our custom class
+    if not isinstance(qnam, NetworkAccessManager):
+        return
+
     qnam.logger.debug('Reply for %s destroyed', reply.url().toString())
 
     if key in qnam._registry:
