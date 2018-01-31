@@ -1380,7 +1380,6 @@ class Session(object):
         """Called back when page is loaded.
         """
         self.loaded = True
-        self.ghost._app.processEvents()
 
     def _page_load_started(self):
         """Called back when page load started.
