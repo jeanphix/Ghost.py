@@ -236,7 +236,14 @@ class HttpResource(object):
             charset = re.search(r'charset=([^;]+)', content_type)
             # As specified in RFC 2616 Section 3.7.1
             charset = charset.expand(r'\1') if charset else 'iso-8859-1'
-            self.content = qt_type_to_python(content, encoding=charset)
+            try:
+                self.content = qt_type_to_python(content,
+                                                 encoding=charset)
+            except UnicodeDecodeError:
+                # Server signaled text content but for some reason sent
+                # non-text content. Reset Content-Type header.
+                self.content = content.data()
+                self.headers['Content-Type'] = 'application/octet-stream'
         else:
             self.content = content.data()
 
