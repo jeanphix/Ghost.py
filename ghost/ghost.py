@@ -466,7 +466,6 @@ class Session(object):
     _confirm_expected = None
     _prompt_expected = None
     _upload_file = None
-    _app = None
 
     def __init__(
         self,
