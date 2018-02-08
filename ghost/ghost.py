@@ -411,20 +411,23 @@ class Ghost(object):
             self.logger.debug('Using X11 display server %s',
                               os.environ['DISPLAY'])
 
-        self.logger.info('Initializing QT application')
-        Ghost._app = QApplication.instance() or QApplication(['ghost'])
-
         qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
         if plugin_path:
             for p in plugin_path:
-                Ghost._app.addLibraryPath(p)
+                self.app.addLibraryPath(p)
 
         self.defaults = defaults or dict()
 
+    @property
+    def app(self):
+        if Ghost._app is None:
+            self.logger.info('Initializing QT application')
+            Ghost._app = QApplication.instance() or QApplication(['ghost'])
+        return Ghost._app
+
     def exit(self):
-        if self._app:
-            self.logger.info('Stopping QT application')
-            self._app.quit()
+        self.logger.info('Stopping QT application')
+        self.app.quit()
         if hasattr(self, 'xvfb'):
             self.logger.debug('Terminating Xvfb display server')
             self.xvfb.stop()
@@ -1266,14 +1269,14 @@ class Session(object):
         """
         self.logger.debug('Showing webview')
         self.webview.show()
-        self.ghost._app.processEvents()
+        self.ghost.app.processEvents()
 
     def sleep(self, value=0.1):
         started_at = time.time()
 
         while time.time() <= (started_at + value):
             time.sleep(value / 10)
-            self.ghost._app.processEvents()
+            self.ghost.app.processEvents()
 
     def wait_for(self, condition, timeout_message, timeout=None):
         """Waits until condition is True.
