@@ -92,7 +92,7 @@ class GhostWebPage(QtWebKit.QWebPage):
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
     """
-    def __init__(self, app, session):
+    def __init__(self, session):
         self.session = session
         super(GhostWebPage, self).__init__()
 
@@ -504,7 +504,7 @@ class Session(object):
         self.display = display
 
         self.popup_messages = []
-        self.page = web_page_class(self.ghost._app, self)
+        self.page = web_page_class(self)
 
         if network_access_manager_class is not None:
             self.page.setNetworkAccessManager(
