@@ -831,11 +831,10 @@ class Session(object):
         """Exits all Qt widgets."""
         self.logger.info("Closing session")
         self.page.deleteLater()
-        self.ghost._app.processEvents()
-        del self.webview
-        del self.cookie_jar
-        del self.manager
-        del self.main_frame
+        self.webview.deleteLater()
+        self.cookie_jar.deleteLater()
+        self.manager.deleteLater()
+        self.main_frame.deleteLater()
 
     @can_load_page
     def fill(self, selector, values):
