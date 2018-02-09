@@ -3,6 +3,7 @@ include ghost/ghost.py
 include ghost/test.py
 include ghost/ext/django/test.py
 include tox.ini
+exclude tests/ghost
 recursive-include docs *
 recursive-exclude docs *.pyc
 recursive-exclude docs *.pyo

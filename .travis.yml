@@ -1,19 +1,51 @@
 dist: trusty
 sudo: false
 language: python
+virtualenv:
+  system_site_packages: true
 cache:
   pip: true
-  ccache: true
   directories:
     - .eggs
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-addons:
-  apt:
-    packages:
-      - python-pyside.qtwebkit
+matrix:
+  include:
+    - python: "2.7"
+      env: TOXENV=py27-pysidesp
+      addons:
+        apt:
+          packages:
+            - python-pyside.qtwebkit
+    - python: "3.4"
+      env: TOXENV=py34-pysidesp
+      addons:
+        apt:
+          packages:
+            - python3-pyside.qtwebkit
+    - python: "2.7"
+      env: TOXENV=py27-pyqt4
+      addons:
+        apt:
+          packages:
+            - python-qt4
+    - python: "3.4"
+      env: TOXENV=py34-pyqt4
+      addons:
+        apt:
+          packages:
+            - python3-pyqt4
+    # Package does not exist in trusty
+    #- python: "2.7"
+    #  env: TOXENV=py27-pyqt5
+    #  addons:
+    #    apt:
+    #      packages:
+    #        - python-pyqt5.qtwebkit
+    - python: "3.4"
+      env: TOXENV=py34-pyqt5
+      addons:
+        apt:
+          packages:
+            - python3-pyqt5.qtwebkit
 env:
   global:
     - DISPLAY=:99
@@ -25,4 +57,4 @@ before_script:
 install:
   - pip install tox
 script:
-  - tox -vvv --sitepackages -e py${TRAVIS_PYTHON_VERSION//.}-pyside
+  - tox -vvv
