@@ -370,6 +370,13 @@ class NetworkAccessManager(QNetworkAccessManager):
         """Count in-flight QNetworkReply."""
         return len(self._registry)
 
+    def __del__(self):
+        self.logger.debug('Deleting QNetworkAccessManager %s', id(self))
+        for _, reply in self._registry.items():
+            self.logger.debug('Aborting %s', reply.url().toString())
+            reply.abort()
+            reply.deleteLater()
+
 
 class Ghost(object):
     """`Ghost` manages a Qt application.
