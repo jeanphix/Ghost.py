@@ -34,6 +34,8 @@ from .bindings import (
     QtNetwork,
     QtWarningMsg,
     QtWebKit,
+    QWebView,
+    QWebPage,
     QUrl,
     binding,
     qInstallMsgHandler,
@@ -77,7 +79,8 @@ class QTMessageProxy(object):
     def __init__(self, logger):
         self.logger = logger
 
-    def __call__(self, msgType, msg):
+    def __call__(self, *args):
+        msgType, msg = args[0], args[-1]
         levels = {
             QtDebugMsg: logging.DEBUG,
             QtWarningMsg: logging.WARNING,
@@ -87,7 +90,7 @@ class QTMessageProxy(object):
         self.logger.log(levels[msgType], msg)
 
 
-class GhostWebPage(QtWebKit.QWebPage):
+class GhostWebPage(QWebPage):
     """Overrides QtWebKit.QWebPage in order to intercept some graphical
     behaviours like alert(), confirm().
     Also intercepts client side console.log().
@@ -150,7 +153,8 @@ class GhostWebPage(QtWebKit.QWebPage):
         self.session.logger.info("prompt('%s')", message)
         value = self._get_value(value)
 
-        # PySide and PyQt4 (on python3) return a (bool, string) 2-tuple
+        # PySide and PyQt4 (on python3) and PyQt5 return a (bool, string)
+        # 2-tuple
         # In some instance (like in unittest), value is not a string so set
         # a realistic replacement value
         #
@@ -165,7 +169,7 @@ class GhostWebPage(QtWebKit.QWebPage):
             )
 
         if result is None:
-            # PySide and PyQt4/PY3 return branch
+            # PySide, PyQt4/PY3 and PyQt5 return branch
             return True, value
 
         result.append(unicode(value))
@@ -264,7 +268,7 @@ def reply_ready_peek(reply):
     :param reply: QNetworkReply object.
     """
     if not hasattr(reply, 'data'):
-        reply.data = ''
+        reply.data = b'' if PY3 else ''
 
     reply.data += reply.peek(reply.bytesAvailable())
 
@@ -416,7 +420,7 @@ class Ghost(object):
         defaults=None,
     ):
         if not binding:
-            raise RuntimeError("Ghost.py requires PySide or PyQt4")
+            raise RuntimeError("Ghost.py requires PySide, PyQt4 or PyQt5")
 
         self.logger = logger.getChild('application')
 
@@ -593,7 +597,7 @@ class Session(object):
 
         self.main_frame = self.page.mainFrame()
 
-        class GhostQWebView(QtWebKit.QWebView):
+        class GhostQWebView(QWebView):
             def sizeHint(self):
                 return QSize(*viewport_size)
 
@@ -766,7 +770,7 @@ class Session(object):
             printer.setFullPage(True)
         printer.setOutputFileName(path)
         if self.webview is None:
-            self.webview = QtWebKit.QWebView()
+            self.webview = QWebView()
             self.webview.setPage(self.page)
         self.webview.setZoomFactor(zoom_factor)
         self.webview.print_(printer)
@@ -927,7 +931,10 @@ class Session(object):
             QtCookieJar.setAllCookies(allCookies)
 
         def toQtCookie(PyCookie):
-            qc = QNetworkCookie(PyCookie.name, PyCookie.value)
+            qc = QNetworkCookie(
+                PyCookie.name.encode('utf-8'),
+                PyCookie.value.encode('utf-8')
+            )
             qc.setSecure(PyCookie.secure)
             if PyCookie.path_specified:
                 qc.setPath(PyCookie.path)
