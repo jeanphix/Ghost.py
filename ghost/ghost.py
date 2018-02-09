@@ -286,18 +286,26 @@ def reply_destroyed(reply):
     :param reply: QNetworkReply object.
     """
     key = id(reply)
-    qnam = reply.manager()
+    try:
+        qnam = reply.manager()
+    except (RuntimeError, AttributeError):
+        # reply is already destroyed
+        reply_logger = logging.getLogger('ghost.reply.destroyed')
+        reply_logger.debug('destroyed: %s', key)
+        return
 
-    # XXX: in some instance PySide and PyQt4 appear to attach the original
-    # QNetworkAccessManager instead of our custom class
+    # In some instance PySide and PyQt4 appear to attach the original
+    # QNetworkAccessManager instead of our custom class (most likely because
+    # the manager was destroyed already)
     if not isinstance(qnam, NetworkAccessManager):
         return
 
-    qnam.logger.debug('Reply for %s destroyed', reply.url().toString())
+    reply_logger = qnam.logger
+    reply_logger.debug('Reply for %s destroyed', reply.url().toString())
 
     if key in qnam._registry:
         qnam._registry.pop(key)
-        qnam.logger.warning(
+        reply_logger.warning(
             'Reply for %s did not trigger finished or error signal',
             reply.url().toString()
         )
@@ -305,14 +313,26 @@ def reply_destroyed(reply):
 
 def reply_download_progress(reply, received, total):
     """Log `reply` download progress."""
-    reply.manager().logger.debug('Downloading content of %s: %s of %s',
-                                 reply.url().toString(), received, total)
+    try:
+        reply_logger = reply.manager().logger
+        reply_logger.debug('Downloading content of %s: %s of %s',
+                           reply.url().toString(), received, total)
+    except (RuntimeError, AttributeError):
+        reply_logger = logging.getLogger('ghost.reply.downloadProgress')
+        reply_logger.debug('Downloading content of reply %s: %s of %s',
+                           id(reply), received, total)
 
 
 def _reply_error_callback(reply, error_code):
     """Log an error message on QtNetworkReply error."""
-    reply.manager().logger.error('Reply for %s encountered an error: %s',
-                                 reply.url().toString(), reply.errorString())
+    try:
+        reply_logger = reply.manager().logger
+        reply_logger.error('Reply for %s encountered an error: %s',
+                           reply.url().toString(), reply.errorString())
+    except (RuntimeError, AttributeError):
+        reply_logger = logging.getLogger('ghost.reply.error')
+        reply_logger.error('Reply for reply %s encountered an error: %s',
+                           id(reply), error_code)
 
 
 class NetworkAccessManager(QNetworkAccessManager):
@@ -350,7 +370,8 @@ class NetworkAccessManager(QNetworkAccessManager):
         reply.downloadProgress.connect(partial(reply_download_progress, reply))
         reply.error.connect(partial(_reply_error_callback, reply))
 
-        self.logger.debug('Registring reply for %s', reply.url().toString())
+        self.logger.debug('Registring reply %s for %s',
+                          id(reply), reply.url().toString())
         self._registry[id(reply)] = reply
         return reply
 
