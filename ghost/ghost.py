@@ -424,7 +424,7 @@ class Ghost(object):
 
         qt_platform = os.environ.get('QT_QPA_PLATFORM', 'xcb')
         self.logger = logger.getChild('application')
-        self.logger.info('Using QT_QPA_PLATFORM=%s', platform)
+        self.logger.info('Using QT_QPA_PLATFORM=%s', qt_platform)
 
         if qt_platform == 'xcb':
             if (
