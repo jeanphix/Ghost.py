@@ -422,26 +422,31 @@ class Ghost(object):
         if not binding:
             raise RuntimeError("Ghost.py requires PySide, PyQt4 or PyQt5")
 
+        qt_platform = os.environ.get('QT_QPA_PLATFORM', 'xcb')
         self.logger = logger.getChild('application')
+        self.logger.info('Using QT_QPA_PLATFORM=%s', platform)
 
-        if (
-            sys.platform.startswith('linux') and
-            'DISPLAY' not in os.environ
-        ):
-            try:
-                self.logger.debug('Using Xvfb display server')
-                self.xvfb = Xvfb(
-                    width=800,
-                    height=600,
-                )
-                self.xvfb.start()
+        if qt_platform == 'xcb':
+            if (
+                sys.platform.startswith('linux') and
+                'DISPLAY' not in os.environ
+            ):
+                try:
+                    self.logger.debug('Using Xvfb display server')
+                    self.xvfb = Xvfb(
+                        width=display_size[0],
+                        height=display_size[1],
+                    )
+                    self.xvfb.start()
 
-            except OSError:
-                raise Error('Xvfb is required to a ghost run outside ' +
-                            'an X instance')
-        else:
-            self.logger.debug('Using X11 display server %s',
-                              os.environ['DISPLAY'])
+                except OSError:
+                    raise Error('Xvfb is required to a ghost run outside '
+                                'an X instance')
+            else:
+                self.logger.debug('Using X11 display server %s',
+                                  os.environ['DISPLAY'])
+
+        # !!! Qt configuration for non X11 case is left to module consumers
 
         qInstallMsgHandler(QTMessageProxy(logging.getLogger('qt')))
         if plugin_path:
