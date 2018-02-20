@@ -59,11 +59,27 @@ class GhostTest(GhostTestCase):
 
     def test_extra_resource_content(self):
         page, resources = self.session.open(base_url)
-        self.assertIn(b'globals alert', resources[4].content)
+        self.assertEqual(len(resources), 6)
+
+        for resource in resources:
+            if resource.url.endswith('app.js'):
+                break
+        else:
+            raise AssertionError('app.js was not downloaded')
+
+        self.assertIn(b'globals alert', resource.content)
 
     def test_extra_resource_binaries(self):
         page, resources = self.session.open(base_url)
-        self.assertIsInstance(resources[5].content, bytes)
+        self.assertEqual(len(resources), 6)
+
+        for resource in resources:
+            if resource.url.endswith('blackhat.jpg'):
+                break
+        else:
+            raise AssertionError('blackhat.jpg was not downloaded')
+
+        self.assertIsInstance(resource.content, bytes)
 
     def test_wait_for_selector(self):
         page, resources = self.session.open(base_url)
