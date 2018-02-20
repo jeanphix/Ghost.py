@@ -42,9 +42,9 @@ from .bindings import (
 )
 
 try:
-    from cookielib import Cookie, LWPCookieJar
+    from cookielib import Cookie, CookieJar, LWPCookieJar
 except ImportError:
-    from http.cookiejar import Cookie, LWPCookieJar
+    from http.cookiejar import Cookie, CookieJar, LWPCookieJar
 
 __version__ = "0.2.3"
 
@@ -960,11 +960,11 @@ class Session(object):
             #   py cookie.rest / QNetworkCookie.setHttpOnly()
             return qc
 
-        if cookie_storage.__class__.__name__ == 'str':
+        if isinstance(cookie_storage, str):
             cj = LWPCookieJar(cookie_storage)
             cj.load()
             toQtCookieJar(cj, self.cookie_jar)
-        elif cookie_storage.__class__.__name__.endswith('CookieJar'):
+        elif isinstance(cookie_storage, CookieJar):
             toQtCookieJar(cookie_storage, self.cookie_jar)
         else:
             raise ValueError('unsupported cookie_storage type.')
@@ -1137,11 +1137,11 @@ class Session(object):
                 rest,
             )
 
-        if cookie_storage.__class__.__name__ == 'str':
+        if isinstance(cookie_storage, str):
             cj = LWPCookieJar(cookie_storage)
             toPyCookieJar(self.cookie_jar, cj)
             cj.save()
-        elif cookie_storage.__class__.__name__.endswith('CookieJar'):
+        elif isinstance(cookie_storage, CookieJar):
             toPyCookieJar(self.cookie_jar, cookie_storage)
         else:
             raise ValueError('unsupported cookie_storage type.')
