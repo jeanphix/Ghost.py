@@ -434,8 +434,8 @@ class Ghost(object):
                 try:
                     self.logger.debug('Using Xvfb display server')
                     self.xvfb = Xvfb(
-                        width=display_size[0],
-                        height=display_size[1],
+                        width=800,
+                        height=600,
                     )
                     self.xvfb.start()
 
