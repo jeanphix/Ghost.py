@@ -43,8 +43,8 @@ def _import(name):
 
     name = "%s.%s" % (BINDING.__name__, name)
     module = __import__(name)
-    for n in name.split(".")[1:]:
-        module = getattr(module, n)
+    for component in name.split(".")[1:]:
+        module = getattr(module, component)
     return module
 
 
