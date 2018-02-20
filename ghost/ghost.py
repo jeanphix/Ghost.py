@@ -398,9 +398,16 @@ class NetworkAccessManager(QNetworkAccessManager):
     def __del__(self):
         self.logger.debug('Deleting QNetworkAccessManager %s', id(self))
         for _, reply in self._registry.items():
-            self.logger.debug('Aborting %s', reply.url().toString())
-            reply.abort()
-            reply.deleteLater()
+            try:
+                self.logger.debug('Aborting %s', reply.url().toString())
+                reply.abort()
+                reply.deleteLater()
+            except RuntimeError:
+                # reply could be deleted already because QApplication stopped
+                # before Python triggers QNAM.__del__, like on TimeoutError
+                self.logger.debug('Reply for reply %s already deleted',
+                                  id(reply))
+                pass
 
 
 class Ghost(object):
