@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
-PY3 = sys.version > '3'
 
-if PY3:
-    unicode = str
-    long = int
 
 
 binding = None
