@@ -1187,7 +1187,7 @@ class Session(object):
             el.setFocus()
             el.setPlainText(value)
 
-        res, ressources = None, []
+        res, resources = None, []
         element = self.main_frame.findFirstElement(selector)
         if element.isNull():
             raise Error('can\'t find element for %s"' % selector)
@@ -1245,7 +1245,7 @@ class Session(object):
         if blur:
             self.call(selector, 'blur')
 
-        return res, ressources
+        return res, resources
 
     def set_proxy(
         self,
