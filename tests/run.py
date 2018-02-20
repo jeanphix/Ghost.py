@@ -11,7 +11,8 @@ import sys
 import unittest
 
 from ghost import GhostTestCase
-from ghost.ghost import binding, default_user_agent
+from ghost.bindings import BINDING_NAME
+from ghost.ghost import default_user_agent
 
 from .app import app
 
@@ -341,7 +342,7 @@ class GhostTest(GhostTestCase):
         self.assertFalse(value)
 
     @unittest.skipIf(
-        binding.__name__ == 'PyQt5' or
+        BINDING_NAME == 'PyQt5' or
         os.environ.get('TRAVIS') == "true",
         'Running on Travis CI or using PyQt5'
     )

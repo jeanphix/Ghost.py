@@ -37,7 +37,7 @@ from .bindings import (
     QWebView,
     QWebPage,
     QUrl,
-    binding,
+    BINDING,
     qInstallMsgHandler,
 )
 
@@ -419,7 +419,7 @@ class Ghost(object):
         plugin_path=['/usr/lib/mozilla/plugins', ],
         defaults=None,
     ):
-        if not binding:
+        if not BINDING:
             raise RuntimeError("Ghost.py requires PySide, PyQt4 or PyQt5")
 
         qt_platform = os.environ.get('QT_QPA_PLATFORM', 'xcb')
