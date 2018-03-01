@@ -226,7 +226,7 @@ class HttpResource(object):
     """
     def __init__(self, session, reply, content):
         self.session = session
-        self.url = reply.url().toString()
+        self.url = unicode(reply.url().toString())
         self.headers = {
             qt_type_to_python(header):
             qt_type_to_python(reply.rawHeader(header))
