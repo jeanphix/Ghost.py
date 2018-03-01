@@ -356,7 +356,8 @@ class NetworkAccessManager(QNetworkAccessManager):
 
     def createRequest(self, operation, request, data):
         """Create a new QNetworkReply."""
-        if self._regex and self._regex.findall(str(request.url().toString())):
+        if self._regex and self._regex.findall(
+                unicode(request.url().toString())):
             reply = super(NetworkAccessManager, self).createRequest(
                 QNetworkAccessManager.GetOperation,
                 QNetworkRequest(QUrl())
