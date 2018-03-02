@@ -79,6 +79,7 @@ QtNetwork = _import("QtNetwork")
 QNetworkRequest = QtNetwork.QNetworkRequest
 QNetworkAccessManager = QtNetwork.QNetworkAccessManager
 QNetworkCookieJar = QtNetwork.QNetworkCookieJar
+QNetworkDiskCache = QtNetwork.QNetworkDiskCache
 QNetworkProxy = QtNetwork.QNetworkProxy
 QNetworkCookie = QtNetwork.QNetworkCookie
 QSslConfiguration = QtNetwork.QSslConfiguration

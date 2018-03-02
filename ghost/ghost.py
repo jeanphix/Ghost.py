@@ -19,6 +19,7 @@ from .bindings import (
     QNetworkAccessManager,
     QNetworkCookie,
     QNetworkCookieJar,
+    QNetworkDiskCache,
     QNetworkProxy,
     QNetworkRequest,
     QPainter,
@@ -499,6 +500,8 @@ class Session(object):
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
+    :param cache_dir: A directory path where to store cache data. If None,
+      will default to XDG_CACHE_HOME.
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param download_images: Indicate if the browser should download images
@@ -521,6 +524,7 @@ class Session(object):
         display=False,
         viewport_size=(800, 600),
         ignore_ssl_errors=True,
+        cache_dir=None,
         plugins_enabled=False,
         java_enabled=False,
         javascript_enabled=True,
@@ -557,6 +561,16 @@ class Session(object):
             self.page.setNetworkAccessManager(
                 network_access_manager_class(exclude_regex=exclude,
                                              logger=self.logger))
+
+        # Network disk cache
+        cache = QNetworkDiskCache()
+        if cache_dir:
+            cache.setCacheDirectory(cache_dir)
+        else:
+            cache.setCacheDirectory(
+                os.environ.get('XDG_CACHE_HOME',
+                               os.path.expanduser("~/.cache/ghost-py")))
+        self.page.networkAccessManager().setCache(cache)
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
         QtWebKit.QWebSettings.setObjectCacheCapacities(0, 0, 0)
@@ -844,6 +858,12 @@ class Session(object):
         """Clears the alert message"""
         self._alert = None
 
+    def clear_cache(self):
+        """Clear disk cache."""
+        cache = self.manager.cache()
+        if cache:
+            cache.clear()
+
     @can_load_page
     def evaluate(self, script):
         """Evaluates script in page frame.
@@ -983,6 +1003,7 @@ class Session(object):
         client_certificate=None,
         encode_url=True,
         user_agent=None,
+        use_cache=True,
     ):
         """Opens a web page.
 
@@ -1004,6 +1025,7 @@ class Session(object):
         "key_path" both paths corresponding to the certificate and key files
         :param encode_url Set to true if the url have to be encoded
         :param user_agent An option user agent string.
+        :param use_cache: Whether to use disk cache.
         :return: Page resource, and all loaded resources, unless wait
         is False, in which case it returns None.
         """
@@ -1048,9 +1070,17 @@ class Session(object):
             request = QNetworkRequest(QUrl(address))
         else:
             request = QNetworkRequest(QUrl.fromEncoded(address))
-        request.CacheLoadControl(0)
+
+        if use_cache and self.manager.cache() is not None:
+            self.logger.debug('Using disk cache')
+            request.CacheLoadControl(1)
+        else:
+            self.logger.debug('Not using disk cache')
+            request.CacheLoadControl(0)
+
         for header in headers:
             request.setRawHeader(header, headers[header])
+
         self._auth = auth
         self._auth_attempt = 0  # Avoids reccursion
 
