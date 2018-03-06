@@ -500,8 +500,9 @@ class Session(object):
     :param display: A boolean that tells ghost to displays UI.
     :param viewport_size: A tuple that sets initial viewport size.
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
-    :param cache_dir: A directory path where to store cache data. If None,
-      will default to XDG_CACHE_HOME.
+    :param cache_dir: A 2-tuple containing the path where to store cache data
+      and its maximum size in bytes. If None, will default to
+      ($XDG_CACHE_HOME, 50MB).
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param download_images: Indicate if the browser should download images
@@ -565,11 +566,13 @@ class Session(object):
         # Network disk cache
         cache = QNetworkDiskCache()
         if cache_dir:
-            cache.setCacheDirectory(cache_dir)
+            cache.setCacheDirectory(cache_dir[0])
+            cache.setMaximumCacheSize(cache_dir[1])
         else:
             cache.setCacheDirectory(
                 os.environ.get('XDG_CACHE_HOME',
                                os.path.expanduser("~/.cache/ghost-py")))
+            cache.setMaximumCacheSize(50 * 1024 * 1024)
         self.page.networkAccessManager().setCache(cache)
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
