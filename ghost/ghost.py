@@ -502,7 +502,8 @@ class Session(object):
     :param ignore_ssl_errors: A boolean that forces ignore ssl errors.
     :param cache_dir: A 2-tuple containing the path where to store cache data
       and its maximum size in bytes. If None, will default to
-      ($XDG_CACHE_HOME, 50MB).
+      $XDG_CACHE_HOME directory and either GHOST_CACHE_SIZE environment
+      variable (in MB) or 50MB.
     :param plugins_enabled: Enable plugins (like Flash).
     :param java_enabled: Enable Java JRE.
     :param download_images: Indicate if the browser should download images
@@ -572,7 +573,9 @@ class Session(object):
             cache.setCacheDirectory(
                 os.environ.get('XDG_CACHE_HOME',
                                os.path.expanduser("~/.cache/ghost-py")))
-            cache.setMaximumCacheSize(50 * 1024 * 1024)
+            cache.setMaximumCacheSize(
+                int(os.environ.get('GHOST_CACHE_SIZE', 50)) * 1024 * 1024
+            )
         self.page.networkAccessManager().setCache(cache)
 
         QtWebKit.QWebSettings.setMaximumPagesInCache(0)
