@@ -564,7 +564,7 @@ class Session(object):
                                              logger=self.logger))
 
         # Network disk cache
-        cache = QNetworkDiskCache()
+        cache = QNetworkDiskCache(self.ghost.app)
         if cache_dir:
             cache.setCacheDirectory(cache_dir[0])
             cache.setMaximumCacheSize(cache_dir[1])
