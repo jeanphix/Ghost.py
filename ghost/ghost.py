@@ -498,7 +498,7 @@ class Session(object):
         """Returns snapshot as QImage.
 
         :param region: An optional tuple containing region as pixel
-            coodinates.
+            coordinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
@@ -560,7 +560,7 @@ class Session(object):
 
         :param path: The destination path.
         :param region: An optional tuple containing region as pixel
-            coodinates.
+            coordinates.
         :param selector: A selector targeted the element to crop on.
         :param format: The output image format.
         """
